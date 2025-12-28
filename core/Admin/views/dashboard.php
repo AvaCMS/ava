@@ -78,86 +78,12 @@ $totalPublished = array_sum(array_column($content, 'published'));
 $totalDrafts = array_sum(array_column($content, 'draft'));
 $totalTerms = array_sum($taxonomies);
 $renderTime = round((microtime(true) - $system['request_time']) * 1000, 2);
+$activePage = 'dashboard';
 ?>
 
-<div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+<?php include __DIR__ . '/_sidebar.php'; ?>
 
 <div class="layout">
-    <aside class="sidebar" id="sidebar">
-        <div class="logo">
-            <h1>✨ Ava <span class="version-badge">v<?= htmlspecialchars($version ?? '1.0') ?></span></h1>
-        </div>
-        <nav class="nav">
-            <div class="nav-section">Overview</div>
-            <a href="<?= $admin_url ?>" class="nav-item active">
-                <span class="material-symbols-rounded">dashboard</span>
-                Dashboard
-            </a>
-
-            <div class="nav-section">Content</div>
-            <?php foreach ($content as $type => $stats): ?>
-            <a href="<?= $admin_url ?>/content/<?= $type ?>" class="nav-item">
-                <span class="material-symbols-rounded"><?= $type === 'page' ? 'description' : 'article' ?></span>
-                <?= ucfirst($type) ?>s
-                <span class="nav-count"><?= $stats['total'] ?></span>
-            </a>
-            <?php endforeach; ?>
-
-            <div class="nav-section">Taxonomies</div>
-            <?php foreach ($taxonomies as $tax => $count): 
-                $taxConfig = $taxonomyConfig[$tax] ?? [];
-            ?>
-            <a href="<?= $admin_url ?>/taxonomy/<?= $tax ?>" class="nav-item">
-                <span class="material-symbols-rounded"><?= ($taxConfig['hierarchical'] ?? false) ? 'folder' : 'sell' ?></span>
-                <?= htmlspecialchars($taxConfig['label'] ?? ucfirst($tax)) ?>
-                <span class="nav-count"><?= $count ?></span>
-            </a>
-            <?php endforeach; ?>
-
-            <div class="nav-section">Tools</div>
-            <a href="<?= $admin_url ?>/lint" class="nav-item">
-                <span class="material-symbols-rounded">check_circle</span>
-                Lint Content
-            </a>
-            <a href="<?= $admin_url ?>/shortcodes" class="nav-item">
-                <span class="material-symbols-rounded">code</span>
-                Shortcodes
-            </a>
-            <a href="<?= $admin_url ?>/logs" class="nav-item">
-                <span class="material-symbols-rounded">history</span>
-                Admin Logs
-            </a>
-            <a href="<?= $admin_url ?>/themes" class="nav-item">
-                <span class="material-symbols-rounded">palette</span>
-                Themes
-            </a>
-            <a href="<?= $admin_url ?>/system" class="nav-item">
-                <span class="material-symbols-rounded">dns</span>
-                System Info
-            </a>
-
-            <?php if (!empty($customPages)): ?>
-            <div class="nav-section">Plugins</div>
-            <?php foreach ($customPages as $slug => $page): ?>
-            <a href="<?= $admin_url ?>/<?= htmlspecialchars($slug) ?>" class="nav-item">
-                <span class="material-symbols-rounded"><?= htmlspecialchars($page['icon'] ?? 'extension') ?></span>
-                <?= htmlspecialchars($page['label'] ?? ucfirst($slug)) ?>
-            </a>
-            <?php endforeach; ?>
-            <?php endif; ?>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <span class="material-symbols-rounded">person</span>
-                <?= htmlspecialchars($user ?? 'Admin') ?>
-            </div>
-            <a href="<?= $admin_url ?>/logout">
-                <span class="material-symbols-rounded">logout</span>
-                Sign Out
-            </a>
-        </div>
-    </aside>
-
     <main class="main">
         <div class="mobile-header">
             <button class="menu-btn" onclick="toggleSidebar()">

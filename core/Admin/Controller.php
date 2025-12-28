@@ -1090,10 +1090,34 @@ final class Controller
         return $themes;
     }
 
+    /**
+     * Get common sidebar data for all admin views.
+     */
+    private function getSidebarData(): array
+    {
+        return [
+            'content' => $this->getContentStats(),
+            'taxonomies' => $this->getTaxonomyStats(),
+            'taxonomyConfig' => $this->getTaxonomyConfig(),
+            'customPages' => Hooks::apply('admin.register_pages', [], $this->app),
+            'version' => defined('AVA_VERSION') ? AVA_VERSION : '1.0',
+            'user' => $this->auth->user(),
+            'site' => [
+                'name' => $this->app->config('site.name'),
+                'url' => $this->app->config('site.base_url'),
+                'timezone' => $this->app->config('site.timezone', 'UTC'),
+            ],
+        ];
+    }
+
     private function render(string $view, array $data): string
     {
         $data['admin_url'] = $this->adminUrl();
         $data['ava'] = $this->app;
+
+        // Merge in sidebar data (view data takes precedence)
+        $sidebarData = $this->getSidebarData();
+        $data = array_merge($sidebarData, $data);
 
         extract($data);
 
