@@ -375,7 +375,10 @@
 
     /* Cover page / Hero */
     section.cover {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 60%, rgba(139, 92, 246, 0.1), transparent),
+        linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
       color: #f8fafc;
     }
 
@@ -384,36 +387,27 @@
     }
 
     section.cover .cover-main {
-      max-width: 600px;
+      max-width: 720px;
       text-align: center;
     }
 
     section.cover .cover-logo {
-      font-size: 6rem;
+      font-size: 5rem;
       line-height: 1;
-      margin-bottom: 1.5rem;
-      filter: drop-shadow(0 0 40px rgba(251, 191, 36, 0.3));
-      animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 30px rgba(251, 191, 36, 0.25));
     }
 
     section.cover h1 {
-      font-size: 3.5rem;
+      font-size: 3rem;
       font-weight: 700;
       letter-spacing: -0.03em;
-      margin: 0 0 1rem;
-      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      margin: 0 0 0.75rem;
+      color: #fff;
     }
 
     section.cover blockquote {
-      font-size: 1.25rem;
+      font-size: 1.125rem;
       color: #94a3b8;
       font-weight: 400;
       margin: 0 0 2.5rem;
@@ -424,27 +418,54 @@
       margin: 0;
     }
 
+    /* Feature grid */
+    section.cover .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+
+    section.cover .feature {
+      padding: 1.25rem 0.75rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+
+    section.cover .feature:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    section.cover .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    section.cover .feature-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 0.25rem;
+    }
+
+    section.cover .feature-desc {
+      font-size: 0.75rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    /* Hide default list */
     section.cover ul {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 3rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    section.cover li {
-      font-size: 1rem;
-      color: #cbd5e1;
-    }
-
-    section.cover li strong {
-      color: #f8fafc;
+      display: none;
     }
 
     section.cover .cover-main > p:last-of-type {
       display: flex;
-      gap: 1rem;
+      gap: 0.5rem;
       justify-content: center;
       margin: 0;
     }
@@ -452,10 +473,10 @@
     section.cover .cover-main > p:last-of-type a {
       display: inline-flex;
       align-items: center;
-      padding: 0.875rem 2rem;
-      font-size: 1rem;
+      padding: 0.625rem 1.5rem;
+      font-size: 0.875rem;
       font-weight: 600;
-      border-radius: 8px;
+      border-radius: 100px;
       text-decoration: none;
       transition: all 0.2s;
     }
@@ -468,19 +489,19 @@
 
     section.cover .cover-main > p:last-of-type a:first-child:hover {
       background: var(--theme-color-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
     }
 
     section.cover .cover-main > p:last-of-type a:last-child {
-      background: transparent;
-      color: #f8fafc;
-      border: 1px solid #475569;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     section.cover .cover-main > p:last-of-type a:last-child:hover {
-      border-color: #94a3b8;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     section.cover.show ~ .sidebar,
@@ -499,22 +520,21 @@
       bottom: 2rem;
       left: 50%;
       transform: translateX(-50%);
-      width: 24px;
-      height: 40px;
-      border: 2px solid #475569;
-      border-radius: 12px;
-      opacity: 0.6;
+      width: 20px;
+      height: 32px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
     }
 
     section.cover::before {
       content: '';
       position: absolute;
-      bottom: 2.75rem;
+      bottom: 2.5rem;
       left: 50%;
       transform: translateX(-50%);
-      width: 4px;
-      height: 8px;
-      background: #64748b;
+      width: 3px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.4);
       border-radius: 2px;
       animation: scroll 1.5s ease-in-out infinite;
       z-index: 1;
@@ -522,25 +542,26 @@
 
     @keyframes scroll {
       0%, 100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-      50% { opacity: 0.3; transform: translateX(-50%) translateY(10px); }
+      50% { opacity: 0.3; transform: translateX(-50%) translateY(8px); }
     }
 
     @media (max-width: 768px) {
       section.cover h1 {
-        font-size: 2.5rem;
+        font-size: 2.25rem;
       }
       section.cover .cover-logo {
-        font-size: 4rem;
+        font-size: 3.5rem;
       }
       section.cover blockquote {
-        font-size: 1.1rem;
+        font-size: 1rem;
+        padding: 0 1rem;
+      }
+      section.cover .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 0 1rem;
       }
       section.cover .cover-main > p:last-of-type {
-        flex-direction: column;
-      }
-      section.cover .cover-main > p:last-of-type a {
-        width: 100%;
-        justify-content: center;
+        flex-direction: row;
       }
     }
   </style>
