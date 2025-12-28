@@ -99,6 +99,15 @@ final class Controller
         // Get custom sidebar items
         $customSidebarItems = Hooks::apply('admin.sidebar_items', [], $this->app);
         
+        // Check for updates (cached, non-blocking)
+        $updateCheck = null;
+        try {
+            $updater = new \Ava\Updater($this->app);
+            $updateCheck = $updater->check(false); // Use cached result
+        } catch (\Exception $e) {
+            // Silently ignore update check failures
+        }
+        
         $data = [
             'site' => [
                 'name' => $this->app->config('site.name'),
@@ -121,6 +130,8 @@ final class Controller
             'routes' => $repository->routes(),
             'customPages' => $customPages,
             'customSidebarItems' => $customSidebarItems,
+            'version' => AVA_VERSION,
+            'updateCheck' => $updateCheck,
         ];
 
         return Response::html($this->render('dashboard', $data));

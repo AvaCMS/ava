@@ -85,7 +85,7 @@ $renderTime = round((microtime(true) - $system['request_time']) * 1000, 2);
 <div class="layout">
     <aside class="sidebar" id="sidebar">
         <div class="logo">
-            <h1>✨ Ava <span class="version-badge">v1.0</span></h1>
+            <h1>✨ Ava <span class="version-badge">v<?= htmlspecialchars($version ?? '1.0') ?></span></h1>
         </div>
         <nav class="nav">
             <div class="nav-section">Overview</div>
@@ -185,6 +185,19 @@ $renderTime = round((microtime(true) - $system['request_time']) * 1000, 2);
                 </a>
             </div>
         </div>
+
+        <?php if ($updateCheck && $updateCheck['available']): ?>
+        <div class="alert alert-info" style="margin-bottom: var(--sp-5);">
+            <span class="material-symbols-rounded">system_update</span>
+            <div style="flex: 1;">
+                <strong>Update available:</strong> v<?= htmlspecialchars($updateCheck['latest']) ?>
+                <?php if ($updateCheck['release']['name'] ?? null): ?>
+                    — <?= htmlspecialchars($updateCheck['release']['name']) ?>
+                <?php endif; ?>
+            </div>
+            <code class="text-xs" style="opacity: 0.8;">php bin/ava update:apply</code>
+        </div>
+        <?php endif; ?>
 
         <!-- Stats -->
         <div class="stat-grid">
@@ -325,7 +338,7 @@ $renderTime = round((microtime(true) - $system['request_time']) * 1000, 2);
         </div>
 
         <!-- Content Types & Recent -->
-        <div class="grid grid-2 mt-6">
+        <div class="grid grid-2 mt-5">
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">
@@ -414,7 +427,7 @@ $renderTime = round((microtime(true) - $system['request_time']) * 1000, 2);
         </div>
 
         <!-- Plugins, Routes & Users -->
-        <div class="grid grid-3 mt-6">
+        <div class="grid grid-3 mt-5">
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">

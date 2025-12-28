@@ -215,7 +215,7 @@ $user = $_SESSION['ava_admin_user'] ?? 'Admin';
             </div>
         </div>
 
-        <div class="card mt-6">
+        <div class="card mt-5">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">help</span>

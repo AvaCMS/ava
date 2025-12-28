@@ -261,7 +261,7 @@ $user = $_SESSION['ava_admin_user'] ?? 'Admin';
         </div>
 
         <?php if (!empty($redirects)): ?>
-        <div class="card mt-6">
+        <div class="card mt-5">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">list</span>
@@ -325,7 +325,7 @@ $user = $_SESSION['ava_admin_user'] ?? 'Admin';
             </div>
         </div>
         <?php else: ?>
-        <div class="card mt-6">
+        <div class="card mt-5">
             <div class="empty-state">
                 <span class="material-symbols-rounded">swap_horiz</span>
                 <p>No entries configured</p>

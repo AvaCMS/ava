@@ -348,7 +348,7 @@ code {
     align-items: center;
     justify-content: space-between;
     gap: var(--sp-4);
-    margin-bottom: var(--sp-6);
+    margin-bottom: var(--sp-5);
     flex-wrap: wrap;
 }
 
@@ -436,7 +436,7 @@ code {
    ============================================ */
 .grid {
     display: grid;
-    gap: var(--sp-4);
+    gap: var(--sp-5);
 }
 
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -749,6 +749,24 @@ code {
     background: var(--success-subtle);
     color: var(--success);
     border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.alert-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: rgb(96, 165, 250);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.alert-warning {
+    background: var(--warning-subtle);
+    color: var(--warning);
+    border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+.alert-danger {
+    background: var(--danger-subtle);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 /* ============================================
@@ -1351,6 +1369,7 @@ details .detail-content {
 
 .mt-3 { margin-top: var(--sp-3); }
 .mt-4 { margin-top: var(--sp-4); }
+.mt-5 { margin-top: var(--sp-5); }
 .mt-6 { margin-top: var(--sp-6); }
 
 /* Hide on mobile */

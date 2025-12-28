@@ -9,6 +9,9 @@ declare(strict_types=1);
  * This file is shared by both the web front controller and CLI.
  */
 
+// Ava version (date-based: YYYY.MM.DD)
+define('AVA_VERSION', '2025.12.28');
+
 // Ensure we have a root constant
 if (!defined('AVA_ROOT')) {
     define('AVA_ROOT', __DIR__);

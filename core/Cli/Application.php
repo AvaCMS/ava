@@ -40,7 +40,7 @@ final class Application
 
         // Handle version
         if ($command === 'version' || $command === '--version' || $command === '-v') {
-            $this->writeln('Ava CMS v1.0.0');
+            $this->writeln('Ava CMS v' . AVA_VERSION);
             return 0;
         }
 
@@ -73,6 +73,8 @@ final class Application
         $this->commands['user:password'] = [$this, 'cmdUserPassword'];
         $this->commands['user:remove'] = [$this, 'cmdUserRemove'];
         $this->commands['user:list'] = [$this, 'cmdUserList'];
+        $this->commands['update:check'] = [$this, 'cmdUpdateCheck'];
+        $this->commands['update:apply'] = [$this, 'cmdUpdateApply'];
     }
 
     // =========================================================================
@@ -576,13 +578,163 @@ final class Application
     }
 
     // =========================================================================
+    // Update Commands
+    // =========================================================================
+
+    /**
+     * Check for updates.
+     */
+    private function cmdUpdateCheck(array $args): int
+    {
+        $force = in_array('--force', $args) || in_array('-f', $args);
+
+        $this->writeln('');
+        $this->writeln('Checking for updates...');
+        $this->writeln('');
+
+        $updater = new \Ava\Updater($this->app);
+        $result = $updater->check($force);
+
+        $this->writeln('Current version: ' . $result['current']);
+        $this->writeln('Latest version:  ' . $result['latest']);
+
+        if ($result['error']) {
+            $this->writeln('');
+            $this->error($result['error']);
+            return 1;
+        }
+
+        if ($result['available']) {
+            $this->writeln('');
+            $this->success('Update available!');
+            $this->writeln('');
+
+            if ($result['release']) {
+                if ($result['release']['name']) {
+                    $this->writeln('Release: ' . $result['release']['name']);
+                }
+                if ($result['release']['published_at']) {
+                    $date = date('Y-m-d', strtotime($result['release']['published_at']));
+                    $this->writeln('Published: ' . $date);
+                }
+                if ($result['release']['body']) {
+                    $this->writeln('');
+                    $this->writeln('Changelog:');
+                    $this->writeln('----------');
+                    // Show first 20 lines of changelog
+                    $lines = explode("\n", $result['release']['body']);
+                    foreach (array_slice($lines, 0, 20) as $line) {
+                        $this->writeln($line);
+                    }
+                    if (count($lines) > 20) {
+                        $this->writeln('... (truncated)');
+                    }
+                }
+            }
+
+            $this->writeln('');
+            $this->writeln('Run `php bin/ava update:apply` to update.');
+
+        } else {
+            $this->writeln('');
+            $this->success('You are running the latest version.');
+        }
+
+        if (isset($result['from_cache']) && $result['from_cache']) {
+            $this->writeln('');
+            $this->writeln('(cached result - use --force to refresh)');
+        }
+
+        $this->writeln('');
+        return 0;
+    }
+
+    /**
+     * Apply update.
+     */
+    private function cmdUpdateApply(array $args): int
+    {
+        $this->writeln('');
+
+        // Check for available update first
+        $updater = new \Ava\Updater($this->app);
+        $check = $updater->check(true);
+
+        if ($check['error']) {
+            $this->error('Could not check for updates: ' . $check['error']);
+            return 1;
+        }
+
+        if (!$check['available']) {
+            $this->success('Already running the latest version (' . $check['current'] . ')');
+            return 0;
+        }
+
+        $this->writeln('Update available: ' . $check['current'] . ' → ' . $check['latest']);
+        $this->writeln('');
+
+        // Confirm unless --yes flag
+        if (!in_array('--yes', $args) && !in_array('-y', $args)) {
+            $this->writeln('This will update the following:');
+            $this->writeln('  - Core files (core/, bin/, bootstrap.php)');
+            $this->writeln('  - Default theme (themes/default/)');
+            $this->writeln('  - Bundled plugins (plugins/sitemap, feed, redirects)');
+            $this->writeln('  - Documentation (docs/)');
+            $this->writeln('');
+            $this->writeln('These will NOT be modified:');
+            $this->writeln('  - Your content (content/)');
+            $this->writeln('  - Your configuration (app/)');
+            $this->writeln('  - Your custom themes');
+            $this->writeln('  - Your custom plugins');
+            $this->writeln('  - Storage and cache files');
+            $this->writeln('');
+            echo 'Continue? [y/N]: ';
+            $answer = trim(fgets(STDIN));
+            if (strtolower($answer) !== 'y') {
+                $this->writeln('Update cancelled.');
+                return 0;
+            }
+            $this->writeln('');
+        }
+
+        $this->writeln('Downloading update...');
+
+        $result = $updater->apply();
+
+        if (!$result['success']) {
+            $this->error($result['message']);
+            return 1;
+        }
+
+        $this->success($result['message']);
+
+        if (!empty($result['new_plugins'])) {
+            $this->writeln('');
+            $this->writeln('New bundled plugins available (not activated):');
+            foreach ($result['new_plugins'] as $plugin) {
+                $this->writeln('  - ' . $plugin);
+            }
+            $this->writeln('');
+            $this->writeln('To activate, add them to your plugins array in app/config/ava.php');
+        }
+
+        $this->writeln('');
+        $this->writeln('Rebuilding cache...');
+        $this->app->indexer()->rebuild();
+        $this->success('Cache rebuilt.');
+
+        $this->writeln('');
+        return 0;
+    }
+
+    // =========================================================================
     // Output helpers
     // =========================================================================
 
     private function showHelp(): void
     {
         $this->writeln('');
-        $this->writeln('Ava CMS - Command Line Interface');
+        $this->writeln('Ava CMS v' . AVA_VERSION . ' - Command Line Interface');
         $this->writeln('');
         $this->writeln('Usage:');
         $this->writeln('  php ava <command> [options] [arguments]');
@@ -600,10 +752,14 @@ final class Application
         $this->writeln('  user:remove <email>                 Remove user');
         $this->writeln('  user:list                           List all users');
         $this->writeln('');
+        $this->writeln('Updates:');
+        $this->writeln('  update:check   Check for available updates');
+        $this->writeln('  update:apply   Download and apply the latest update');
+        $this->writeln('');
         $this->writeln('Examples:');
         $this->writeln('  php ava status');
         $this->writeln('  php ava make post "Hello World"');
-        $this->writeln('  php ava user:add admin@example.com secretpass');
+        $this->writeln('  php ava update:check');
         $this->writeln('');
     }
 
