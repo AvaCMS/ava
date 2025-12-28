@@ -26,6 +26,14 @@ $activePage = $activePage ?? '';
             <span class="material-symbols-rounded">dashboard</span>
             Dashboard
         </a>
+        <a href="<?= $admin_url ?>/themes" class="nav-item <?= $activePage === 'themes' ? 'active' : '' ?>">
+            <span class="material-symbols-rounded">palette</span>
+            Themes
+        </a>
+        <a href="<?= $admin_url ?>/shortcodes" class="nav-item <?= $activePage === 'shortcodes' ? 'active' : '' ?>">
+            <span class="material-symbols-rounded">code</span>
+            Shortcodes
+        </a>
 
         <div class="nav-section">Content</div>
         <?php foreach ($content as $type => $stats): ?>
@@ -52,17 +60,9 @@ $activePage = $activePage ?? '';
             <span class="material-symbols-rounded">check_circle</span>
             Lint Content
         </a>
-        <a href="<?= $admin_url ?>/shortcodes" class="nav-item <?= $activePage === 'shortcodes' ? 'active' : '' ?>">
-            <span class="material-symbols-rounded">code</span>
-            Shortcodes
-        </a>
         <a href="<?= $admin_url ?>/logs" class="nav-item <?= $activePage === 'logs' ? 'active' : '' ?>">
             <span class="material-symbols-rounded">history</span>
             Admin Logs
-        </a>
-        <a href="<?= $admin_url ?>/themes" class="nav-item <?= $activePage === 'themes' ? 'active' : '' ?>">
-            <span class="material-symbols-rounded">palette</span>
-            Themes
         </a>
         <a href="<?= $admin_url ?>/system" class="nav-item <?= $activePage === 'system' ? 'active' : '' ?>">
             <span class="material-symbols-rounded">dns</span>

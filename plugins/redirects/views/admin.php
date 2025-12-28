@@ -244,7 +244,7 @@ $user = $_SESSION['ava_admin_user'] ?? 'Admin';
                     <?php foreach ($statusCodes as $code => $info): ?>
                     <div class="list-item" style="padding: var(--sp-2) 0;">
                         <span class="list-label">
-                            <span class="badge <?= $info['redirect'] ? ($code === 301 || $code === 308 ? 'badge-success' : 'badge-warning') : 'badge-danger' ?>" style="min-width: 45px; text-align: center;"><?= $code ?></span>
+                            <span class="badge <?= $info['redirect'] ? ($code === 301 || $code === 308 ? 'badge-success' : 'badge-warning') : 'badge-danger' ?>"><?= $code ?></span>
                         </span>
                         <span class="list-value text-sm text-secondary">
                             <?= htmlspecialchars($info['label']) ?>

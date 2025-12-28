@@ -198,7 +198,7 @@ $activePage = 'content-' . $type;
                         <div class="list-item"><span class="list-label">Published</span><span class="list-value text-success"><?= $allContent[$type]['published'] ?? 0 ?></span></div>
                         <div class="list-item"><span class="list-label">Drafts</span><span class="list-value text-warning"><?= $allContent[$type]['draft'] ?? 0 ?></span></div>
                         <div class="list-item"><span class="list-label">Total Words</span><span class="list-value"><?= number_format($stats['totalWords']) ?></span></div>
-                        <div class="list-item"><span class="list-label">Avg Words</span><span class="list-value"><?= number_format($avgWords) ?></span></div>
+
                         <div class="list-item"><span class="list-label">Size</span><span class="list-value"><?= $formatBytes($stats['totalSize']) ?></span></div>
                     </div>
                 </div>
