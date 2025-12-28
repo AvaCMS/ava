@@ -436,6 +436,11 @@ code {
     padding-bottom: var(--sp-3);
 }
 
+/* When card-body contains a table, remove padding for flush edges */
+.card-body:has(.table) {
+    padding: 0;
+}
+
 /* ============================================
    8. Grids
    ============================================ */
