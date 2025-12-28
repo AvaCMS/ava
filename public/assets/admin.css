@@ -694,6 +694,8 @@ code {
     margin-left: calc(-1 * var(--sp-5));
     margin-right: calc(-1 * var(--sp-5));
     width: calc(100% + var(--sp-5) * 2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
 
 .table-title { font-weight: 500; }
