@@ -120,7 +120,7 @@ $activePage = 'themes';
                     <?php if (empty($themeInfo['templates'])): ?>
                     <p class="text-tertiary text-sm">No templates found.</p>
                     <?php else: ?>
-                    <table class="data-table">
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>Template</th>
@@ -195,7 +195,7 @@ foreach ($assets as $asset):
                 <?php if (empty($themeInfo['assets'])): ?>
                 <p class="text-tertiary">No assets found in themes/<?= htmlspecialchars($currentTheme) ?>/assets/</p>
                 <?php else: ?>
-                <table class="data-table">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>File</th>
@@ -267,7 +267,7 @@ foreach ($assets as $asset):
                 <p class="text-tertiary text-sm mb-3">
                     To switch themes, update <code>theme</code> in <code>app/config/ava.php</code>:
                 </p>
-                <table class="data-table">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Theme</th>
@@ -310,7 +310,7 @@ foreach ($assets as $asset):
             <div class="card-body">
                 <p class="mb-3">Theme assets are served with aggressive caching headers for optimal performance:</p>
                 
-                <table class="data-table">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Header</th>

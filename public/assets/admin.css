@@ -383,6 +383,11 @@ code {
     flex-direction: column;
 }
 
+/* Standalone cards (outside grids) get bottom margin */
+.main > .card {
+    margin-bottom: var(--sp-5);
+}
+
 .card-header {
     display: flex;
     align-items: center;
@@ -437,6 +442,7 @@ code {
 .grid {
     display: grid;
     gap: var(--sp-5);
+    margin-bottom: var(--sp-5);
 }
 
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -1371,6 +1377,42 @@ details .detail-content {
 .mt-4 { margin-top: var(--sp-4); }
 .mt-5 { margin-top: var(--sp-5); }
 .mt-6 { margin-top: var(--sp-6); }
+.mb-3 { margin-bottom: var(--sp-3); }
+.mb-4 { margin-bottom: var(--sp-4); }
+
+/* ============================================
+   29. Code Blocks
+   ============================================ */
+.code-block {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.code-block pre {
+    margin: 0;
+    padding: var(--sp-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.code-block pre::-webkit-scrollbar {
+    height: 6px;
+}
+
+.code-block pre::-webkit-scrollbar-track {
+    background: var(--bg-surface);
+}
+
+.code-block pre::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
 
 /* Hide on mobile */
 @media (max-width: 768px) {
