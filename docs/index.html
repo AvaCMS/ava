@@ -375,11 +375,16 @@
 
     /* Cover page / Hero */
     section.cover {
+      display: flex;
+      align-items: center;
       background: 
         radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.15), transparent),
         radial-gradient(ellipse 60% 40% at 80% 60%, rgba(139, 92, 246, 0.1), transparent),
         linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
       color: #f8fafc;
+      min-height: 100vh;
+      box-sizing: border-box;
+      padding: 4rem 2rem;
     }
 
     section.cover.show {
@@ -388,7 +393,12 @@
 
     section.cover .cover-main {
       max-width: 720px;
-      text-align: center;
+      flex: 1;
+      margin: 0 auto;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
 
     section.cover .cover-logo {
@@ -465,20 +475,20 @@
 
     section.cover .cover-main > p:last-of-type {
       display: flex;
-      gap: 0.5rem;
-      justify-content: center;
+      gap: 0.375rem;
+      justify-content: flex-start;
       margin: 0;
     }
 
     section.cover .cover-main > p:last-of-type a {
       display: inline-flex;
       align-items: center;
-      padding: 0.625rem 1.5rem;
+      padding: 0.5rem 1.1rem;
       font-size: 0.875rem;
       font-weight: 600;
-      border-radius: 100px;
+      border-radius: 999px;
       text-decoration: none;
-      transition: all 0.2s;
+      transition: all 0.18s;
     }
 
     section.cover .cover-main > p:last-of-type a:first-child {
