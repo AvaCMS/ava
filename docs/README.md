@@ -101,5 +101,5 @@ It won't be a good fit if you need a drag-and-drop page builder or a massive eco
 
 ## License
 
-Ava CMS is free and open-source software licensed under the [MIT License](https://github.com/addy/ava-cms/blob/main/LICENSE). You are free to use it for personal and commercial projects.
+Ava CMS is free and open-source software licensed under the [MIT License](https://github.com/addy/ava/blob/main/LICENSE). You are free to use it for personal and commercial projects.
 
