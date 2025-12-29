@@ -6,8 +6,8 @@ Content in Ava is just text. You write in Markdown, which is a simple way to for
 
 Every piece of content is a `.md` file with two parts:
 
-1. **Frontmatter** — Metadata about the content (like title, date, status) at the top.
-2. **Body** — The actual content, written in Markdown.
+1. **💌 Frontmatter** — Metadata about the content (like title, date, status) at the top. Think of it like the address on an envelope.
+2. **📝 Body** — The actual content, written in Markdown.
 
 ```markdown
 ---

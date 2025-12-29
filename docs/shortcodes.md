@@ -5,9 +5,9 @@ Shortcodes are little magic tags you can put in your Markdown to do things that 
 ## Why use them?
 
 Sometimes you need more than just text and images. Shortcodes let you:
-- **Insert dynamic data** (like the current year).
-- **Add complex HTML** (like buttons or cards) without writing HTML in your post.
-- **Reuse content** across multiple pages.
+- **✨ Insert dynamic data** (like the current year).
+- **🧩 Add complex HTML** (like buttons or cards) without writing HTML in your post.
+- **♻️ Reuse content** across multiple pages.
 
 ## How they look
 
@@ -49,6 +49,8 @@ Make a file at `snippets/alert.php`:
 This is a very important note!
 [/snippet]
 ```
+
+Want to learn more about customizing your site's look? Check out the [Themes guide](themes.md).
 
 This keeps your content clean and your design consistent.
     ],

@@ -1,4 +1,4 @@
-- [Home](/)
+- [Introduction](/)
 - [Configuration](configuration.md)
 - [Admin](admin.md)
 - [Content](content.md)

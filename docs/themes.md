@@ -6,9 +6,9 @@ Themes control how your site looks. In Ava, a theme is just a collection of stan
 
 We believe you shouldn't have to learn a complex template language just to display a title.
 
-- **It's just HTML.** If you know HTML, you're 90% of the way there.
-- **Simple Helpers.** We provide an easy `$ava` helper to get what you need.
-- **Zero Compilation.** Edit a file, refresh your browser, and see the change instantly.
+- **🧱 It's just HTML.** If you know HTML, you're 90% of the way there.
+- **🛠️ Simple Helpers.** We provide an easy `$ava` helper to get what you need.
+- **⚡ Zero Compilation.** Edit a file, refresh your browser, and see the change instantly.
 
 ## Theme Structure
 

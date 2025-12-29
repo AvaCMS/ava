@@ -6,10 +6,10 @@ Ava includes a simple, optional dashboard to help you keep an eye on your site. 
 
 Think of the dashboard as a friendly window into your site's engine room:
 
-- **Health Check** — See if your cache is fresh and your system is happy.
-- **Content Overview** — Quickly see how many posts and pages you have.
-- **Linting** — Check your content files for errors (like missing titles or broken links).
-- **Cache Control** — Rebuild your site's cache with a single click.
+- **🩺 Health Check** — See if your cache is fresh and your system is happy.
+- **📊 Content Overview** — Quickly see how many posts and pages you have.
+- **🧹 Linting** — Check your content files for errors (like missing titles or broken links).
+- **⚡ Cache Control** — Rebuild your site's cache with a single click.
 
 ## Enabling the Dashboard
 

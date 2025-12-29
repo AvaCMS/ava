@@ -6,9 +6,9 @@ In Ava, you don't need to write complex route files. URLs are generated automati
 
 Ava looks at your `content/` folder and your configuration to decide what URL each file gets.
 
-1. **You save a file.**
-2. **Ava sees it.**
-3. **The URL works.**
+1. **💾 You save a file.**
+2. **👀 Ava sees it.**
+3. **✨ The URL works.**
 
 ## URL Styles
 
@@ -48,6 +48,8 @@ Great for blogs, where you want a consistent structure like `/blog/{slug}` or `/
 ## Redirects
 
 Need to move a page? Just add `redirect_from` to the file's frontmatter. Ava handles the 301 redirect for you.
+
+For more complex routing needs, check out the [Configuration guide](configuration.md).
 
 ```yaml
 ---

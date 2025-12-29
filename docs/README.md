@@ -6,12 +6,12 @@ The friendly, flat-file CMS for bespoke websites.
 
 Ava is designed for people who love the web. It sits in the sweet spot between a static site generator and a full-blown CMS:
 
-- **Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Everything lives in your Git repo, so you own your data forever.
-- **Bring Your Own Editor.** No clunky WYSIWYG editors here. Write in VS Code, Obsidian, or Notepad. If you can write HTML and CSS, you can build a theme.
-- **No Database Required.** Ava indexes your content into fast PHP arrays. You get the speed of a static site with the dynamic power of PHP.
-- **Edit Live.** Change a file, hit refresh, and see it instantly. No build steps, no waiting for deploys.
-- **Bespoke by Design.** Don't fight a platform. Create any content type you want—blogs, portfolios, recipe collections, changelogs—without plugins or hacks.
-- **AI Friendly.** The clean, file-based structure makes it trivial for AI assistants to read your content, understand your config, and help you build features.
+- **📂 Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Everything lives in your Git repo, so you own your data forever.
+- **✍️ Bring Your Own Editor.** No clunky WYSIWYG editors here. Write in VS Code, Obsidian, or Notepad. If you can write HTML and CSS, you can build a theme.
+- **🚀 No Database Required.** Ava indexes your content into fast PHP arrays. You get the speed of a static site with the dynamic power of PHP.
+- **⚡ Edit Live.** Change a file, hit refresh, and see it instantly. No build steps, no waiting for deploys.
+- **🎨 Bespoke by Design.** Don't fight a platform. Create any content type you want—blogs, portfolios, recipe collections, changelogs—without plugins or hacks.
+- **🤖 AI Friendly.** The clean, file-based structure makes it trivial for AI assistants to read your content, understand your config, and help you build features.
 
 ## Core Features
 
