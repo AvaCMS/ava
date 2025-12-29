@@ -1,3 +1,5 @@
+./ava rebuild
+
 # Bundled Plugins
 
 Ava comes with a few essential plugins to handle the boring stuff for you. They are installed by default but you can turn them on or off in your config.
@@ -17,13 +19,6 @@ Lets people subscribe to your blog using an RSS reader.
 - **What it does:** Creates `feed.xml` with your latest posts.
 - **How to use:** Enable it in `app/config/ava.php`.
 - **Customization:** You can choose which content types to include (like just posts, or everything).
-
-## Redirects
-
-Helps you manage broken links.
-
-- **What it does:** Redirects old URLs to new ones.
-- **How to use:** Add a `redirects.json` file to your `storage/` folder, or use the admin dashboard if you have the plugin enabled.
 
 ```php
 'feed' => [
@@ -70,6 +65,9 @@ Add the feed link to your theme's `<head>`:
 ## Redirects
 
 Manage custom URL redirects through the admin interface.
+
+- **What it does:** Redirects old URLs to new ones.
+- **How to use:** Add a `redirects.json` file to your `storage/` folder, or use the admin dashboard if you have the plugin enabled.
 
 ### Features
 
@@ -165,3 +163,4 @@ Then access the plugin admin pages at:
 - `/admin/sitemap`
 - `/admin/feeds`
 - `/admin/redirects`
+- `/admin/feeds`
