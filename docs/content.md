@@ -1,85 +1,79 @@
-# Content Authoring
+# Writing Content
 
-Content in Ava is Markdown files with YAML frontmatter. There's no database — your files are the source of truth.
+Content in Ava is just text. You write in Markdown, which is a simple way to format text, and save it as a file. There's no database to manage—your files are your content.
 
 ## The Basics
 
-Every piece of content is a `.md` file containing:
+Every piece of content is a `.md` file with two parts:
 
-1. **Frontmatter** — YAML metadata between `---` fences
-2. **Body** — Markdown content
+1. **Frontmatter** — Metadata about the content (like title, date, status) at the top.
+2. **Body** — The actual content, written in Markdown.
 
 ```markdown
 ---
-title: My Post Title
-slug: my-post-title
+title: My First Post
+slug: my-first-post
 status: published
 date: 2024-12-28
 ---
 
-# My Post Title
+# Hello World
 
-Your content goes here. Use standard Markdown syntax.
+This is my first post. I can use **bold**, *italics*, and [links](https://example.com).
 ```
 
-## File Location
+## Organizing Your Files
 
-Content lives in `content/`, organized by type:
+Content lives in the `content/` folder. You can organize it however you like, but typically it looks like this:
 
 ```
 content/
-├── pages/           # Pages (hierarchical URLs)
-│   ├── index.md     # Home page (/)
+├── pages/           # Standard pages like About or Contact
+│   ├── index.md     # Your homepage
 │   ├── about.md     # /about
 │   └── services/
 │       └── web.md   # /services/web
-├── posts/           # Posts (/blog/{slug})
-│   └── hello.md
-└── _taxonomies/     # Term registries (optional)
+├── posts/           # Blog posts
+│   └── hello.md     # /blog/hello
+└── _taxonomies/     # Categories and Tags
     ├── category.yml
     └── tag.yml
 ```
 
-The directory structure depends on your content type configuration. Pages typically use hierarchical URLs (folder = URL path), while posts use pattern-based URLs.
+## Frontmatter Guide
 
-## Frontmatter Reference
+Frontmatter is just a list of settings for your page. It goes between two lines of `---`.
 
-### Required Fields
+### Essential Fields
 
-Every content file needs these:
-
-| Field | Description | Example |
+| Field | What it does | Example |
 |-------|-------------|---------|
-| `title` | Display title | `"My Post Title"` |
-| `slug` | URL-safe identifier | `"my-post-title"` |
-| `status` | Visibility status | `draft`, `published`, or `private` |
+| `title` | The name of your page or post. | `"My Post Title"` |
+| `slug` | The URL-friendly name. If you leave this out, Ava makes one for you! | `"my-post-title"` |
+| `status` | Controls visibility. Use `draft` while writing. | `draft`, `published` |
 
-If you omit `slug`, Ava generates one from the filename.
+### Useful Extras
 
-### Common Fields
-
-| Field | Description | Example |
+| Field | What it does | Example |
 |-------|-------------|---------|
-| `id` | Unique identifier (ULID) | `"01JGMK..."` |
-| `date` | Publication date | `2024-12-28` |
-| `updated` | Last modified date | `2024-12-28` |
-| `excerpt` | Summary for listings | `"A brief intro..."` |
-| `template` | Override default template | `"custom-post"` |
-| `draft` | Quick draft toggle | `true` |
+| `date` | When this was published. | `2024-12-28` |
+| `excerpt` | A short summary for lists and search results. | `"A brief intro..."` |
+| `template` | Use a specific layout for this page. | `"custom-post"` |
 
-### SEO Fields
+### SEO Superpowers
+
+Ava handles the technical SEO stuff for you, but you can override it:
 
 | Field | Description |
 |-------|-------------|
-| `meta_title` | Custom `<title>` tag (falls back to `title`) |
-| `meta_description` | Meta description for search engines |
-| `noindex` | Set `true` to add `noindex` meta tag |
-| `canonical` | Canonical URL for duplicate content |
-| `og_image` | Open Graph image path |
+| `meta_title` | Custom title for search engines (defaults to your Title). |
+| `meta_description` | Description for search results. |
+| `noindex` | Set to `true` to hide this page from search engines. |
+| `og_image` | Image to show when shared on social media. |
 
-### Taxonomy Assignment
+### Organizing with Taxonomies
 
-Assign content to taxonomy terms:
+You can tag and categorize your content easily:
 
 ```yaml
 category:
@@ -87,15 +81,6 @@ category:
   - php
 tag:
   - getting-started
-  - cms
-```
-
-For hierarchical taxonomies:
-
-```yaml
-topic:
-  - guides/basics
-  - guides/advanced
 ```
 
 ## Redirects

@@ -1,84 +1,47 @@
 # Configuration
 
-All configuration lives in `app/config/` as plain PHP files that return arrays. No YAML, no JSON, no `.env` magic — just PHP you can read and version control.
+Ava's configuration is simple and transparent. All settings live in `app/config/` as plain PHP files.
 
-## Philosophy
+## Why PHP Configs?
 
-Ava's configuration is intentionally simple:
+We use PHP arrays instead of YAML or JSON because:
+1. **It's Readable:** You can add comments to explain *why* you changed a setting.
+2. **It's Powerful:** You can use constants, logic, or helper functions right in your config.
+3. **It's Standard:** No special parsers or hidden `.env` files to debug.
 
-- **PHP arrays** — Full IDE support, type hints, comments, constants.
-- **Version controlled** — Everything except `users.php` goes in Git.
-- **No magic** — What you see is what you get. No environment variable parsing, no cascading configs.
+## The Config Files
 
-## Configuration Files
+| File | What it controls |
+|------|------------------|
+| `ava.php` | Main site settings (name, URL, cache). |
+| `content_types.php` | Defines your content (Pages, Posts, etc.). |
+| `taxonomies.php` | Defines how you group content (Categories, Tags). |
+| `users.php` | Admin users (generated automatically). |
 
-| File | Purpose | In Git? |
-|------|---------|---------|
-| `ava.php` | Main configuration (site, paths, cache) | Yes |
-| `content_types.php` | Define pages, posts, custom types | Yes |
-| `taxonomies.php` | Define categories, tags, custom taxonomies | Yes |
-| `users.php` | Admin credentials (auto-generated) | No |
+## Main Settings (`ava.php`)
 
----
-
-## Main Config: `ava.php`
-
-This is the primary configuration file. It returns an array with all site settings.
-
-### Site Settings
+This is where you set up your site's identity.
 
 ```php
-'site' => [
-    'name' => 'My Site',        // Site title, used in templates
-    'base_url' => 'https://example.com',  // Full URL with protocol
-    'timezone' => 'UTC',        // PHP timezone identifier
-    'locale' => 'en_GB',        // Locale for date formatting
-],
-```
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `name` | string | required | Your site's name. Available in templates as `$site['name']` |
-| `base_url` | string | required | Full URL including protocol. Used for absolute URLs, sitemaps, feeds |
-| `timezone` | string | `'UTC'` | PHP timezone. See [timezone list](https://www.php.net/manual/en/timezones.php) |
-| `locale` | string | `'en_US'` | Locale for `$ava->date()` formatting |
-
-### Paths
-
-```php
-'paths' => [
-    'content' => 'content',     // Where markdown files live
-    'themes' => 'themes',       // Theme directory
-    'plugins' => 'plugins',     // Plugin directory
-    'snippets' => 'snippets',   // PHP snippet files for shortcodes
-    'storage' => 'storage',     // Cache, logs, temp files (gitignored)
-    
-    'aliases' => [
-        '@media:' => '/media/',
-        '@uploads:' => '/media/uploads/',
-        '@assets:' => '/assets/',
+return [
+    'site' => [
+        'name' => 'My Awesome Site',
+        'base_url' => 'https://example.com',
+        'timezone' => 'UTC',
     ],
-],
+    // ...
+];
 ```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `content` | string | `'content'` | Root directory for all content files |
-| `themes` | string | `'themes'` | Where themes are stored |
-| `plugins` | string | `'plugins'` | Plugin directory |
-| `snippets` | string | `'snippets'` | Safe PHP snippets for `[snippet]` shortcode |
-| `storage` | string | `'storage'` | Generated files (cache, logs). Safe to delete |
-| `aliases` | array | `[]` | Path aliases expanded in content. Use in markdown as `@media:image.jpg` |
+### Key Options
 
-### Theme
+- **`site.name`**: Used in your templates (e.g., `<title>`).
+- **`site.base_url`**: Important for generating correct links in sitemaps and feeds.
+- **`paths`**: Tells Ava where to find your content and themes. You usually don't need to touch this.
 
-```php
-'theme' => 'default',
-```
+### Cache Settings
 
-The active theme name. Must match a folder in `themes/`.
-
-### Cache
+Ava is fast because it caches your content.
 
 ```php
 'cache' => [
@@ -86,15 +49,8 @@ The active theme name. Must match a folder in `themes/`.
 ],
 ```
 
-| Mode | Behavior | Best For |
-|------|----------|----------|
-| `'auto'` | Rebuild when content files change (fingerprint check) | Development, production |
-| `'always'` | Rebuild on every request | Active development only |
-| `'never'` | Only rebuild via `./ava rebuild` | High-traffic production |
-
-Ava is designed to be edited live — not a static site generator. The `'auto'` mode is recommended for most production sites. It checks a lightweight fingerprint of your content files and only rebuilds the cache when something changes. The overhead is negligible for most sites.
-
-Use `'never'` only if you need maximum performance on high-traffic sites, and trigger rebuilds via deployment scripts, webhooks, or the CLI.
+- **`auto` (Recommended):** Ava watches your files and rebuilds the cache when you save. It's the best of both worlds: instant updates and fast page loads.
+- **`never`:** Only rebuilds when you run `./ava rebuild`. Good for high-traffic production sites where you deploy via Git.
 
 ### Routing
 

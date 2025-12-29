@@ -1,103 +1,21 @@
 # Releasing Ava
 
-This guide is for maintainers creating new Ava releases.
+This guide is for maintainers who are releasing a new version of Ava.
 
-## Version Format
+## Versioning
 
-Ava uses [CalVer](https://calver.org/) with the format **`YY.0M.MICRO`**:
+We use date-based versioning: `YY.MM.Patch`.
+- `25.12.1` = First release of December 2025.
 
-```
-YY.0M.MICRO
-│  │  └── Release number within the month (1, 2, 3...)
-│  └───── Zero-padded month (01-12)
-└──────── Two-digit year (25, 26...)
-```
+## How to Release
 
-### Examples
+1. **Update Version:** Change `AVA_VERSION` in `bootstrap.php`.
+2. **Test:** Run `./ava lint` and `./ava rebuild` to make sure everything is solid.
+3. **Tag:** Create a git tag (e.g., `v25.12.1`).
+4. **Push:** Push the tag to GitHub.
+5. **Release:** Create a new Release on GitHub using that tag.
 
-- `25.12.1` — First release of December 2025
-- `25.12.2` — Second release of December 2025
-- `26.01.1` — First release of January 2026
-
-### Determining the Next Version
-
-1. Check the current month/year
-2. Look at the latest release tag
-3. If same month: increment MICRO
-4. If new month: reset MICRO to 1
-
-```bash
-# Current: 25.12.3, releasing in December 2025
-# Next: 25.12.4
-
-# Current: 25.12.3, releasing in January 2026  
-# Next: 26.01.1
-```
-
-## Release Checklist
-
-### 1. Update Version Constant
-
-Edit `bootstrap.php` and update `AVA_VERSION`:
-
-```php
-define('AVA_VERSION', '25.12.1');
-```
-
-### 2. Update Bundled Plugins List (if needed)
-
-If adding new bundled plugins, update `core/Updater.php`:
-
-```php
-private array $bundledPlugins = [
-    'sitemap',
-    'feed', 
-    'redirects',
-    'new-plugin',  // Add new bundled plugins here
-];
-```
-
-### 3. Test Locally
-
-```bash
-php bin/ava lint           # Validate content
-php bin/ava rebuild        # Rebuild cache
-php bin/ava status         # Check everything works
-```
-
-### 4. Commit and Tag
-
-```bash
-git add -A
-git commit -m "🔖 Release 25.12.1"
-git tag -a v25.12.1 -m "Release 25.12.1"
-git push origin main --tags
-```
-
-### 5. Create GitHub Release
-
-1. Go to **Releases** → **Draft a new release**
-2. Choose the tag you just pushed (e.g., `v25.12.1`)
-3. Set release title to the version (e.g., `25.12.1`)
-4. Write the changelog in the description
-5. Click **Publish release**
-
-## Changelog Format
-
-Use this format for release notes:
-
-```markdown
-## What's New
-
-- ✨ Feature: Brief description
-- ✨ Feature: Another feature
-
-## Improvements
-
-- 🔧 Improvement description
-- 🔧 Another improvement
-
-## Bug Fixes
+That's it! The update system will see the new tag and offer it to users.
 
 - 🐛 Fixed issue description
 

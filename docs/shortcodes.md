@@ -1,103 +1,56 @@
 # Shortcodes
 
-Shortcodes let you embed dynamic content in Markdown files. They're processed after Markdown parsing, so you can mix them freely with your content.
+Shortcodes are little magic tags you can put in your Markdown to do things that Markdown can't do.
 
-## Why Shortcodes?
+## Why use them?
 
-Markdown is great for content, but sometimes you need:
+Sometimes you need more than just text and images. Shortcodes let you:
+- **Insert dynamic data** (like the current year).
+- **Add complex HTML** (like buttons or cards) without writing HTML in your post.
+- **Reuse content** across multiple pages.
 
-- Dynamic data (current year, site name)
-- Reusable components (CTAs, buttons, cards)
-- PHP logic without exposing raw PHP in content files
+## How they look
 
-Shortcodes give you this while keeping content files safe and readable.
-
-## Syntax
-
-Three forms of shortcodes:
+They look like tags in square brackets:
 
 ```markdown
-# Self-closing (no content)
-[year]
+Hello, it is currently [year].
 
-# With attributes
-[snippet name="cta" heading="Join Us"]
-
-# Paired (wrapping content)
-[button url="/contact"]Contact Us[/button]
+[button url="/contact"]Get in Touch[/button]
 ```
-
-Attributes can be quoted or unquoted. Quotes are required if values contain spaces.
 
 ## Built-in Shortcodes
 
-| Shortcode | Output | Example |
-|-----------|--------|---------|
-| `[year]` | Current year | `2024` |
-| `[date format="..."]` | Formatted date | `[date format="F j, Y"]` → `December 28, 2024` |
-| `[site_name]` | Site name from config | `My Site` |
-| `[site_url]` | Base URL from config | `https://example.com` |
-| `[email]addr@example.com[/email]` | Obfuscated mailto link | Spam-resistant email |
-| `[button url="..." class="..."]Text[/button]` | Styled anchor tag | `<a href="..." class="...">Text</a>` |
-| `[snippet name="..."]` | Execute PHP snippet | See below |
-| `[include file="..."]` | Include a template partial | `[include file="callout"]` |
+Ava comes with a few handy ones out of the box:
 
-## Snippets
+| Shortcode | What it does |
+|-----------|--------------|
+| `[year]` | Prints the current year (great for footers!). |
+| `[site_name]` | Prints your site's name. |
+| `[email]me@example.com[/email]` | Creates a spam-proof email link. |
+| `[button url="/"]Click Me[/button]` | Creates a styled button. |
 
-Snippets are the most powerful shortcode. They execute PHP files from the `snippets/` directory, letting you build reusable components.
+## Custom Snippets
 
-### Using a Snippet
+The most powerful feature is the `[snippet]` shortcode. It lets you write a small PHP file and use it anywhere in your content.
 
-```markdown
-[snippet name="cta" heading="Get Started" button_url="/signup"]
-```
-
-### Creating a Snippet
-
-Create `snippets/cta.php`:
+### 1. Create the snippet
+Make a file at `snippets/alert.php`:
 
 ```php
-<?php
-// snippets/cta.php
-// Renders a call-to-action box
-
-// Get attributes with defaults
-$heading = $params['heading'] ?? 'Get Started';
-$buttonUrl = $params['button_url'] ?? '/';
-$buttonText = $params['button_text'] ?? 'Learn More';
-
-?>
-<div class="cta-box">
-    <h3><?= htmlspecialchars($heading) ?></h3>
-    <a href="<?= htmlspecialchars($buttonUrl) ?>" class="btn">
-        <?= htmlspecialchars($buttonText) ?>
-    </a>
+<div class="alert" style="background: #eee; padding: 1rem;">
+    <strong>Note:</strong> <?= $content ?>
 </div>
 ```
 
-### Available Variables in Snippets
+### 2. Use it in Markdown
+```markdown
+[snippet name="alert"]
+This is a very important note!
+[/snippet]
+```
 
-| Variable | Type | Description |
-|----------|------|-------------|
-| `$params` | array | All shortcode attributes |
-| `$content` | string | Inner content (for paired shortcodes) |
-| `$app` | Application | Ava Application instance |
-
-### Security Note
-
-Snippets can execute arbitrary PHP, so:
-
-- Only you (the developer) create snippets
-- Content authors can only *use* existing snippets
-- Snippet files are in a separate directory, not in content
-
-To disable snippets entirely:
-
-```php
-// ava.php
-'security' => [
-    'shortcodes' => [
-        'allow_php_snippets' => false,
+This keeps your content clean and your design consistent.
     ],
 ],
 ```

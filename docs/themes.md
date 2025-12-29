@@ -1,103 +1,78 @@
 # Themes
 
-Themes control how content is rendered. They're plain PHP templates — no template language to learn.
+Themes control how your site looks. In Ava, a theme is just a collection of standard HTML files with a sprinkle of PHP to pull in your content.
 
-## Philosophy
+## Why Plain PHP?
 
-Ava themes are deliberately simple:
+We believe you shouldn't have to learn a complex template language just to display a title.
 
-- **Plain PHP** — Use `<?= ?>` for output. No Blade, no Twig, no new syntax.
-- **Helper object** — The `$ava` helper provides content queries, URLs, formatting.
-- **Full control** — You write the HTML. Ava doesn't impose a structure.
-- **Zero build step** — No compilation. Edit and refresh.
+- **It's just HTML.** If you know HTML, you're 90% of the way there.
+- **Simple Helpers.** We provide an easy `$ava` helper to get what you need.
+- **Zero Compilation.** Edit a file, refresh your browser, and see the change instantly.
 
-## Structure
+## Theme Structure
+
+A theme is just a folder in `themes/`. Here's a typical layout:
 
 ```
 themes/
 └── default/
-    ├── theme.php         # Theme bootstrap (optional)
-    ├── templates/        # Page templates
-    │   ├── index.php     # Fallback template
-    │   ├── page.php      # Pages
-    │   ├── post.php      # Posts
-    │   ├── archive.php   # Archive listings
-    │   ├── taxonomy.php  # Taxonomy archives
-    │   └── 404.php       # Not found
-    ├── partials/         # Reusable parts (optional)
-    │   ├── header.php
-    │   └── footer.php
-    └── assets/           # Theme assets (CSS, JS, images, fonts)
-        ├── style.css
-        ├── js/
-        └── images/
+    ├── templates/        # Your page layouts
+    │   ├── index.php     # The default layout
+    │   ├── page.php      # For standard pages
+    │   ├── post.php      # For blog posts
+    │   └── 404.php       # "Page not found" error
+    ├── assets/           # CSS, JS, images
+    │   ├── style.css
+    │   └── script.js
+    └── theme.php         # Optional setup code
 ```
 
-## Theme Assets
+## Using Assets
 
-Theme assets live inside the theme directory at `themes/{theme}/assets/`. This keeps everything self-contained — you can copy a theme folder and have everything it needs.
-
-### The `/theme/` Route
-
-Assets are served via PHP at the `/theme/` URL prefix:
-
-| File Location | URL |
-|---------------|-----|
-| `themes/default/assets/style.css` | `/theme/style.css` |
-| `themes/default/assets/js/app.js` | `/theme/js/app.js` |
-| `themes/default/assets/images/logo.svg` | `/theme/images/logo.svg` |
-
-### Using `$ava->asset()`
-
-Use the `$ava->asset()` helper to reference theme assets with automatic cache-busting:
+Ava makes it easy to include your CSS and JS files. It even handles cache-busting automatically, so your visitors always see the latest version.
 
 ```php
-<!-- Theme assets (no leading slash) -->
+<!-- Just ask $ava for the asset URL -->
 <link rel="stylesheet" href="<?= $ava->asset('style.css') ?>">
-<script src="<?= $ava->asset('js/app.js') ?>"></script>
-<img src="<?= $ava->asset('images/logo.svg') ?>">
-
-<!-- Outputs with version parameter: -->
-<!-- /theme/style.css?v=1703782400 -->
+<script src="<?= $ava->asset('script.js') ?>"></script>
 ```
 
-The `?v=` parameter is the file's modification time, forcing browsers to fetch the new version when you update files.
+This outputs a URL like `/theme/style.css?v=123456`, ensuring instant updates when you change the file.
 
-### Public Assets
+## Template Basics
 
-For assets shared across themes (like admin CSS), use a leading slash to reference the `public/` directory:
+In your template files (like `page.php`), you have access to your content variables.
 
 ```php
-<!-- Public assets (leading slash = public directory) -->
-<link rel="stylesheet" href="<?= $ava->asset('/assets/admin.css') ?>">
-<!-- Served directly by your web server from public/ -->
+<!-- templates/post.php -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title><?= $page->title() ?></title>
+</head>
+<body>
+    <h1><?= $page->title() ?></h1>
+    
+    <div class="content">
+        <?= $page->content() ?>
+    </div>
+    
+    <p>Published on <?= $page->date()->format('F j, Y') ?></p>
+</body>
+</html>
 ```
 
-### Caching Headers
+See? It's just HTML with simple tags to show your data.
 
-Theme assets are served with aggressive caching:
+## Available Variables
 
-| Header | Value | Purpose |
-|--------|-------|---------|
-| `Cache-Control` | `public, max-age=31536000, immutable` | 1 year browser cache |
-| `ETag` | `"[md5 hash]"` | Content validation |
-| `Last-Modified` | File mtime | Conditional requests |
-
-Because URLs include a version parameter, you get both maximum caching performance and instant updates when files change.
-
-## Template Context
-
-Templates receive a `$context` array (also extracted to variables):
-
-| Variable | Description |
+| Variable | What it is |
 |----------|-------------|
-| `$site` | Site info (name, url, timezone) |
-| `$theme` | Theme info (name, path, url) |
-| `$request` | Current Request object |
-| `$route` | RouteMatch object |
-| `$page` | Content Item (for single pages) |
-| `$query` | Query object (for archives) |
-| `$tax` | Taxonomy info (for taxonomy archives) |
+| `$site` | Global site info (name, URL). |
+| `$page` | The current page or post being viewed. |
+| `$theme` | Info about the current theme. |
+| `$request` | Details about the current URL. |
 | `$ava` | TemplateHelpers instance |
 
 ## The `$ava` Helper

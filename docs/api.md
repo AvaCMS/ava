@@ -1,103 +1,41 @@
 # API
 
-Ava doesn't include a built-in REST API, but provides everything you need to build one. This keeps the core lightweight while giving you full control over your API design.
+Ava doesn't force a specific API on you. Instead, it gives you the tools to build exactly the API you need.
 
-## Quick Start: JSON API Plugin
+## Building a JSON API
 
-Create a simple read-only JSON API in minutes:
+Since Ava is just PHP, you can easily create endpoints that return JSON. This is great if you want to use Ava as a headless CMS for a mobile app or a JavaScript frontend.
+
+### Example: A Simple Read-Only API
+
+You can create a plugin to expose your content as JSON.
 
 ```php
-<?php
 // plugins/json-api/plugin.php
 
 return [
     'name' => 'JSON API',
-    'version' => '1.0.0',
-    'description' => 'Read-only JSON API for content',
-    
     'boot' => function($app) {
         $router = $app->router();
         
-        // List all published posts
-        $router->addRoute('/api/posts', function($request) {
-            return handleApiRequest(function() {
-                $repo = \Ava\Application::getInstance()->repository();
-                $posts = $repo->published('post');
-                
-                return array_map(fn($p) => [
-                    'id' => $p->id(),
+        // Endpoint: /api/posts
+        $router->addRoute('/api/posts', function() {
+            $repo = \Ava\Application::getInstance()->repository();
+            $posts = $repo->published('post');
+            
+            // Return JSON response
+            return \Ava\Http\Response::json([
+                'data' => array_map(fn($p) => [
                     'title' => $p->title(),
                     'slug' => $p->slug(),
-                    'date' => $p->date()?->format('c'),
-                    'excerpt' => $p->excerpt(),
-                    'url' => '/blog/' . $p->slug(),
-                ], $posts);
-            });
-        });
-        
-        // Get single post
-        $router->addRoute('/api/posts/{slug}', function($request, $params) {
-            return handleApiRequest(function() use ($params) {
-                $repo = \Ava\Application::getInstance()->repository();
-                $post = $repo->get('post', $params['slug']);
-                
-                if (!$post || !$post->isPublished()) {
-                    throw new \Exception('Post not found', 404);
-                }
-                
-                return [
-                    'id' => $post->id(),
-                    'title' => $post->title(),
-                    'slug' => $post->slug(),
-                    'date' => $post->date()?->format('c'),
-                    'excerpt' => $post->excerpt(),
-                    'content' => $post->rawContent(),
-                    'url' => '/blog/' . $post->slug(),
-                ];
-            });
+                ], $posts)
+            ]);
         });
     }
 ];
-
-function handleApiRequest(callable $handler): \Ava\Routing\RouteMatch {
-    try {
-        $data = $handler();
-        $response = \Ava\Http\Response::json([
-            'success' => true,
-            'data' => $data,
-        ]);
-    } catch (\Exception $e) {
-        $code = $e->getCode() ?: 500;
-        $response = \Ava\Http\Response::json([
-            'success' => false,
-            'error' => $e->getMessage(),
-        ], $code);
-    }
-    
-    return new \Ava\Routing\RouteMatch(
-        type: 'api',
-        template: '__raw__',
-        params: ['response' => $response]
-    );
-}
 ```
 
-## API Endpoints
-
-### Response Format
-
-All responses follow a consistent format:
-
-```json
-{
-    "success": true,
-    "data": { ... }
-}
-```
-
-Error responses:
-```json
-{
+Now, visiting `/api/posts` will give you a clean JSON list of your blog posts.
     "success": false,
     "error": "Error message"
 }

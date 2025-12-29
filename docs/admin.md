@@ -1,102 +1,55 @@
 # Admin Dashboard
 
-Ava includes an optional read-only admin dashboard. It's a web-based interface for monitoring your site — not a full CMS editor. Think of it as a visual wrapper around the CLI.
+Ava includes a simple, optional dashboard to help you keep an eye on your site. It's not a full editor—remember, your files are the source of truth—but it's great for checking your site's health.
 
-## Philosophy
+## What's it for?
 
-The admin dashboard is intentionally limited:
+Think of the dashboard as a friendly window into your site's engine room:
 
-- **Read-only** — View content, but don't edit it. Your files are the source of truth.
-- **Monitoring** — See cache status, content counts, system info at a glance.
-- **Safe tooling** — Run lint checks, trigger cache rebuilds, preview drafts.
-- **Lightweight** — No database, no sessions stored on disk. Uses secure cookies.
+- **Health Check** — See if your cache is fresh and your system is happy.
+- **Content Overview** — Quickly see how many posts and pages you have.
+- **Linting** — Check your content files for errors (like missing titles or broken links).
+- **Cache Control** — Rebuild your site's cache with a single click.
 
-This keeps things simple and prevents the dashboard from becoming a bottleneck or security risk.
+## Enabling the Dashboard
 
-## Enabling the Admin
-
-In `app/config/ava.php`:
+It's disabled by default. To turn it on, edit `app/config/ava.php`:
 
 ```php
 'admin' => [
     'enabled' => true,
-    'path' => '/admin',   // URL path (change if you prefer /dashboard, etc.)
+    'path' => '/admin',   // You can change this to /dashboard or anything else!
 ],
 ```
 
-## Creating an Admin User
+## Creating Your First User
 
-Run the CLI command to create your first user:
+Since there's no database, users are stored in a simple config file. Use the CLI to create one:
 
 ```bash
 ./ava user:add admin@example.com yourpassword "Your Name"
 ```
 
-This creates `app/config/users.php` (gitignored by default) containing a bcrypt-hashed password.
+This creates a secure `app/config/users.php` file (which is ignored by Git, so your secrets stay safe).
 
-To manage users:
-- `./ava user:list` — List all users
-- `./ava user:password <email> <newpass>` — Reset password
-- `./ava user:remove <email>` — Remove a user
+## Features
 
-## Accessing the Dashboard
+### Content Linter
 
-Visit `/admin` (or your configured path) in your browser. You'll see a login form.
+This is the most useful feature. It scans all your Markdown files and warns you about:
+- Missing required fields (like title or date)
+- Invalid status settings
+- Duplicate URLs
 
-After logging in, you'll see the main dashboard with:
+It's like a spellchecker for your site's structure.
 
-| Section | Description |
-|---------|-------------|
-| **Site Info** | Site name and URL |
-| **Cache Status** | Current mode, last build time, whether cache is fresh |
-| **Content Stats** | Count of each content type, published vs drafts |
-| **Taxonomy Stats** | Term counts per taxonomy |
-| **Recent Content** | Latest published items |
-| **System Info** | PHP version, extensions, server details |
+### Cache Manager
 
-## Dashboard Features
+If you're making changes and they aren't showing up, the Cache Manager tells you why. You can see if the cache is "Fresh" or "Stale" and rebuild it instantly.
 
-### Cache Management
+### Theme Inspector
 
-The dashboard shows your current cache status:
-
-- **Fresh** — Cache is up to date
-- **Stale** — Content has changed, cache needs rebuilding
-- **Mode** — Current cache mode (auto, always, never)
-
-Click "Rebuild Cache" to regenerate all cache files. This is equivalent to running `./ava rebuild` from the CLI.
-
-### Content Lint
-
-Run validation checks on all content files directly from the dashboard. This checks:
-
-- Valid YAML frontmatter syntax
-- Required fields (title, slug, status)
-- Valid status values (draft, published, private)
-- Slug format (lowercase, alphanumeric, hyphens)
-- Duplicate slugs within content types
-- Duplicate IDs
-
-Results are displayed inline, showing any errors or warnings.
-
-### Themes
-
-The Themes page shows complete information about your active theme:
-
-- **Active theme** — Which theme is currently in use
-- **Templates** — All available templates with file sizes
-- **Assets** — CSS, JS, images, fonts served via the `/theme/` route
-- **Theme structure** — Visual diagram of the theme directory
-
-This page also explains how theme assets work — they're served via PHP at `/theme/*` URLs, keeping all theme files self-contained. See the [Themes](/themes) documentation for details.
-
-### Shortcodes Reference
-
-View all registered shortcodes and available snippets. Shows:
-
-- All registered shortcode tags
-- Available PHP snippets from `snippets/` directory
-- Usage examples
+See exactly which theme is active and list all the available templates and assets. It's helpful for debugging if a page isn't looking right.
 
 ### Admin Logs
 

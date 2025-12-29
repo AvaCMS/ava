@@ -1,43 +1,29 @@
-# CLI Reference
+# CLI Tools
 
-The Ava CLI helps you manage your site from the command line. It's your primary tool for cache management, content validation, and scaffolding.
+Ava comes with a handy command-line tool to help you manage your site. It's great for checking your site's health, clearing the cache, or creating new content.
 
-## Usage
+## How to use it
 
-```bash
-./ava <command> [arguments]
-
-# Or explicitly with PHP
-php bin/ava <command> [arguments]
-```
-
-## Commands Overview
-
-| Command | Description |
-|---------|-------------|
-| `status` | Show site status, cache info, content counts |
-| `rebuild` | Rebuild all cache files |
-| `lint` | Validate all content files |
-| `make <type> "Title"` | Create new content |
-| `prefix <add\|remove> [type]` | Toggle date prefix on filenames |
-| `user:add` | Create admin user |
-| `user:password` | Update user password |
-| `user:remove` | Remove a user |
-| `user:list` | List all users |
-| `update:check` | Check for available updates |
-| `update:apply` | Download and apply updates |
-
----
-
-## status
-
-Show a summary of your site's current state.
+Open your terminal in your project folder and run:
 
 ```bash
-./ava status
+./ava <command>
 ```
 
-Example output:
+## Common Commands
+
+| Command | What it does |
+|---------|--------------|
+| `status` | Shows a quick overview of your site (content counts, cache status). |
+| `rebuild` | Forces the cache to rebuild. Useful if something looks stuck. |
+| `lint` | Checks all your files for errors. |
+| `make` | Creates a new file for you. |
+| `user:add` | Creates a new admin user. |
+| `update:check` | Checks if there's a new version of Ava. |
+
+## Checking Status
+
+Run `./ava status` to see if everything is healthy.
 
 ```
 === Ava CMS Status ===
@@ -48,56 +34,17 @@ URL:  https://example.com
 Cache:
   Status: ✓ Fresh
   Mode:   auto
-  Built:  2024-12-28 10:30:15
-
-Content:
-  pages: 3 total (3 published, 0 drafts)
-  posts: 5 total (4 published, 1 drafts)
-
-Taxonomies:
-  categories: 4 terms
-  tags: 8 terms
 ```
 
-Use this to verify your site is configured correctly and cache is up to date.
+## Creating Content
 
----
-
-## rebuild
-
-Force a complete cache rebuild.
+You can create files manually, or let Ava do it for you:
 
 ```bash
-./ava rebuild
+./ava make post "My New Post"
 ```
 
-This regenerates all cached files:
-
-| File | Contents |
-|------|----------|
-| `storage/cache/content_index.php` | All content metadata |
-| `storage/cache/tax_index.php` | Taxonomy terms and assignments |
-| `storage/cache/routes.php` | Compiled route map |
-| `storage/cache/fingerprint.json` | Content file hashes |
-
-Use after:
-- Deploying content changes (if cache mode is `never`)
-- Modifying content type or taxonomy configuration
-- Troubleshooting stale content issues
-
----
-
-## lint
-
-Validate all content files for errors.
-
-```bash
-./ava lint
-```
-
-Checks for:
-
-| Check | Description |
+This creates a new file in `content/posts/` with the correct date and frontmatter already filled in.
 |-------|-------------|
 | YAML syntax | Valid frontmatter parsing |
 | Required fields | `title`, `slug`, `status` present |

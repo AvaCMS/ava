@@ -1,36 +1,27 @@
 # Routing
 
-Ava uses a custom router with no external dependencies. URLs are derived from your content and configuration — no route files to maintain.
+In Ava, you don't need to write complex route files. URLs are generated automatically based on your content.
 
 ## How It Works
 
-1. **Content is indexed** — When cache builds, Ava scans all content and generates a route map.
-2. **Routes are compiled** — The route map is saved as a PHP array for fast lookups.
-3. **Requests are matched** — Incoming URLs are matched against the compiled routes.
+Ava looks at your `content/` folder and your configuration to decide what URL each file gets.
 
-You don't define routes manually. They're generated from your content types, taxonomies, and content files.
+1. **You save a file.**
+2. **Ava sees it.**
+3. **The URL works.**
 
-## Route Matching Order
+## URL Styles
 
-When a request comes in, Ava checks in this order:
+You can control how URLs look in `app/config/content_types.php`.
 
-| Priority | Type | Example |
-|----------|------|---------|
-| 1 | Trailing slash redirect | `/about/` → `/about` |
-| 2 | Redirects (from frontmatter) | `/old-url` → `/new-url` |
-| 3 | System routes (plugins, admin) | `/admin`, `/api/posts` |
-| 4 | Exact content routes | `/about`, `/blog/hello` |
-| 5 | Taxonomy routes | `/category/tutorials` |
-| 6 | 404 | No match found |
+### 1. Folder Style (Hierarchical)
 
-## URL Configuration
+Great for standard pages. The URL matches the folder structure.
 
-### Hierarchical URLs (Pages)
+- `content/pages/about.md` → `/about`
+- `content/pages/services/web.md` → `/services/web`
 
-Files map directly to URLs:
-
-```yaml
-# content_types.php
+```php
 'page' => [
     'url' => [
         'type' => 'hierarchical',
@@ -39,56 +30,24 @@ Files map directly to URLs:
 ]
 ```
 
-| File | URL |
-|------|-----|
-| `content/pages/index.md` | `/` |
-| `content/pages/about.md` | `/about` |
-| `content/pages/services/web.md` | `/services/web` |
+### 2. Pattern Style (Blog Posts)
 
-### Pattern URLs (Posts)
+Great for blogs, where you want a consistent structure like `/blog/{slug}` or `/2024/{slug}`.
 
-URLs built from a pattern:
+- `content/posts/hello-world.md` → `/blog/hello-world`
 
-```yaml
+```php
 'post' => [
     'url' => [
         'type' => 'pattern',
-        'pattern' => '/blog/{slug}',
-        'archive' => '/blog',
+        'pattern' => '/blog/{slug}', // You can use {year}, {month}, {day} too!
     ],
 ]
 ```
-
-Pattern tokens:
-- `{slug}` — Item slug
-- `{yyyy}` — Year (4 digits)
-- `{mm}` — Month (2 digits)
-- `{dd}` — Day (2 digits)
-- `{id}` — Item ID
-
-### Taxonomy URLs
-
-Configured per taxonomy:
-
-```yaml
-# taxonomies.php
-'category' => [
-    'rewrite' => [
-        'base' => '/category',
-    ],
-]
-```
-
-Results in:
-- `/category/tutorials`
-- `/category/news`
-
-For hierarchical taxonomies, terms can have paths:
-- `/topic/guides/basics`
 
 ## Redirects
 
-Add `redirect_from` to frontmatter:
+Need to move a page? Just add `redirect_from` to the file's frontmatter. Ava handles the 301 redirect for you.
 
 ```yaml
 ---

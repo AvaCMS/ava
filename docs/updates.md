@@ -1,102 +1,33 @@
 # Updates
 
-Ava includes a built-in update system that checks for and applies updates from the official GitHub repository.
+Keeping Ava up to date is easy. We release updates regularly with new features and bug fixes.
 
-## Checking for Updates
+## How to Update
 
-### Via CLI (Recommended)
-
-```bash
-php bin/ava update:check
-```
-
-This checks for available updates and shows the changelog if one is available. Results are cached for 1 hour.
+The easiest way is using the CLI:
 
 ```bash
-php bin/ava update:check --force   # Bypass cache
+# 1. Check for updates
+./ava update:check
+
+# 2. Apply the update
+./ava update:apply
 ```
 
-### Via Admin Dashboard
+Ava will download the latest version from GitHub and update your core files.
 
-The admin dashboard shows your current version in the sidebar. When an update is available, a notification banner appears at the top of the dashboard with the new version number.
+## What Gets Updated?
 
-## Applying Updates
+Don't worry, the update process is safe. It **only** updates the core system files.
 
-```bash
-php bin/ava update:apply
-```
+**It will NEVER touch:**
+- Your `content/` folder.
+- Your `app/config/` settings.
+- Your custom themes or plugins.
 
-This will:
-1. Download the latest release from GitHub
-2. Show you what will be updated
-3. Ask for confirmation
-4. Apply the update
-5. Rebuild the cache
+## Version Numbers
 
-Use `-y` to skip the confirmation prompt:
-
-```bash
-php bin/ava update:apply -y
-```
-
-## What Gets Updated
-
-The update process **replaces** these directories/files:
-
-| Path | Description |
-|------|-------------|
-| `core/` | Core CMS PHP code |
-| `docs/` | Documentation |
-| `bin/` | CLI scripts |
-| `themes/default/` | Default theme only |
-| `plugins/sitemap/` | Bundled sitemap plugin |
-| `plugins/feed/` | Bundled RSS feed plugin |
-| `plugins/redirects/` | Bundled redirects plugin |
-| `bootstrap.php` | Bootstrap and version |
-| `composer.json` | Dependencies |
-| `public/index.php` | Front controller |
-| `public/assets/admin.css` | Admin stylesheet |
-
-## What's Preserved
-
-The update process **never touches** these:
-
-| Path | Description |
-|------|-------------|
-| `content/` | Your content files |
-| `app/` | Your configuration |
-| `storage/` | Cache, logs, data files |
-| `vendor/` | Composer dependencies |
-| `themes/*/` | Custom themes (anything except `default/`) |
-| `plugins/*/` | Custom plugins (anything not bundled) |
-| `.env` | Environment file |
-| `.git/` | Git repository |
-
-## New Bundled Plugins
-
-When an update includes new bundled plugins:
-
-1. They are copied to `plugins/`
-2. They are **not activated** automatically
-3. A message shows which new plugins are available
-4. To activate, add them to your `plugins` array in `app/config/ava.php`
-
-## Versioning
-
-Ava uses [CalVer](https://calver.org/) with the format `YY.0M.MICRO`:
-
-- **YY**: Two-digit year
-- **0M**: Zero-padded month  
-- **MICRO**: Release number within that month
-
-### Examples
-
-| Version | Meaning |
-|---------|---------|
-| `25.12.1` | First release of December 2025 |
-| `25.12.2` | Second release of December 2025 |
-| `26.01.1` | First release of January 2026 |
-| `26.01.15` | Fifteenth release of January 2026 |
+We use a simple date-based versioning system (like `25.12.1` for December 2025). This makes it easy to see how old your version is at a glance.
 
 This scheme:
 - Tells you roughly when a release was made

@@ -1,27 +1,27 @@
 # Addy's (very adaptable) CMS
 
-A developer-first, flat-file PHP CMS for long-lived personal sites.
+The friendly, flat-file CMS for bespoke personal websites.
 
 ## Philosophy
 
-Ava is built on a few core principles:
+Ava is designed for people who love the web. It sits in the sweet spot between a static site generator and a heavy CMS:
 
-- **Files are the source of truth.** Content is Markdown. Configuration is PHP arrays. Everything lives in your Git repo.
-- **No database.** Content is indexed into PHP arrays and cached. Fast reads, zero database overhead.
-- **Edit live.** This isn't a static site generator. Change a file, see it immediately. The cache auto-rebuilds when content changes.
-- **Freeform structure.** Define any content types you want. Pages, posts, recipes, bookmarks, whatever. You're not locked into a blog-or-pages paradigm.
-- **Developer-friendly.** Minimal magic. The code is readable. Templates are plain PHP. Extend via hooks, shortcodes, and plugins.
+- **Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Everything lives in your Git repo, so you own your data forever.
+- **Bring Your Own Editor.** No clunky WYSIWYG editors here. Write in VS Code, Obsidian, or Notepad. If you can write HTML and CSS, you can build a theme.
+- **No Database Required.** Ava indexes your content into fast PHP arrays. You get the speed of a static site with the dynamic power of PHP.
+- **Edit Live.** Change a file, hit refresh, and see it instantly. No build steps, no waiting for deploys.
+- **Bespoke by Design.** Don't fight a platform. Create any content type you want—blogs, portfolios, recipe collections, changelogs—without plugins or hacks.
 
-## Core Concepts
+## Core Features
 
-| Concept | Description |
+| Feature | What it does for you |
 |---------|-------------|
-| **Content Types** | Define what kinds of content your site has (pages, posts, etc.). Each type has its own directory, URL pattern, and template. |
-| **Taxonomies** | Grouping systems like categories and tags. Fully customizable — create any taxonomy you need. |
-| **Shortcodes** | Embed dynamic content in Markdown. Built-in shortcodes plus easy custom ones. |
-| **Themes** | Plain PHP templates with a helper object. No template language to learn. |
-| **Plugins** | Extend functionality via hooks. Plugins can add routes, shortcodes, content types, and more. |
-| **Cache** | Content is compiled into PHP arrays for fast loading. Rebuilds automatically or on-demand. |
+| **Content Types** | Define exactly what you're publishing (Pages, Posts, Projects, etc.). |
+| **Taxonomies** | Organize content your way with custom categories, tags, or collections. |
+| **Smart Routing** | URLs are generated automatically based on your content structure. |
+| **Themes** | Write standard HTML and CSS. Use PHP only where you need dynamic data. |
+| **Plugins** | Add functionality like sitemaps and feeds without bloat. |
+| **Speed** | Built-in caching makes your site load instantly, even on cheap hosting. |
 
 ## Quick Start
 
@@ -74,18 +74,21 @@ mysite/
 
 ## How It Works
 
-1. **Content** — You write Markdown files with YAML frontmatter in `content/`.
-2. **Cache** — Ava indexes all content into PHP arrays stored in `storage/cache/`.
-3. **Request** — When a request comes in, the router finds the matching content.
-4. **Render** — The theme template receives the content and renders HTML.
+1. **Write** — Create Markdown files in your `content/` folder.
+2. **Index** — Ava automatically scans your files and builds a fast index.
+3. **Render** — Your theme turns that content into beautiful HTML.
 
-The cache makes reads instant. In `auto` mode (recommended), the cache rebuilds automatically when you change files.
+The system handles all the boring stuff: routing, sorting, pagination, and search. You just focus on the content and the design.
 
-## What Ava Is Not
+## Is Ava for You?
 
-- **Not a static site generator.** Pages are rendered on request. You can run dynamic PHP.
-- **Not a traditional CMS.** There's no WYSIWYG editor. You edit files directly.
-- **Not WordPress.** No plugins ecosystem, no themes marketplace. It's a framework for developers.
+Ava is perfect if:
+- You know some HTML and CSS (or want to learn!).
+- You prefer writing in a real text editor over a web form.
+- You want a fast, personal site that you fully own and control.
+- You don't want to manage a database or complex server setup.
+
+It might not be the best fit if you need a drag-and-drop page builder or a massive ecosystem of third-party themes.
 
 ## Next Steps
 

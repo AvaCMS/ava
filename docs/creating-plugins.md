@@ -1,103 +1,41 @@
 # Creating Plugins
 
-Plugins extend Ava without modifying core files. They can add routes, shortcodes, content types, and hook into the rendering pipeline.
+Want to add a new feature to Ava? Plugins are the way to do it.
 
-## Philosophy
+## What is a Plugin?
 
-Plugins in Ava are intentionally simple:
+A plugin is just a folder with a PHP file in it. It lets you add code to your site without messing up the core files.
 
-- **Just PHP** — No special syntax, no compilation, no autoloading magic.
-- **Hooks-based** — Plugins interact via well-defined hook points.
-- **Self-contained** — Each plugin is a folder with a manifest file.
-- **Opt-in** — Plugins must be explicitly enabled in configuration.
+You can use plugins to:
+- Add new shortcodes.
+- Create custom routes (like a JSON API).
+- Hook into Ava's events (like "after a page is saved").
 
-## Plugin Location
+## Your First Plugin
 
-Plugins live in `plugins/`, each in its own folder:
-
-```
-plugins/
-└── my-plugin/
-    ├── plugin.php      # Required: Plugin manifest
-    ├── src/            # Optional: Additional PHP files
-    ├── views/          # Optional: Admin views
-    └── assets/         # Optional: CSS, JS, images
-```
-
-## Creating a Plugin
-
-### The Manifest
-
-Every plugin needs a `plugin.php` that returns a manifest array:
+1. Create a folder: `plugins/my-plugin/`
+2. Create a file: `plugins/my-plugin/plugin.php`
 
 ```php
 <?php
-// plugins/my-plugin/plugin.php
-
-use Ava\Plugins\Hooks;
-
 return [
-    // Plugin metadata
-    'name' => 'My Plugin',
-    'version' => '1.0.0',
-    'description' => 'What this plugin does',
-    'author' => 'Your Name',
+    'name' => 'My First Plugin',
+    'version' => '1.0',
     
-    // Boot function - called when plugin loads
     'boot' => function($app) {
-        // Your plugin code here
+        // Your code goes here!
+        
+        // Example: Add a custom route
+        $app->router()->addRoute('/hello', function() {
+            return 'Hello World!';
+        });
     }
 ];
 ```
 
-### The Boot Function
+3. Enable it in `app/config/ava.php`.
 
-The `boot` callback is where your plugin does its work. It receives the Application instance:
-
-```php
-'boot' => function($app) {
-    // Access configuration
-    $siteName = $app->config('site.name');
-    
-    // Access content repository
-    $repo = $app->repository();
-    
-    // Register routes
-    $router = $app->router();
-    
-    // Register shortcodes
-    $shortcodes = $app->shortcodes();
-}
-```
-
-## Hooks System
-
-Plugins interact with Ava primarily through hooks. There are two types:
-
-| Type | Purpose | Example |
-|------|---------|---------|
-| **Filters** | Modify data as it flows through | Change rendered HTML |
-| **Actions** | React to events | Log when content is rendered |
-
-### Registering Hooks
-
-```php
-use Ava\Plugins\Hooks;
-
-// Filter: Modify data and return it
-Hooks::addFilter('render.context', function($context) {
-    $context['my_custom_var'] = 'Hello from plugin!';
-    return $context;
-});
-
-// Action: Respond to events
-Hooks::addAction('content.after_index', function($items) {
-    // Log, notify, or perform side effects
-    error_log('Indexed ' . count($items) . ' items');
-});
-```
-
-To apply filters in your code:
+That's it! You've extended Ava.
 ```php
 $context = Hooks::apply('render.context', $context);
 ```

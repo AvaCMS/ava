@@ -1,102 +1,29 @@
 # Bundled Plugins
 
-Ava ships with three plugins that cover common needs. They're included in the `plugins/` directory and can be enabled in your configuration.
+Ava comes with a few essential plugins to handle the boring stuff for you. They are installed by default but you can turn them on or off in your config.
 
 ## Sitemap
 
-Generates XML sitemaps for search engines.
+Automatically generates an XML sitemap for search engines like Google.
 
-### Features
-
-- **Sitemap index** at `/sitemap.xml` linking to per-type sitemaps
-- **Per-type sitemaps** at `/sitemap-{type}.xml` (e.g., `/sitemap-post.xml`)
-- **Respects noindex** — Content with `noindex: true` is excluded
-- **Automatic lastmod** — Uses content `updated` or `date` fields
-- **Configurable** — Set changefreq and priority per content type
-- **Admin page** — View sitemap status under Plugins → Sitemap
-
-### Enabling
-
-```php
-// app/config/ava.php
-'plugins' => [
-    'sitemap',
-],
-```
-
-### Configuration
-
-Optional configuration in `app/config/ava.php`:
-
-```php
-'sitemap' => [
-    'enabled' => true,
-    'changefreq' => [
-        'page' => 'monthly',
-        'post' => 'weekly',
-    ],
-    'priority' => [
-        'page' => '0.8',
-        'post' => '0.6',
-    ],
-],
-```
-
-### Excluding Content
-
-Add `noindex: true` to any content's frontmatter:
-
-```yaml
----
-title: Private Page
-status: published
-noindex: true
----
-```
-
-### Output Example
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>https://example.com/sitemap-page.xml</loc>
-    <lastmod>2025-01-15</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>https://example.com/sitemap-post.xml</loc>
-    <lastmod>2025-01-20</lastmod>
-  </sitemap>
-</sitemapindex>
-```
-
----
+- **What it does:** Creates `sitemap.xml` so search engines can find all your pages.
+- **How to use:** Just enable it in `app/config/ava.php`.
+- **Customization:** You can exclude pages by adding `noindex: true` to their frontmatter.
 
 ## RSS Feed
 
-Generates RSS 2.0 feeds for content syndication.
+Lets people subscribe to your blog using an RSS reader.
 
-### Features
+- **What it does:** Creates `feed.xml` with your latest posts.
+- **How to use:** Enable it in `app/config/ava.php`.
+- **Customization:** You can choose which content types to include (like just posts, or everything).
 
-- **Main feed** at `/feed.xml` with all content types
-- **Per-type feeds** at `/feed/{type}.xml` (e.g., `/feed/post.xml`)
-- **Respects noindex** — Content with `noindex: true` is excluded
-- **Configurable item count** — Default 20 items per feed
-- **Full content or excerpt** — Choose what's included
-- **Admin page** — View feed URLs under Plugins → RSS Feeds
+## Redirects
 
-### Enabling
+Helps you manage broken links.
 
-```php
-// app/config/ava.php
-'plugins' => [
-    'feed',
-],
-```
-
-### Configuration
-
-Optional configuration in `app/config/ava.php`:
+- **What it does:** Redirects old URLs to new ones.
+- **How to use:** Add a `redirects.json` file to your `storage/` folder, or use the admin dashboard if you have the plugin enabled.
 
 ```php
 'feed' => [
