@@ -1,5 +1,11 @@
 # Addy's (very adaptable) CMS
 
+[![Release](https://img.shields.io/github/v/release/adamgreenough/ava)](https://github.com/adamgreenough/ava/releases)
+[![Issues](https://img.shields.io/github/issues/adamgreenough/ava)](https://github.com/adamgreenough/ava/issues)
+[![Stars](https://img.shields.io/github/stars/adamgreenough/ava)](https://github.com/adamgreenough/ava/stargazers)
+[![Code size](https://img.shields.io/github/languages/code-size/adamgreenough/ava)](https://github.com/adamgreenough/ava)
+[![Discord](https://img.shields.io/discord/1028357262189801563)](https://discord.gg/Z7bF9YeK)
+
 A friendly, flat-file CMS for bespoke personal websites, blogs and more.
 
 ## Philosophy
@@ -112,8 +118,7 @@ In plain English, that means you can:
 
 The main thing the license asks is that you keep the MIT license text and copyright notice with the software.
 
-Also worth knowing: the MIT license comes with a standard “no warranty” clause. Ava is provided as-is, so you’re responsible for how you deploy and run it. As with all open source software, there's no guarantees that it's fit-for-purpose or impenetrably secure. 
-
+Also worth knowing: the MIT license comes with a standard “no warranty” clause. Ava is provided as-is, so you’re responsible for how you deploy and run it. There's no guarantees that it's fit-for-purpose or impenetrably secure. Standard open-source stuff.
 ## Contributing
 
 Ava is still fairly early and moving quickly, so I’m not looking for pull requests or additional contributors just yet.
