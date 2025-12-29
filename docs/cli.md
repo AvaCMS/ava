@@ -26,7 +26,7 @@ Open your terminal in your project folder and run:
 Run `./ava status` to see if everything is healthy.
 
 ```
-=== Ava Status ===
+=== Ava CMS Status ===
 
 Site: My Site
 URL:  https://example.com

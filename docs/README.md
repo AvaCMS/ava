@@ -1,10 +1,10 @@
-# Addy's (very adaptable) Content Engine
+# Addy's (very adaptable) CMS
 
-The friendly, flat-file content engine for bespoke websites.
+The friendly, flat-file CMS for bespoke websites.
 
 ## Philosophy
 
-Ava is designed for people who love the web. It sits in the sweet spot between a static site generator and a heavy CMS:
+Ava is designed for people who love the web. It sits in the sweet spot between a static site generator and a full-blown CMS:
 
 - **Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Everything lives in your Git repo, so you own your data forever.
 - **Bring Your Own Editor.** No clunky WYSIWYG editors here. Write in VS Code, Obsidian, or Notepad. If you can write HTML and CSS, you can build a theme.

@@ -222,7 +222,7 @@ return [
     'name' => 'Reading Time',
     'version' => '1.0.0',
     'description' => 'Adds estimated reading time to content items',
-    'author' => 'Ava',
+    'author' => 'Ava CMS',
     
     'boot' => function($app) {
         // Add reading_time to template context

@@ -4,7 +4,7 @@ Ava doesn't force a specific API on you. Instead, it gives you the tools to buil
 
 ## Building a JSON API
 
-Since Ava is just PHP, you can easily create endpoints that return JSON. This is great if you want to use Ava as a headless content engine for a mobile app or a JavaScript frontend.
+Since Ava is just PHP, you can easily create endpoints that return JSON. This is great if you want to use Ava as a headless CMS for a mobile app or a JavaScript frontend.
 
 ### Example: A Simple Read-Only API
 

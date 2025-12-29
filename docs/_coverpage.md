@@ -1,11 +1,11 @@
 <div class="cover-logo">
-  <img src="char.png" alt="Ava mascot">
+  <img src="char.png" alt="Ava CMS mascot">
 </div>
 
 <div class="cover-content">
-  <h1>Ava Content Engine ✨</h1>
+  <h1>Ava CMS ✨</h1>
 
- > The friendly, flat-file content engine for bespoke websites.
+ > The friendly, flat-file CMS for bespoke websites.
 
 
   <div class="feature-grid">
