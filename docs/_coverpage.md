@@ -50,9 +50,7 @@
       <div class="feature-desc">Add features with simple plugins</div>
     </div>
   </div>
-
+</div>
 
 [Get Started](#main)
 [GitHub](https://github.com/adamgreenough/ava)
-
-</div>

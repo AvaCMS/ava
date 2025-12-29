@@ -4,7 +4,7 @@ The friendly, flat-file CMS for bespoke websites.
 
 ## Philosophy
 
-Ava is designed for people who love the web. It sits in the sweet spot between a static site generator and a heavy CMS:
+Ava is designed for people who love the web. It sits in the sweet spot between a static site generator and a full-blown CMS:
 
 - **Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Everything lives in your Git repo, so you own your data forever.
 - **Bring Your Own Editor.** No clunky WYSIWYG editors here. Write in VS Code, Obsidian, or Notepad. If you can write HTML and CSS, you can build a theme.
@@ -88,7 +88,7 @@ Ava is perfect if:
 - You want a fast, personal site that you fully own and control.
 - You don't want to manage a database or complex server setup.
 
-It might not be the best fit if you need a drag-and-drop page builder or a massive ecosystem of third-party themes.
+It won't be a good fit if you need a drag-and-drop page builder or a massive ecosystem of third-party themes.
 
 ## Next Steps
 
