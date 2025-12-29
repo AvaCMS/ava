@@ -2,7 +2,9 @@
 
 Ava includes a simple, optional dashboard to help you keep an eye on your site. It's not a full editor—remember, your files are the source of truth—but it's great for discovering more about your setup, learning how to configure and customise Ava as well as checking your site's health.
 
-![Ava Admin dashboard screenshot](images/ava-dev.addy.zone_admin.png)
+<a href="images/admin-dashboard.webp" target="_blank" rel="noopener">
+    <img src="images/admin-dashboard.webp" alt="Ava admin dashboard" />
+</a>
 
 ## What's it for?
 
@@ -45,6 +47,10 @@ This is the most useful feature. It scans all your Markdown files and warns you 
 
 It's like a spellchecker for your site's structure.
 
+<a href="images/admin-lint.webp" target="_blank" rel="noopener">
+    <img src="images/admin-lint.webp" alt="Content linter screen" />
+</a>
+
 ### Cache Manager
 
 If you're making changes and they aren't showing up, the Cache Manager tells you why. You can see if the cache is "Fresh" or "Stale" and rebuild it instantly.
@@ -53,9 +59,17 @@ If you're making changes and they aren't showing up, the Cache Manager tells you
 
 See exactly which theme is active and list all the available templates and assets. It's helpful for debugging if a page isn't looking right.
 
+<a href="images/admin-themes.webp" target="_blank" rel="noopener">
+    <img src="images/admin-themes.webp" alt="Theme inspector screen" />
+</a>
+
 ### Admin Logs
 
 View a log of admin actions — logins, logouts, cache rebuilds, and warnings. Logs are stored in `storage/logs/admin.log` and show:
+
+<a href="images/admin-log.webp" target="_blank" rel="noopener">
+    <img src="images/admin-log.webp" alt="Admin logs screen" />
+</a>
 
 - Timestamp
 - Log level (INFO, WARNING)
@@ -72,6 +86,10 @@ Detailed system information including:
 - Directory permissions
 - Hook registrations
 
+<a href="images/admin-info.webp" target="_blank" rel="noopener">
+    <img src="images/admin-info.webp" alt="System info screen" />
+</a>
+
 ### Content Browser
 
 Browse all content by type. Each item shows:
@@ -82,6 +100,26 @@ Browse all content by type. Each item shows:
 - Quick links to view on site
 
 This is read-only — to edit content, use your text editor and Git.
+
+<a href="images/admin-content.webp" target="_blank" rel="noopener">
+    <img src="images/admin-content.webp" alt="Content browser screen" />
+</a>
+
+### Taxonomies
+
+Browse and manage taxonomy terms (like categories) and see which content is using them.
+
+<a href="images/admin-taxonomy.webp" target="_blank" rel="noopener">
+    <img src="images/admin-taxonomy.webp" alt="Taxonomies screen" />
+</a>
+
+### Shortcodes
+
+See which shortcodes are available and how they render.
+
+<a href="images/admin-shortcodes.webp" target="_blank" rel="noopener">
+    <img src="images/admin-shortcodes.webp" alt="Shortcodes screen" />
+</a>
 
 ## Security
 

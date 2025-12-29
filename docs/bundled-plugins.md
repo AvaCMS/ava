@@ -1,5 +1,3 @@
-./ava rebuild
-
 # Bundled Plugins
 
 Ava comes with a few essential plugins to handle the boring stuff for you. They are installed by default but you can turn them on or off in your config.
@@ -8,6 +6,10 @@ Ava comes with a few essential plugins to handle the boring stuff for you. They 
 
 Automatically generates an XML sitemap for search engines like Google.
 
+<a href="images/plugin-sitemap.webp" target="_blank" rel="noopener">
+  <img src="images/plugin-sitemap.webp" alt="Sitemap plugin screen" />
+</a>
+
 - **What it does:** Creates `sitemap.xml` so search engines can find all your pages.
 - **How to use:** Just enable it in `app/config/ava.php`.
 - **Customization:** You can exclude pages by adding `noindex: true` to their frontmatter.
@@ -15,6 +17,10 @@ Automatically generates an XML sitemap for search engines like Google.
 ## RSS Feed
 
 Lets people subscribe to your blog using an RSS reader.
+
+<a href="images/plugin-feeds.webp" target="_blank" rel="noopener">
+  <img src="images/plugin-feeds.webp" alt="Feeds plugin screen" />
+</a>
 
 - **What it does:** Creates `feed.xml` with your latest posts.
 - **How to use:** Enable it in `app/config/ava.php`.
@@ -65,6 +71,10 @@ Add the feed link to your theme's `<head>`:
 ## Redirects
 
 Manage custom URL redirects through the admin interface.
+
+<a href="images/plugin-redirects.webp" target="_blank" rel="noopener">
+  <img src="images/plugin-redirects.webp" alt="Redirects plugin screen" />
+</a>
 
 - **What it does:** Redirects old URLs to new ones.
 - **How to use:** Add a `redirects.json` file to your `storage/` folder, or use the admin dashboard if you have the plugin enabled.
@@ -163,4 +173,3 @@ Then access the plugin admin pages at:
 - `/admin/sitemap`
 - `/admin/feeds`
 - `/admin/redirects`
-- `/admin/feeds`

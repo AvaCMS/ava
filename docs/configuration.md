@@ -187,7 +187,7 @@ For detailed caching internals, troubleshooting, and performance benchmarks, see
 | `enabled` | bool | `false` | Enable the admin dashboard |
 | `path` | string | `'/admin'` | URL path for admin (e.g., `/admin`, `/dashboard`, `/_ava`) |
 
-> ⚠️ **Important**: Create admin users with `./ava user:create` before enabling.
+!> **Important**: Create admin users with `./ava user:create` before enabling.
 
 ### Plugins
 
