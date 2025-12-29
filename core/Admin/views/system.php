@@ -228,15 +228,85 @@ $activePage = 'system';
                     <div class="list-item"><span class="list-label">Max Execution</span><span class="list-value"><?= ini_get('max_execution_time') ?>s</span></div>
                     <div class="list-item"><span class="list-label">Upload Max</span><span class="list-value"><?= ini_get('upload_max_filesize') ?></span></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- PHP Extensions Checklist -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <span class="card-title"><span class="material-symbols-rounded">extension</span> PHP Extensions</span>
+                <?php
+                // Check opcache properly (it's a Zend extension)
+                $opcacheInstalled = function_exists('opcache_get_status') && (
+                    (PHP_SAPI !== 'cli' && ini_get('opcache.enable')) ||
+                    (PHP_SAPI === 'cli' && ini_get('opcache.enable_cli'))
+                );
                 
-                <?php $loadedExtensions = get_loaded_extensions(); sort($loadedExtensions); ?>
-                <div class="card-body" style="padding-top: 0;">
-                    <div class="extensions-inline">
-                        <?php foreach ($loadedExtensions as $ext): ?>
-                        <span class="ext-pill"><?= htmlspecialchars($ext) ?></span>
+                $requiredExts = [
+                    'mbstring' => ['required' => true, 'desc' => 'UTF-8 text handling', 'loaded' => extension_loaded('mbstring')],
+                    'json' => ['required' => true, 'desc' => 'Config and API responses', 'loaded' => extension_loaded('json')],
+                    'ctype' => ['required' => true, 'desc' => 'String validation', 'loaded' => extension_loaded('ctype')],
+                ];
+                $recommendedExts = [
+                    'igbinary' => ['required' => false, 'desc' => 'Faster cache serialization (15× faster, 90% smaller)', 'loaded' => extension_loaded('igbinary')],
+                    'opcache' => ['required' => false, 'desc' => 'Opcode caching for production', 'loaded' => $opcacheInstalled],
+                    'curl' => ['required' => false, 'desc' => 'HTTP requests for updates', 'loaded' => extension_loaded('curl')],
+                    'gd' => ['required' => false, 'desc' => 'Image processing', 'loaded' => extension_loaded('gd')],
+                    'intl' => ['required' => false, 'desc' => 'Internationalization', 'loaded' => extension_loaded('intl')],
+                ];
+                $allExts = array_merge($requiredExts, $recommendedExts);
+                $requiredOk = count(array_filter($requiredExts, fn($e) => $e['loaded']));
+                $recommendedOk = count(array_filter($recommendedExts, fn($e) => $e['loaded']));
+                ?>
+                <span class="badge <?= $requiredOk === count($requiredExts) ? 'badge-success' : 'badge-danger' ?>">
+                    <?= $requiredOk ?>/<?= count($requiredExts) ?> required
+                </span>
+            </div>
+            <div class="table-wrap">
+                <table class="dir-table">
+                    <thead>
+                        <tr>
+                            <th>Extension</th>
+                            <th>Purpose</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($allExts as $ext => $info): 
+                            $loaded = $info['loaded'];
+                            $isRequired = $info['required'];
+                        ?>
+                        <tr>
+                            <td><code><?= htmlspecialchars($ext) ?></code></td>
+                            <td class="text-dim text-sm"><?= htmlspecialchars($info['desc']) ?></td>
+                            <td>
+                                <span class="badge <?= $isRequired ? 'badge-accent' : 'badge-muted' ?>">
+                                    <?= $isRequired ? 'Required' : 'Recommended' ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php if ($loaded): ?>
+                                    <span class="badge badge-success">
+                                        <span class="material-symbols-rounded" style="font-size: 14px;">check</span>
+                                        Installed
+                                    </span>
+                                <?php elseif ($isRequired): ?>
+                                    <span class="badge badge-danger">
+                                        <span class="material-symbols-rounded" style="font-size: 14px;">close</span>
+                                        Missing
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge badge-warning">
+                                        <span class="material-symbols-rounded" style="font-size: 14px;">remove</span>
+                                        Not installed
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
                         <?php endforeach; ?>
-                    </div>
-                </div>
+                    </tbody>
+                </table>
             </div>
         </div>
 

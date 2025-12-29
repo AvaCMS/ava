@@ -5,6 +5,7 @@
 - [Themes](themes.md "Themes | Ava CMS")
 - [Routing](routing.md "Routing | Ava CMS")
 - [Shortcodes](shortcodes.md "Shortcodes | Ava CMS")
+- [Caching](caching.md "Caching | Ava CMS")
 - [Creating Plugins](creating-plugins.md "Creating Plugins | Ava CMS")
 - [Bundled Plugins](bundled-plugins.md "Bundled Plugins | Ava CMS")
 - [Showcase](showcase.md "Showcase | Ava CMS")

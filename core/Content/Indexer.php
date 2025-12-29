@@ -83,9 +83,28 @@ final class Indexer
         $this->writeBinaryCacheFile('routes.bin', $routes);
         $this->writeJsonCacheFile('fingerprint.json', $fingerprint);
 
+        // Clear page cache when content cache is rebuilt
+        $this->clearPageCache();
+
         // Log any errors
         if (!empty($errors)) {
             $this->logErrors($errors);
+        }
+    }
+
+    /**
+     * Clear the page cache.
+     */
+    private function clearPageCache(): void
+    {
+        $pageCachePath = $this->app->configPath('storage') . '/cache/pages';
+        if (!is_dir($pageCachePath)) {
+            return;
+        }
+
+        $files = glob($pageCachePath . '/*.html');
+        foreach ($files as $file) {
+            @unlink($file);
         }
     }
 
@@ -496,6 +515,7 @@ final class Indexer
     /**
      * Write a binary cache file atomically.
      * Uses igbinary if available (faster, smaller), otherwise PHP serialize.
+     * Adds a format marker prefix for reliable deserialization.
      */
     private function writeBinaryCacheFile(string $filename, array $data): void
     {
@@ -508,12 +528,13 @@ final class Indexer
         $tmpPath = $cachePath . '/.' . $filename . '.tmp';
 
         // Use igbinary if available (faster and smaller), otherwise serialize
+        // Prefix with format marker: "IG:" for igbinary, "SZ:" for serialize
         if (extension_loaded('igbinary')) {
             /** @var callable $serialize */
             $serialize = 'igbinary_serialize';
-            $content = $serialize($data);
+            $content = "IG:" . $serialize($data);
         } else {
-            $content = serialize($data);
+            $content = "SZ:" . serialize($data);
         }
 
         file_put_contents($tmpPath, $content, LOCK_EX);

@@ -115,6 +115,7 @@ final class Controller
                 'timezone' => $this->app->config('site.timezone', 'UTC'),
             ],
             'cache' => $this->getCacheStatus(),
+            'pageCache' => $this->app->pageCache()->stats(),
             'content' => $this->getContentStats(),
             'taxonomies' => $this->getTaxonomyStats(),
             'taxonomyTerms' => $this->getTaxonomyTerms(),
@@ -158,6 +159,27 @@ final class Controller
 
         $this->auth->regenerateCsrf();
         return Response::redirect($this->adminUrl() . '?action=rebuild&time=' . $elapsed);
+    }
+
+    /**
+     * Flush page cache action.
+     */
+    public function flushPageCache(Request $request): Response
+    {
+        if (!$request->isMethod('POST')) {
+            return Response::redirect($this->adminUrl());
+        }
+
+        // CSRF check
+        $csrf = $request->post('_csrf', '');
+        if (!$this->auth->verifyCsrf($csrf)) {
+            return Response::redirect($this->adminUrl() . '?error=csrf');
+        }
+
+        $count = $this->app->pageCache()->clear();
+
+        $this->auth->regenerateCsrf();
+        return Response::redirect($this->adminUrl() . '?action=flush_pages&count=' . $count);
     }
 
     /**

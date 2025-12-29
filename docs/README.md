@@ -44,6 +44,28 @@ Ava is built to scale. Here's what it can handle:
 
 The caching system uses optimized binary serialization (igbinary when available) for fast loading even with massive content libraries. There's no database—just lightning-fast PHP arrays loaded from disk.
 
+## Requirements
+
+Ava requires **PHP 8.3** or later. Most modern hosts include this, but check before you start.
+
+**Required Extensions:**
+| Extension | Purpose |
+|-----------|---------|
+| `mbstring` | UTF-8 text handling |
+| `json` | Config and API responses |
+| `ctype` | String validation |
+
+These are bundled with most PHP installations. If you're missing one, your host's control panel or `apt install php-mbstring` will sort it out.
+
+**Optional Extensions:**
+| Extension | Purpose |
+|-----------|---------|
+| `igbinary` | Faster cache serialization (15× faster, 90% smaller) |
+| `opcache` | Opcode caching for production |
+| `gd` or `imagick` | Image processing if you add it later |
+
+If `igbinary` isn't available, Ava automatically falls back to PHP's built-in `serialize`. You get the same functionality, just slightly slower cache loads. The system auto-detects which format was used when reading cache files, so you can add or remove igbinary at any time.
+
 ## Quick Start
 
 ```bash
@@ -54,7 +76,7 @@ cd mysite
 # Install dependencies
 composer install
 
-# Check status
+# Check status (shows PHP version and extensions)
 ./ava status
 
 # Build the cache

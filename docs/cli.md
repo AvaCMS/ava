@@ -21,6 +21,8 @@ Ava includes a command-line interface for managing your site. Run commands from 
 | `user:list` | List all users |
 | `update:check` | Check for updates |
 | `update:apply` | Apply available update |
+| `pages:stats` | Page cache statistics |
+| `pages:clear` | Clear page cache |
 | `stress:generate` | Generate test content |
 | `stress:clean` | Remove test content |
 
@@ -229,6 +231,51 @@ Skip confirmation with `-y`:
 ```
 
 See [Updates](updates.md) for details on what gets updated and preserved.
+
+---
+
+## Page Cache
+
+Commands for managing the on-demand HTML page cache.
+
+### pages:stats
+
+View page cache statistics:
+
+```bash
+./ava pages:stats
+```
+
+```
+=== Page Cache Stats ===
+
+Status:  ✓ Enabled
+TTL:     Forever (until cleared)
+
+Cached:  42 page(s)
+Size:    1.2 MB
+Oldest:  2024-12-28 10:00:00
+Newest:  2024-12-28 14:30:00
+```
+
+### pages:clear
+
+Clear cached pages:
+
+```bash
+# Clear all cached pages (with confirmation)
+./ava pages:clear
+
+# Clear pages matching a URL pattern
+./ava pages:clear /blog/*
+./ava pages:clear /products/*
+```
+
+The page cache is also automatically cleared when:
+- You run `./ava rebuild`
+- Content changes (in `cache.mode = 'auto'`)
+
+See [Configuration](configuration.md#page-cache) for setup options.
 
 ---
 

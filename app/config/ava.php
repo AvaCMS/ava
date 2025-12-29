@@ -45,6 +45,21 @@ return [
         'mode' => 'auto',
     ],
 
+    // Page cache settings (on-demand HTML caching)
+    'page_cache' => [
+        // Enable/disable page caching
+        'enabled' => true,
+
+        // Time-to-live in seconds (null = forever, until rebuild)
+        'ttl' => null,
+
+        // URL patterns to exclude from caching (glob-style)
+        'exclude' => [
+            '/api/*',
+            '/preview/*',
+        ],
+    ],
+
     // Routing
     'routing' => [
         'trailing_slash' => false,

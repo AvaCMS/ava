@@ -378,7 +378,8 @@ final class Repository
     }
 
     /**
-     * Load a cache file (binary format).
+     * Load a cache file (binary format with format marker).
+     * Supports both igbinary and serialize formats via prefix detection.
      */
     private function loadCacheFile(string $name): array
     {
@@ -389,17 +390,36 @@ final class Repository
         }
 
         $content = file_get_contents($binPath);
-        if ($content === false) {
+        if ($content === false || strlen($content) < 4) {
             return [];
         }
 
-        // Use igbinary if available, otherwise unserialize
-        if (extension_loaded('igbinary')) {
+        // Check format marker prefix
+        $prefix = substr($content, 0, 3);
+        $payload = substr($content, 3);
+
+        if ($prefix === 'IG:') {
+            // igbinary format
+            if (!extension_loaded('igbinary')) {
+                // igbinary not available - cache needs rebuild
+                return [];
+            }
             /** @var callable $unserialize */
             $unserialize = 'igbinary_unserialize';
-            $data = @$unserialize($content);
+            $data = @$unserialize($payload);
+        } elseif ($prefix === 'SZ:') {
+            // PHP serialize format
+            $data = @unserialize($payload);
         } else {
-            $data = @unserialize($content);
+            // Legacy format without marker - try both
+            if (extension_loaded('igbinary')) {
+                /** @var callable $unserialize */
+                $unserialize = 'igbinary_unserialize';
+                $data = @$unserialize($content);
+            }
+            if (!isset($data) || !is_array($data)) {
+                $data = @unserialize($content);
+            }
         }
 
         return is_array($data) ? $data : [];

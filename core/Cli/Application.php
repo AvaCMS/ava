@@ -69,6 +69,8 @@ final class Application
         $this->commands['lint'] = [$this, 'cmdLint'];
         $this->commands['make'] = [$this, 'cmdMake'];
         $this->commands['prefix'] = [$this, 'cmdPrefix'];
+        $this->commands['pages:clear'] = [$this, 'cmdPagesClear'];
+        $this->commands['pages:stats'] = [$this, 'cmdPagesStats'];
         $this->commands['stress:generate'] = [$this, 'cmdStressGenerate'];
         $this->commands['stress:clean'] = [$this, 'cmdStressClean'];
         $this->commands['user:add'] = [$this, 'cmdUserAdd'];
@@ -90,6 +92,20 @@ final class Application
     {
         $this->writeln('');
         $this->writeln('=== Ava CMS Status ===');
+        $this->writeln('');
+
+        // PHP environment
+        $this->writeln('PHP ' . PHP_VERSION);
+        $extensions = [];
+        if (extension_loaded('igbinary')) {
+            $extensions[] = 'igbinary';
+        }
+        if (extension_loaded('opcache') && ini_get('opcache.enable')) {
+            $extensions[] = 'opcache';
+        }
+        if (!empty($extensions)) {
+            $this->writeln('Extensions: ' . implode(', ', $extensions));
+        }
         $this->writeln('');
 
         // Site info
@@ -136,6 +152,21 @@ final class Application
         foreach ($repository->taxonomies() as $taxonomy) {
             $terms = $repository->terms($taxonomy);
             $this->writeln("  {$taxonomy}: " . count($terms) . ' terms');
+        }
+        $this->writeln('');
+
+        // Page cache stats
+        $pageCache = $this->app->pageCache();
+        $stats = $pageCache->stats();
+        $this->writeln('Page Cache:');
+        $this->writeln('  Status: ' . ($stats['enabled'] ? '✓ Enabled' : '✗ Disabled'));
+        if ($stats['enabled']) {
+            $ttl = $stats['ttl'] ?? null;
+            $this->writeln('  TTL:    ' . ($ttl ? $ttl . 's' : 'Forever'));
+            $this->writeln('  Pages:  ' . $stats['count'] . ' cached');
+            if ($stats['count'] > 0) {
+                $this->writeln('  Size:   ' . $this->formatBytes($stats['size']));
+            }
         }
         $this->writeln('');
 
@@ -900,6 +931,84 @@ final class Application
     }
 
     /**
+     * Clear page cache.
+     */
+    private function cmdPagesClear(array $args): int
+    {
+        $pageCache = $this->app->pageCache();
+
+        if (!$pageCache->isEnabled()) {
+            $this->writeln('Page cache is not enabled.');
+            $this->writeln('Enable it in app/config/ava.php with page_cache.enabled = true');
+            return 0;
+        }
+
+        $stats = $pageCache->stats();
+        if ($stats['count'] === 0) {
+            $this->writeln('Page cache is empty.');
+            return 0;
+        }
+
+        $this->writeln("Found {$stats['count']} cached page(s).");
+
+        // Check for pattern argument
+        if (isset($args[0])) {
+            $pattern = $args[0];
+            $count = $pageCache->clearPattern($pattern);
+            $this->success("Cleared {$count} page(s) matching: {$pattern}");
+        } else {
+            echo 'Clear all cached pages? [y/N]: ';
+            $answer = trim(fgets(STDIN));
+
+            if (strtolower($answer) !== 'y') {
+                $this->writeln('Cancelled.');
+                return 0;
+            }
+
+            $count = $pageCache->clear();
+            $this->success("Cleared {$count} cached page(s)");
+        }
+
+        return 0;
+    }
+
+    /**
+     * Show page cache statistics.
+     */
+    private function cmdPagesStats(array $args): int
+    {
+        $pageCache = $this->app->pageCache();
+        $stats = $pageCache->stats();
+
+        $this->writeln('');
+        $this->writeln('=== Page Cache Stats ===');
+        $this->writeln('');
+        $this->writeln('Status:  ' . ($stats['enabled'] ? '✓ Enabled' : '✗ Disabled'));
+
+        if (!$stats['enabled']) {
+            $this->writeln('');
+            $this->writeln('Enable page caching in app/config/ava.php:');
+            $this->writeln("  'page_cache' => ['enabled' => true]");
+            $this->writeln('');
+            return 0;
+        }
+
+        $this->writeln('TTL:     ' . ($stats['ttl'] ? $stats['ttl'] . ' seconds' : 'Forever (until cleared)'));
+        $this->writeln('');
+        $this->writeln('Cached:  ' . $stats['count'] . ' page(s)');
+        $this->writeln('Size:    ' . $this->formatBytes($stats['size']));
+
+        if ($stats['oldest']) {
+            $this->writeln('Oldest:  ' . $stats['oldest']);
+            $this->writeln('Newest:  ' . $stats['newest']);
+        }
+
+        $this->writeln('');
+
+        return 0;
+    }
+
+    /**
      * Generate a single dummy content file.
      */
     private function generateDummyContent(
@@ -1064,6 +1173,10 @@ final class Application
         $this->writeln('  make <type>    Create content of a specific type');
         $this->writeln('  prefix <add|remove> [type]  Toggle date prefix on filenames');
         $this->writeln('');
+        $this->writeln('Page Cache:');
+        $this->writeln('  pages:stats              Show page cache statistics');
+        $this->writeln('  pages:clear [pattern]    Clear cached pages (all or by URL pattern)');
+        $this->writeln('');
         $this->writeln('Stress Testing:');
         $this->writeln('  stress:generate <type> <count>  Generate dummy content for testing');
         $this->writeln('  stress:clean <type>             Remove all generated dummy content');
@@ -1103,5 +1216,18 @@ final class Application
     private function warning(string $message): void
     {
         echo "\033[33m⚠ {$message}\033[0m\n";
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes === 0) {
+            return '0 B';
+        }
+
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $exp = floor(log($bytes) / log(1024));
+        $exp = min($exp, count($units) - 1);
+
+        return round($bytes / pow(1024, $exp), 1) . ' ' . $units[$exp];
     }
 }

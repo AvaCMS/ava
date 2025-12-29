@@ -78,6 +78,11 @@ final class AdminRouter
             return $this->handle('rebuild', $request);
         });
 
+        // Flush page cache action (protected)
+        $router->addRoute($basePath . '/flush-pages', function (Request $request) {
+            return $this->handle('flushPageCache', $request);
+        });
+
         // Lint action (protected)
         $router->addRoute($basePath . '/lint', function (Request $request) {
             return $this->handle('lint', $request);
