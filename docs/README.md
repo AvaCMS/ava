@@ -1,6 +1,6 @@
 # Addy's (very adaptable) CMS
 
-The friendly, flat-file CMS for bespoke personal websites.
+The friendly, flat-file CMS for bespoke websites.
 
 ## Philosophy
 
