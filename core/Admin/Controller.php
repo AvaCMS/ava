@@ -119,7 +119,7 @@ final class Controller
             'taxonomies' => $this->getTaxonomyStats(),
             'taxonomyTerms' => $this->getTaxonomyTerms(),
             'taxonomyConfig' => $this->getTaxonomyConfig(),
-            'system' => $this->getSystemInfo(),
+            'system' => $this->getSystemInfoBasic(),
             'recentContent' => $this->getRecentContent(),
             'plugins' => $this->getActivePlugins(),
             'users' => $this->auth->allUsers(),
@@ -173,7 +173,8 @@ final class Controller
             return null; // 404
         }
 
-        $items = $repository->all($type);
+        // Use allMeta() - no file content loading needed
+        $items = $repository->allMeta($type);
 
         // Sort by date descending
         usort($items, function($a, $b) {
@@ -188,11 +189,9 @@ final class Controller
         $contentTypes = $this->getContentTypeConfig();
         $typeConfig = $contentTypes[$type] ?? [];
 
-        // Calculate stats for items
-        $totalWords = 0;
+        // Calculate total file size (filesystem metadata only, no content reading)
         $totalSize = 0;
         foreach ($items as $item) {
-            $totalWords += str_word_count(strip_tags($item->rawContent()));
             if (file_exists($item->filePath())) {
                 $totalSize += filesize($item->filePath());
             }
@@ -208,7 +207,6 @@ final class Controller
             'routes' => $repository->routes(),
             'contentTypes' => $contentTypes,
             'stats' => [
-                'totalWords' => $totalWords,
                 'totalSize' => $totalSize,
             ],
             'site' => [
@@ -238,15 +236,7 @@ final class Controller
         $taxonomyConfig = $this->getTaxonomyConfig();
         $config = $taxonomyConfig[$taxonomy] ?? [];
 
-        // Get all content for calculating stats
-        $allContent = [];
-        foreach ($repository->types() as $type) {
-            foreach ($repository->all($type) as $item) {
-                $allContent[] = $item;
-            }
-        }
-
-        // Calculate stats for each term
+        // Calculate stats for each term (using cached term data, no file I/O)
         $termStats = [];
         foreach ($terms as $slug => $termData) {
             $itemCount = count($termData['items'] ?? []);
@@ -544,6 +534,35 @@ final class Controller
         ];
     }
 
+    /**
+     * Lightweight system info for dashboard (no directory scanning).
+     */
+    private function getSystemInfoBasic(): array
+    {
+        $opcacheEnabled = function_exists('opcache_get_status');
+        $opcacheStats = null;
+        if ($opcacheEnabled) {
+            $status = @opcache_get_status(false);
+            if ($status) {
+                $opcacheStats = [
+                    'enabled' => $status['opcache_enabled'] ?? false,
+                    'hit_rate' => isset($status['opcache_statistics']['opcache_hit_rate']) 
+                        ? round($status['opcache_statistics']['opcache_hit_rate'], 2) : 0,
+                ];
+            }
+        }
+
+        return [
+            'php_version' => PHP_VERSION,
+            'memory_used' => memory_get_usage(true),
+            'opcache' => $opcacheStats,
+            'request_time' => $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true),
+        ];
+    }
+
+    /**
+     * Full system info (for system page).
+     */
     private function getSystemInfo(): array
     {
         $loadAvg = function_exists('sys_getloadavg') ? sys_getloadavg() : null;
@@ -686,27 +705,8 @@ final class Controller
 
     private function getRecentContent(int $limit = 5): array
     {
-        $repository = $this->app->repository();
-        $all = [];
-
-        foreach ($repository->types() as $type) {
-            $items = $repository->all($type);
-            foreach ($items as $item) {
-                $all[] = $item;
-            }
-        }
-
-        // Sort by date descending
-        usort($all, function($a, $b) {
-            $aDate = $a->date();
-            $bDate = $b->date();
-            if (!$aDate && !$bDate) return 0;
-            if (!$aDate) return 1;
-            if (!$bDate) return -1;
-            return $bDate->getTimestamp() - $aDate->getTimestamp();
-        });
-
-        return array_slice($all, 0, $limit);
+        // Use recentMeta() - no file I/O, just cached metadata
+        return $this->app->repository()->recentMeta($limit);
     }
 
     private function getAvailableSnippets(): array

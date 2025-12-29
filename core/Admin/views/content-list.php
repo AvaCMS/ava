@@ -68,7 +68,7 @@ $formatBytes = function($bytes) {
     while ($bytes >= 1024 && $i < 2) { $bytes /= 1024; $i++; }
     return round($bytes, 1) . ' ' . $units[$i];
 };
-$avgWords = count($items) > 0 ? round($stats['totalWords'] / count($items)) : 0;
+// Stats are file-size based (no word counts for performance)
 
 // Set up sidebar data - use allContent for sidebar counts
 $content = $allContent;
@@ -121,7 +121,7 @@ $activePage = 'content-' . $type;
                                 <th>File</th>
                                 <th>URL</th>
                                 <th>Date</th>
-                                <th>Words</th>
+                                <th>Size</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -130,8 +130,7 @@ $activePage = 'content-' . $type;
                             <?php foreach ($items as $item): 
                                 $itemUrl = $getContentUrl($item);
                                 $itemPath = $getContentPath($item);
-                                $wordCount = str_word_count(strip_tags($item->rawContent()));
-                                $readTime = max(1, ceil($wordCount / 200));
+                                $fileSize = file_exists($item->filePath()) ? filesize($item->filePath()) : 0;
                                 $isDraft = !$item->isPublished();
                             ?>
                             <tr>
@@ -153,8 +152,7 @@ $activePage = 'content-' . $type;
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div class="text-sm"><?= number_format($wordCount) ?></div>
-                                    <div class="text-xs text-tertiary"><?= $readTime ?> min</div>
+                                    <div class="text-sm"><?= $formatBytes($fileSize) ?></div>
                                 </td>
                                 <td>
                                     <span class="badge <?= $item->isPublished() ? 'badge-success' : ($item->status() === 'draft' ? 'badge-warning' : 'badge-muted') ?>">
@@ -197,9 +195,7 @@ $activePage = 'content-' . $type;
                         <div class="list-item"><span class="list-label">Total</span><span class="list-value"><?= count($items) ?></span></div>
                         <div class="list-item"><span class="list-label">Published</span><span class="list-value text-success"><?= $allContent[$type]['published'] ?? 0 ?></span></div>
                         <div class="list-item"><span class="list-label">Drafts</span><span class="list-value text-warning"><?= $allContent[$type]['draft'] ?? 0 ?></span></div>
-                        <div class="list-item"><span class="list-label">Total Words</span><span class="list-value"><?= number_format($stats['totalWords']) ?></span></div>
-
-                        <div class="list-item"><span class="list-label">Size</span><span class="list-value"><?= $formatBytes($stats['totalSize']) ?></span></div>
+                        <div class="list-item"><span class="list-label">Total Size</span><span class="list-value"><?= $formatBytes($stats['totalSize']) ?></span></div>
                     </div>
                 </div>
 

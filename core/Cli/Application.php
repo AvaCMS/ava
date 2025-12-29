@@ -69,6 +69,8 @@ final class Application
         $this->commands['lint'] = [$this, 'cmdLint'];
         $this->commands['make'] = [$this, 'cmdMake'];
         $this->commands['prefix'] = [$this, 'cmdPrefix'];
+        $this->commands['stress:generate'] = [$this, 'cmdStressGenerate'];
+        $this->commands['stress:clean'] = [$this, 'cmdStressClean'];
         $this->commands['user:add'] = [$this, 'cmdUserAdd'];
         $this->commands['user:password'] = [$this, 'cmdUserPassword'];
         $this->commands['user:remove'] = [$this, 'cmdUserRemove'];
@@ -728,6 +730,322 @@ final class Application
     }
 
     // =========================================================================
+    // Stress Testing
+    // =========================================================================
+
+    /**
+     * Lorem ipsum words for generating dummy content.
+     */
+    private const LOREM_WORDS = [
+        'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+        'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+        'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud',
+        'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo',
+        'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate',
+        'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint',
+        'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia',
+        'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum', 'perspiciatis', 'unde',
+        'omnis', 'iste', 'natus', 'error', 'voluptatem', 'accusantium', 'doloremque',
+        'laudantium', 'totam', 'rem', 'aperiam', 'eaque', 'ipsa', 'quae', 'ab', 'illo',
+        'inventore', 'veritatis', 'quasi', 'architecto', 'beatae', 'vitae', 'dicta',
+    ];
+
+    /**
+     * Generate dummy content for stress testing.
+     */
+    private function cmdStressGenerate(array $args): int
+    {
+        if (count($args) < 2) {
+            $this->error('Usage: ava stress:generate <type> <count>');
+            $this->writeln('');
+            $this->writeln('Examples:');
+            $this->writeln('  ava stress:generate post 100    # Generate 100 posts');
+            $this->writeln('  ava stress:generate post 1000   # Generate 1000 posts');
+            $this->writeln('');
+            $this->showAvailableTypes();
+            return 1;
+        }
+
+        $type = $args[0];
+        $count = (int) $args[1];
+
+        if ($count < 1 || $count > 10000) {
+            $this->error('Count must be between 1 and 10000');
+            return 1;
+        }
+
+        // Verify type exists
+        $contentTypes = require $this->app->path('app/config/content_types.php');
+        if (!isset($contentTypes[$type])) {
+            $this->error("Unknown content type: {$type}");
+            $this->showAvailableTypes();
+            return 1;
+        }
+
+        $typeConfig = $contentTypes[$type];
+        $contentDir = $typeConfig['content_dir'] ?? $type;
+        $basePath = $this->app->configPath('content') . '/' . $contentDir;
+
+        if (!is_dir($basePath)) {
+            mkdir($basePath, 0755, true);
+        }
+
+        // Get taxonomies for this type
+        $taxonomies = $typeConfig['taxonomies'] ?? [];
+        $taxonomyTerms = $this->loadTaxonomyTerms($taxonomies);
+
+        // Determine if content is dated
+        $isDated = ($typeConfig['sorting'] ?? 'manual') === 'date_desc';
+
+        $this->writeln("Generating {$count} dummy {$type}(s)...");
+        $this->writeln('');
+
+        $start = microtime(true);
+        $created = 0;
+
+        for ($i = 1; $i <= $count; $i++) {
+            $result = $this->generateDummyContent($type, $basePath, $isDated, $taxonomies, $taxonomyTerms, $i);
+            if ($result) {
+                $created++;
+                // Progress indicator
+                if ($i % 100 === 0 || $i === $count) {
+                    $this->writeln("  Created {$i}/{$count}...");
+                }
+            }
+        }
+
+        $elapsed = round((microtime(true) - $start) * 1000);
+
+        $this->writeln('');
+        $this->success("Generated {$created} dummy content files in {$elapsed}ms");
+        $this->writeln('');
+        $this->writeln('Rebuilding cache...');
+
+        $rebuildStart = microtime(true);
+        $this->app->indexer()->rebuild();
+        $rebuildTime = round((microtime(true) - $rebuildStart) * 1000);
+
+        $this->success("Cache rebuilt in {$rebuildTime}ms");
+        $this->writeln('');
+        $this->writeln('Run "ava stress:clean ' . $type . '" to remove generated content.');
+
+        return 0;
+    }
+
+    /**
+     * Clean up generated dummy content.
+     */
+    private function cmdStressClean(array $args): int
+    {
+        if (count($args) < 1) {
+            $this->error('Usage: ava stress:clean <type>');
+            $this->writeln('');
+            $this->writeln('This will remove all content files with the _dummy- prefix.');
+            return 1;
+        }
+
+        $type = $args[0];
+
+        // Verify type exists
+        $contentTypes = require $this->app->path('app/config/content_types.php');
+        if (!isset($contentTypes[$type])) {
+            $this->error("Unknown content type: {$type}");
+            $this->showAvailableTypes();
+            return 1;
+        }
+
+        $typeConfig = $contentTypes[$type];
+        $contentDir = $typeConfig['content_dir'] ?? $type;
+        $basePath = $this->app->configPath('content') . '/' . $contentDir;
+
+        if (!is_dir($basePath)) {
+            $this->writeln('No content directory found.');
+            return 0;
+        }
+
+        // Find all dummy files
+        $pattern = $basePath . '/_dummy-*.md';
+        $files = glob($pattern);
+
+        if (empty($files)) {
+            $this->writeln('No dummy content files found.');
+            return 0;
+        }
+
+        $count = count($files);
+        $this->writeln("Found {$count} dummy content file(s).");
+        echo 'Delete all? [y/N]: ';
+        $answer = trim(fgets(STDIN));
+
+        if (strtolower($answer) !== 'y') {
+            $this->writeln('Cancelled.');
+            return 0;
+        }
+
+        $deleted = 0;
+        foreach ($files as $file) {
+            if (unlink($file)) {
+                $deleted++;
+            }
+        }
+
+        $this->success("Deleted {$deleted} file(s)");
+
+        $this->writeln('');
+        $this->writeln('Rebuilding cache...');
+        $this->app->indexer()->rebuild();
+        $this->success('Cache rebuilt.');
+
+        return 0;
+    }
+
+    /**
+     * Generate a single dummy content file.
+     */
+    private function generateDummyContent(
+        string $type,
+        string $basePath,
+        bool $isDated,
+        array $taxonomies,
+        array $taxonomyTerms,
+        int $index
+    ): bool {
+        // Generate unique slug with _dummy- prefix for easy cleanup
+        $uniqueId = bin2hex(random_bytes(4));
+        $slug = "_dummy-{$index}-{$uniqueId}";
+        $filePath = $basePath . '/' . $slug . '.md';
+
+        // Skip if somehow exists
+        if (file_exists($filePath)) {
+            return false;
+        }
+
+        // Generate random title
+        $titleWords = array_map('ucfirst', $this->randomWords(rand(3, 8)));
+        $title = implode(' ', $titleWords);
+
+        // Build frontmatter
+        $frontmatter = [
+            'id' => Ulid::generate(),
+            'title' => $title,
+            'slug' => $slug,
+            'status' => $this->randomStatus(),
+        ];
+
+        // Add date for dated content (random date within last 2 years)
+        if ($isDated) {
+            $daysAgo = rand(0, 730);
+            $date = date('Y-m-d', strtotime("-{$daysAgo} days"));
+            $frontmatter['date'] = $date;
+        }
+
+        // Add random excerpt
+        $frontmatter['excerpt'] = ucfirst(implode(' ', $this->randomWords(rand(10, 25)))) . '.';
+
+        // Add random taxonomy terms
+        foreach ($taxonomies as $taxonomy) {
+            if (isset($taxonomyTerms[$taxonomy]) && !empty($taxonomyTerms[$taxonomy])) {
+                $terms = $taxonomyTerms[$taxonomy];
+                // Pick 1-3 random terms
+                $numTerms = min(count($terms), rand(1, 3));
+                shuffle($terms);
+                $selectedTerms = array_slice($terms, 0, $numTerms);
+                $frontmatter[$taxonomy] = $selectedTerms;
+            }
+        }
+
+        // Generate YAML frontmatter
+        $yaml = "---\n";
+        foreach ($frontmatter as $key => $value) {
+            if (is_array($value)) {
+                $yaml .= "{$key}:\n";
+                foreach ($value as $item) {
+                    $yaml .= "  - {$item}\n";
+                }
+            } else {
+                // Escape values that might need quoting
+                if (is_string($value) && (str_contains($value, ':') || str_contains($value, '#'))) {
+                    $value = '"' . addslashes($value) . '"';
+                }
+                $yaml .= "{$key}: {$value}\n";
+            }
+        }
+        $yaml .= "---\n\n";
+
+        // Generate random content (3-10 paragraphs)
+        $numParagraphs = rand(3, 10);
+        $content = '';
+        for ($p = 0; $p < $numParagraphs; $p++) {
+            // 3-8 sentences per paragraph
+            $numSentences = rand(3, 8);
+            $sentences = [];
+            for ($s = 0; $s < $numSentences; $s++) {
+                $sentence = ucfirst(implode(' ', $this->randomWords(rand(8, 20)))) . '.';
+                $sentences[] = $sentence;
+            }
+            $content .= implode(' ', $sentences) . "\n\n";
+        }
+
+        // Add a heading occasionally
+        if (rand(0, 2) === 0) {
+            $headingWords = array_map('ucfirst', $this->randomWords(rand(2, 5)));
+            $content = "## " . implode(' ', $headingWords) . "\n\n" . $content;
+        }
+
+        // Write file
+        return file_put_contents($filePath, $yaml . $content) !== false;
+    }
+
+    /**
+     * Get random words from lorem ipsum.
+     */
+    private function randomWords(int $count): array
+    {
+        $words = [];
+        for ($i = 0; $i < $count; $i++) {
+            $words[] = self::LOREM_WORDS[array_rand(self::LOREM_WORDS)];
+        }
+        return $words;
+    }
+
+    /**
+     * Get random status (weighted towards published).
+     */
+    private function randomStatus(): string
+    {
+        return rand(1, 10) <= 8 ? 'published' : 'draft';
+    }
+
+    /**
+     * Load taxonomy terms from definition files.
+     */
+    private function loadTaxonomyTerms(array $taxonomies): array
+    {
+        $result = [];
+        $taxPath = $this->app->configPath('content') . '/_taxonomies';
+
+        foreach ($taxonomies as $taxonomy) {
+            $result[$taxonomy] = [];
+            $file = $taxPath . '/' . $taxonomy . '.yml';
+
+            if (file_exists($file)) {
+                $content = file_get_contents($file);
+                // Simple YAML parsing for term slugs
+                if (preg_match_all('/^\s*-?\s*slug:\s*(\S+)/m', $content, $matches)) {
+                    $result[$taxonomy] = $matches[1];
+                }
+            }
+
+            // If no terms found, add some defaults
+            if (empty($result[$taxonomy])) {
+                $result[$taxonomy] = ['general', 'misc', 'other'];
+            }
+        }
+
+        return $result;
+    }
+
+    // =========================================================================
     // Output helpers
     // =========================================================================
 
@@ -745,6 +1063,10 @@ final class Application
         $this->writeln('  lint           Validate content files');
         $this->writeln('  make <type>    Create content of a specific type');
         $this->writeln('  prefix <add|remove> [type]  Toggle date prefix on filenames');
+        $this->writeln('');
+        $this->writeln('Stress Testing:');
+        $this->writeln('  stress:generate <type> <count>  Generate dummy content for testing');
+        $this->writeln('  stress:clean <type>             Remove all generated dummy content');
         $this->writeln('');
         $this->writeln('User Management:');
         $this->writeln('  user:add <email> <password> [name]  Create admin user');

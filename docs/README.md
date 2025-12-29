@@ -29,6 +29,21 @@ Ava is designed for people who love the web. It sits in the sweet spot between a
 | **Plugins** | Add functionality like sitemaps and feeds without bloat. |
 | **Speed** | Built-in caching makes your site load instantly, even on cheap hosting. |
 
+## Performance
+
+Ava is built to scale. Here's what it can handle:
+
+| Metric | 10,000 Posts |
+|--------|--------------|
+| Cache rebuild | ~2.4 seconds |
+| CLI status check | ~175ms |
+| Archive page query | ~70ms |
+| Cache load | ~45ms |
+| Memory usage | ~50MB |
+| Cache size | ~4MB |
+
+The caching system uses optimized binary serialization (igbinary when available) for fast loading even with massive content libraries. There's no database—just lightning-fast PHP arrays loaded from disk.
+
 ## Quick Start
 
 ```bash

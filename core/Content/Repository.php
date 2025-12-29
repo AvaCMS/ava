@@ -93,7 +93,8 @@ final class Repository
     }
 
     /**
-     * Get all items of a type.
+     * Get all items of a type (with full content loaded).
+     * Warning: This reads files from disk. Use allMeta() when content is not needed.
      *
      * @return array<Item>
      */
@@ -106,7 +107,33 @@ final class Repository
     }
 
     /**
-     * Get published items of a type.
+     * Get all items of a type (metadata only, no file I/O).
+     * Use this for listings, stats, and when raw content is not needed.
+     *
+     * @return array<Item>
+     */
+    public function allMeta(string $type): array
+    {
+        $index = $this->loadContentIndex();
+        $items = $index['by_type'][$type] ?? [];
+
+        return array_map(fn($data) => Item::fromArray($data, ''), $items);
+    }
+
+    /**
+     * Get raw index data for a type (for optimized queries).
+     * Returns array of arrays, not Item objects.
+     *
+     * @return array<array>
+     */
+    public function allRaw(string $type): array
+    {
+        $index = $this->loadContentIndex();
+        return $index['by_type'][$type] ?? [];
+    }
+
+    /**
+     * Get published items of a type (with full content loaded).
      *
      * @return array<Item>
      */
@@ -116,6 +143,57 @@ final class Repository
             $this->all($type),
             fn(Item $item) => $item->isPublished()
         );
+    }
+
+    /**
+     * Get published items of a type (metadata only, no file I/O).
+     *
+     * @return array<Item>
+     */
+    public function publishedMeta(string $type): array
+    {
+        return array_filter(
+            $this->allMeta($type),
+            fn(Item $item) => $item->isPublished()
+        );
+    }
+
+    /**
+     * Get recent items across all types (metadata only, no file I/O).
+     * Optimized to avoid creating Item objects until after sorting/limiting.
+     *
+     * @return array<Item>
+     */
+    public function recentMeta(int $limit = 5): array
+    {
+        $index = $this->loadContentIndex();
+        $allData = [];
+
+        // Collect raw data from all types
+        foreach ($index['by_type'] ?? [] as $type => $items) {
+            foreach ($items as $data) {
+                $allData[] = $data;
+            }
+        }
+
+        // Sort by date descending (using raw data, no Item objects)
+        usort($allData, function(array $a, array $b) {
+            $aDate = $a['date'] ?? null;
+            $bDate = $b['date'] ?? null;
+            if (!$aDate && !$bDate) return 0;
+            if (!$aDate) return 1;
+            if (!$bDate) return -1;
+            // Compare as strings (Y-m-d format sorts correctly)
+            return strcmp($bDate, $aDate);
+        });
+
+        // Only create Item objects for the items we need
+        $result = [];
+        foreach (array_slice($allData, 0, $limit) as $data) {
+            $result[] = Item::fromArray($data, '');
+        }
+
+        return $result;
     }
 
     /**
@@ -140,16 +218,19 @@ final class Repository
 
     /**
      * Get count of items by type.
+     * Uses the index directly - no file I/O required.
      */
     public function count(string $type, ?string $status = null): int
     {
-        $items = $this->all($type);
+        $index = $this->loadContentIndex();
+        $items = $index['by_type'][$type] ?? [];
 
-        if ($status !== null) {
-            $items = array_filter($items, fn(Item $item) => $item->status() === $status);
+        if ($status === null) {
+            return count($items);
         }
 
-        return count($items);
+        // Filter by status using cached metadata (no file reads)
+        return count(array_filter($items, fn(array $data) => ($data['status'] ?? 'published') === $status));
     }
 
     // -------------------------------------------------------------------------
@@ -275,8 +356,7 @@ final class Repository
     private function loadContentIndex(): array
     {
         if ($this->contentIndex === null) {
-            $path = $this->getCachePath('content_index.php');
-            $this->contentIndex = file_exists($path) ? require $path : [];
+            $this->contentIndex = $this->loadCacheFile('content_index');
         }
         return $this->contentIndex;
     }
@@ -284,8 +364,7 @@ final class Repository
     private function loadTaxIndex(): array
     {
         if ($this->taxIndex === null) {
-            $path = $this->getCachePath('tax_index.php');
-            $this->taxIndex = file_exists($path) ? require $path : [];
+            $this->taxIndex = $this->loadCacheFile('tax_index');
         }
         return $this->taxIndex;
     }
@@ -293,10 +372,37 @@ final class Repository
     private function loadRoutes(): array
     {
         if ($this->routes === null) {
-            $path = $this->getCachePath('routes.php');
-            $this->routes = file_exists($path) ? require $path : [];
+            $this->routes = $this->loadCacheFile('routes');
         }
         return $this->routes;
+    }
+
+    /**
+     * Load a cache file (binary format).
+     */
+    private function loadCacheFile(string $name): array
+    {
+        $binPath = $this->getCachePath($name . '.bin');
+
+        if (!file_exists($binPath)) {
+            return [];
+        }
+
+        $content = file_get_contents($binPath);
+        if ($content === false) {
+            return [];
+        }
+
+        // Use igbinary if available, otherwise unserialize
+        if (extension_loaded('igbinary')) {
+            /** @var callable $unserialize */
+            $unserialize = 'igbinary_unserialize';
+            $data = @$unserialize($content);
+        } else {
+            $data = @unserialize($content);
+        }
+
+        return is_array($data) ? $data : [];
     }
 
     private function getCachePath(string $filename): string

@@ -275,6 +275,9 @@ final class Query
 
     /**
      * Execute the query.
+     * 
+     * Optimized to work with raw arrays and only create Item objects
+     * for the final paginated result.
      */
     private function execute(): void
     {
@@ -282,50 +285,59 @@ final class Query
             return;
         }
 
-        // Get all items of the type
-        $items = [];
+        // Get raw data (arrays, not Item objects)
+        $rawItems = [];
         if ($this->type !== null) {
-            $items = $this->repository->all($this->type);
+            $rawItems = $this->repository->allRaw($this->type);
         } else {
             // Query across all types
             foreach ($this->repository->types() as $type) {
-                $items = array_merge($items, $this->repository->all($type));
+                $rawItems = array_merge($rawItems, $this->repository->allRaw($type));
             }
         }
 
-        // Apply filters
-        $items = $this->applyFilters($items);
+        // Apply filters on raw arrays
+        $rawItems = $this->applyFiltersRaw($rawItems);
 
         // Apply search if present
         if ($this->search !== null && $this->search !== '') {
-            $items = $this->applySearch($items);
+            $rawItems = $this->applySearchRaw($rawItems);
         }
 
         // Store total count before pagination
-        $this->totalCount = count($items);
+        $this->totalCount = count($rawItems);
 
-        // Sort
-        $items = $this->applySort($items);
+        // Sort on raw arrays
+        $rawItems = $this->applySortRaw($rawItems);
 
-        // Paginate
+        // Paginate - get just the slice we need
         $offset = ($this->page - 1) * $this->perPage;
-        $this->results = array_slice($items, $offset, $this->perPage);
+        $slice = array_slice($rawItems, $offset, $this->perPage);
+
+        // Only NOW create Item objects for the final result
+        $this->results = array_map(
+            fn(array $data) => Item::fromArray($data, ''),
+            $slice
+        );
     }
 
     /**
-     * Apply filters to items.
+     * Apply filters to raw item arrays.
      */
-    private function applyFilters(array $items): array
+    private function applyFiltersRaw(array $items): array
     {
-        return array_filter($items, function (Item $item) {
+        return array_filter($items, function (array $data) {
             // Status filter
-            if ($this->status !== null && $item->status() !== $this->status) {
-                return false;
+            if ($this->status !== null) {
+                $itemStatus = $data['status'] ?? 'published';
+                if ($itemStatus !== $this->status) {
+                    return false;
+                }
             }
 
             // Taxonomy filters
             foreach ($this->taxonomyFilters as $taxonomy => $term) {
-                $terms = $item->terms($taxonomy);
+                $terms = $data['taxonomies'][$taxonomy] ?? [];
                 if (!in_array($term, $terms, true)) {
                     return false;
                 }
@@ -333,7 +345,7 @@ final class Query
 
             // Field filters
             foreach ($this->fieldFilters as $filter) {
-                if (!$this->matchesFieldFilter($item, $filter)) {
+                if (!$this->matchesFieldFilterRaw($data, $filter)) {
                     return false;
                 }
             }
@@ -343,13 +355,16 @@ final class Query
     }
 
     /**
-     * Check if item matches a field filter.
+     * Check if raw item data matches a field filter.
      */
-    private function matchesFieldFilter(Item $item, array $filter): bool
+    private function matchesFieldFilterRaw(array $data, array $filter): bool
     {
-        $value = $item->get($filter['field']);
+        $field = $filter['field'];
         $expected = $filter['value'];
         $operator = $filter['operator'];
+
+        // Get value from nested data
+        $value = $data['meta'][$field] ?? $data[$field] ?? null;
 
         return match ($operator) {
             '=' => $value === $expected,
@@ -366,36 +381,36 @@ final class Query
     }
 
     /**
-     * Apply search to items.
+     * Apply search to raw item arrays.
      */
-    private function applySearch(array $items): array
+    private function applySearchRaw(array $items): array
     {
         $query = strtolower($this->search);
         $tokens = preg_split('/\s+/', $query, -1, PREG_SPLIT_NO_EMPTY);
 
         // Score each item
         $scored = [];
-        foreach ($items as $item) {
-            $score = $this->scoreItem($item, $query, $tokens);
+        foreach ($items as $data) {
+            $score = $this->scoreItemRaw($data, $query, $tokens);
             if ($score > 0) {
-                $scored[] = ['item' => $item, 'score' => $score];
+                $scored[] = ['data' => $data, 'score' => $score];
             }
         }
 
         // Sort by score descending if search is active
         usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
 
-        return array_map(fn($s) => $s['item'], $scored);
+        return array_map(fn($s) => $s['data'], $scored);
     }
 
     /**
-     * Score an item for search relevance.
+     * Score raw item data for search relevance.
      */
-    private function scoreItem(Item $item, string $phrase, array $tokens): int
+    private function scoreItemRaw(array $data, string $phrase, array $tokens): int
     {
         $score = 0;
-        $title = strtolower($item->title());
-        $excerpt = strtolower($item->excerpt() ?? '');
+        $title = strtolower($data['title'] ?? '');
+        $excerpt = strtolower($data['meta']['excerpt'] ?? $data['excerpt'] ?? '');
 
         // Title phrase match: +80
         if (str_contains($title, $phrase)) {
@@ -434,7 +449,7 @@ final class Query
         $score += min(15, $excerptHits * 3);
 
         // Featured boost: +15
-        if ($item->get('featured')) {
+        if (!empty($data['meta']['featured']) || !empty($data['featured'])) {
             $score += 15;
         }
 
@@ -442,13 +457,13 @@ final class Query
     }
 
     /**
-     * Apply sorting to items.
+     * Apply sorting to raw item arrays.
      */
-    private function applySort(array $items): array
+    private function applySortRaw(array $items): array
     {
-        usort($items, function (Item $a, Item $b) {
-            $aVal = $this->getSortValue($a);
-            $bVal = $this->getSortValue($b);
+        usort($items, function (array $a, array $b) {
+            $aVal = $this->getSortValueRaw($a);
+            $bVal = $this->getSortValueRaw($b);
 
             $result = $aVal <=> $bVal;
 
@@ -459,7 +474,7 @@ final class Query
 
             // Tie-breaker: title ascending
             if ($result === 0) {
-                $result = $a->title() <=> $b->title();
+                $result = ($a['title'] ?? '') <=> ($b['title'] ?? '');
             }
 
             return $result;
@@ -469,16 +484,16 @@ final class Query
     }
 
     /**
-     * Get the value to sort by.
+     * Get the value to sort by from raw data.
      */
-    private function getSortValue(Item $item): mixed
+    private function getSortValueRaw(array $data): mixed
     {
         return match ($this->orderBy) {
-            'date' => $item->date()?->getTimestamp() ?? 0,
-            'updated' => $item->updated()?->getTimestamp() ?? 0,
-            'title' => strtolower($item->title()),
-            'order', 'menu_order' => $item->order(),
-            default => $item->get($this->orderBy) ?? '',
+            'date' => $data['date'] ?? 0,
+            'updated' => $data['updated'] ?? $data['date'] ?? 0,
+            'title' => strtolower($data['title'] ?? ''),
+            'order', 'menu_order' => $data['meta']['order'] ?? $data['order'] ?? 0,
+            default => $data['meta'][$this->orderBy] ?? $data[$this->orderBy] ?? '',
         };
     }
 }
