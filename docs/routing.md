@@ -96,7 +96,7 @@ The cache contains:
 
 Routes are rebuilt automatically when content changes (with `content_index.mode = 'auto'`) or manually via `./ava rebuild`.
 
-For more on caching, see [Caching](caching.md).
+For more on performance, see [Performance](performance.md).
 
 ## Preview Mode
 

@@ -110,24 +110,34 @@ Ava uses a three-tier caching strategy for performance:
 ### Content Index Cache
 
 Binary serialized cache of all content metadata:
-- `storage/cache/content_index.bin` — Full content items (~45MB for 100k posts)
+- `storage/cache/content_index.bin` — Full content items (array backend)
+- `storage/cache/content_index.sqlite` — SQLite database (sqlite backend)
 - `storage/cache/slug_lookup.bin` — Fast single-item lookups (~8.7MB for 100k posts)
 - `storage/cache/recent_cache.bin` — Top 200 items per type (~51KB)
 - `storage/cache/tax_index.bin` — Taxonomy terms
 - `storage/cache/routes.bin` — Route mappings
 - `storage/cache/fingerprint.json` — Change detection
 
-**Tiered loading:**
+**Index backends** (`content_index.backend`):
+- `array` (default) — Binary serialized arrays, works great for most sites
+- `sqlite` — SQLite database (opt-in for 10k+ items, constant memory)
+
+**Tiered loading (array backend):**
 - Archive pages 1-20: Uses recent_cache.bin (~3ms, ~2MB memory)
 - Single post views: Uses slug_lookup.bin (~130ms, ~82MB memory)  
 - Complex queries: Uses content_index.bin (~2.4s, ~323MB memory)
+
+**SQLite backend advantages:**
+- Constant memory usage regardless of content size
+- 10-50× faster for counts and lookups at 10k+ items
+- No memory limits at 100k+ items
 
 **Rebuild modes** (`content_index.mode`):
 - `auto` (default) — Rebuild when fingerprint detects changes
 - `never` — Only rebuild via CLI (production)
 - `always` — Rebuild every request (debugging)
 
-**Binary format:** Uses igbinary if available (~4-5× faster), falls back to PHP serialize. Files prefixed with `IG:` or `SZ:` marker for auto-detection.
+**Binary format (array backend):** Uses igbinary if available (~4-5× faster), falls back to PHP serialize. Files prefixed with `IG:` or `SZ:` marker for auto-detection.
 
 ### Page Cache
 

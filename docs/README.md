@@ -33,18 +33,19 @@ Ava is designed for people who love the web. It sits in the sweet spot between a
 
 ## Performance
 
-Ava is built for speed. Most sites have under 1,000 posts—here's what you can expect:
+Ava is built for speed. Most sites load in under 10ms, and cached pages serve in under 1ms.
 
 | Posts | Archive Page | Single Post | Cached Page |
 |-------|--------------|-------------|-------------|
 | 100 | 3ms | 5ms | <1ms |
 | 1,000 | 3ms | 8ms | <1ms |
+| 10,000 | 3ms | 15ms | <1ms |
 
-Archive pages stay fast regardless of content size thanks to tiered caching. **Cached pages serve in under 1 millisecond**—faster than most static site generators can serve pre-built files.
+Archive pages stay fast at any scale thanks to tiered caching. **Cached pages serve in under 1 millisecond**—faster than most static site generators.
 
-Ava gives you the serving speed of static sites with the instant publishing of a dynamic CMS. Edit a file, refresh, see it live—no waiting for builds.
+**Need to scale beyond 10,000 posts?** Ava offers an optional SQLite backend that uses constant memory and handles 100k+ posts without breaking a sweat. It's a single config change—your theme code stays the same.
 
-[Full benchmarks, memory usage, and igbinary comparison →](caching.md#performance)
+[Full benchmarks, configuration, and scaling guide →](performance.md)
 
 
 ## Requirements
@@ -63,11 +64,12 @@ These are bundled with most PHP installations. If you're missing one, your host'
 
 **Optional Extensions:**
 
+- `pdo_sqlite` — SQLite backend for large sites (10k+ items, constant memory)
 - `igbinary` — Faster content index (15× faster, 90% smaller)
 - `opcache` — Opcode caching for production
 - `gd` or `imagick` — Image processing if you add it later
 
-If `igbinary` isn't available, Ava falls back to PHP's built-in `serialize`. The system auto-detects which format was used when reading index files.
+If `igbinary` isn't available, Ava falls back to PHP's built-in `serialize`. Both work fine—igbinary is just faster.
 
 ## Quick Start
 

@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace Ava\Content;
 
 use Ava\Application;
+use Ava\Content\Backends\SqliteBackend;
 use Ava\Support\Path;
 
 /**
  * Content Indexer
  *
  * Scans content files and generates cache files:
- * - content_index.php - All content items indexed by type and slug
- * - tax_index.php - Taxonomy terms with counts
- * - routes.php - Compiled route map
+ * - content_index.bin - All content items indexed by type and slug
+ * - content_index.sqlite - SQLite database for large sites
+ * - tax_index.bin - Taxonomy terms with counts
+ * - routes.bin - Compiled route map
  * - fingerprint.json - Change detection data
  */
 final class Indexer
@@ -79,13 +81,28 @@ final class Indexer
         $slugLookup = $this->buildSlugLookup($allItems);
         $fingerprint = $this->computeFingerprint();
 
-        // Write cache files atomically (binary format for speed)
-        $this->writeBinaryCacheFile('content_index.bin', $contentIndex);
+        // Determine which backend to build
+        $backendConfig = $this->app->config('content_index.backend', 'array');
+
+        // Always write shared cache files (used by both backends)
         $this->writeBinaryCacheFile('tax_index.bin', $taxIndex);
         $this->writeBinaryCacheFile('routes.bin', $routes);
         $this->writeBinaryCacheFile('recent_cache.bin', $recentCache);
         $this->writeBinaryCacheFile('slug_lookup.bin', $slugLookup);
         $this->writeJsonCacheFile('fingerprint.json', $fingerprint);
+
+        // Write only the configured backend
+        if ($backendConfig === 'sqlite') {
+            if (!extension_loaded('pdo_sqlite')) {
+                throw new \RuntimeException(
+                    "SQLite backend requires the pdo_sqlite extension. " .
+                    "Install it or set backend to 'array' in config."
+                );
+            }
+            $this->writeSqliteIndex($allItems, $taxIndex, $routes, $fingerprint);
+        } else {
+            $this->writeBinaryCacheFile('content_index.bin', $contentIndex);
+        }
 
         // Clear page cache when content cache is rebuilt
         $this->clearPageCache();
@@ -93,6 +110,58 @@ final class Indexer
         // Log any errors
         if (!empty($errors)) {
             $this->logErrors($errors);
+        }
+    }
+
+    /**
+     * Write the SQLite index database.
+     */
+    private function writeSqliteIndex(array $allItems, array $taxIndex, array $routes, array $fingerprint): void
+    {
+        $sqlite = new SqliteBackend($this->app);
+        
+        try {
+            // Create fresh database
+            $sqlite->createDatabase();
+            $sqlite->beginTransaction();
+
+            // Insert all content items
+            foreach ($allItems as $typeName => $items) {
+                foreach ($items as $item) {
+                    $data = $item->toArray();
+                    $data['type'] = $typeName;
+                    $data['file_path'] = $this->getRelativePath($item->filePath());
+                    $sqlite->insertContent($data);
+                }
+            }
+
+            // Insert taxonomy terms
+            foreach ($taxIndex as $taxonomy => $taxData) {
+                foreach ($taxData['terms'] ?? [] as $term) {
+                    $sqlite->insertTerm($taxonomy, $term);
+                }
+            }
+
+            // Insert routes
+            foreach ($routes['redirects'] ?? [] as $path => $data) {
+                $sqlite->insertRoute($path, 'redirect', $data);
+            }
+            foreach ($routes['exact'] ?? [] as $path => $data) {
+                $sqlite->insertRoute($path, 'exact', $data);
+            }
+            foreach ($routes['taxonomy'] ?? [] as $name => $data) {
+                $sqlite->insertRoute($data['base'] ?? '/' . $name, 'taxonomy', $data, $name);
+            }
+
+            // Store fingerprint
+            $sqlite->setMetadata('fingerprint', $fingerprint);
+            $sqlite->setMetadata('built_at', date('c'));
+
+            $sqlite->commit();
+        } catch (\Throwable $e) {
+            $sqlite->rollback();
+            // Log error but don't fail - array backend is still available
+            $this->logErrors(['SQLite index build failed: ' . $e->getMessage()]);
         }
     }
 

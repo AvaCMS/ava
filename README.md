@@ -29,7 +29,7 @@ Unlike static site generators, Ava is a real PHP application. You get search, fo
 Templates are plain PHP files, so there's no template language to learn. If you know some HTML, CSS, and a little PHP, you can build any design.
 
 ### 🚀 Blazing Fast Performance
-Two-layer caching serves pages in under 1ms. Even without caching, 10,000 posts render in ~160ms. You get the speed of static files with the flexibility of dynamic PHP. [See benchmarks →](https://ava.addy.zone/#/README?id=performance)
+Two-layer caching serves pages in under 1ms. Even without caching, 10,000 posts render in ~15ms. Optional SQLite backend scales to 100k+ posts with constant memory. [See benchmarks →](https://ava.addy.zone/#/performance)
 
 ### 🧩 Flexible Content Modelling
 Define any content types, taxonomies, and URL patterns. Blogs, portfolios, recipes, documentation—structure content however you think.
@@ -90,7 +90,7 @@ Main docs: https://ava.addy.zone/
 
 - PHP 8.3+
 - Extensions: `mbstring`, `json`, `ctype`
-- Optional: `igbinary` (faster index loading), `opcache`, `curl`
+- Optional: `pdo_sqlite` (large site scaling), `igbinary` (faster index loading), `opcache`, `curl`
 
 ## Performance
 
@@ -100,12 +100,13 @@ Fast by default. Most sites have under 1,000 posts—here's what you can expect:
 |-------|-------------|--------------|-------------|
 | 100 | <1ms | 3ms | 5ms |
 | 1,000 | <1ms | 3ms | 8ms |
+| 10,000 | <1ms | 3ms | 15ms |
 
-**Cached pages serve in under 1 millisecond**—faster than most static site generators can serve pre-built files. Archive pages stay fast regardless of content size thanks to tiered caching.
+**Cached pages serve in under 1 millisecond**—faster than most static site generators. Archive pages stay fast at any scale thanks to tiered caching.
 
-Need to scale further? Ava handles 100,000 posts without breaking a sweat.
+Need to scale further? Ava's optional SQLite backend handles 100,000+ posts with constant memory—just change one config setting.
 
-[Full benchmarks, memory usage, and igbinary comparison →](https://ava.addy.zone/#/caching?id=performance)
+[Full benchmarks and scaling guide →](https://ava.addy.zone/#/performance)
 
 ## Contributing
 

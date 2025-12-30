@@ -66,13 +66,39 @@ The content index is a binary snapshot of all your content metadata—used to av
 ```php
 'content_index' => [
     'mode' => 'auto',
+    'backend' => 'array',
 ],
 ```
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `mode` | `auto`, `never`, `always` | When to rebuild the index |
+| `backend` | `array`, `sqlite` | Storage backend for the index |
+
+**Mode options:**
 
 | Mode | Behavior |
 |------|----------|
 | `auto` | Rebuilds when content files change. Best for development. |
 | `never` | Only rebuilds via `./ava rebuild`. Best for production. |
+| `always` | Rebuilds every request. For debugging only. |
+
+**Backend options:**
+
+| Backend | Behavior |
+|---------|----------|
+| `array` | Binary serialized PHP arrays. Works everywhere. **This is the default.** |
+| `sqlite` | SQLite database file. Opt-in for large sites (10k+ items). Requires `pdo_sqlite`. |
+
+<div class="beginner-box">
+
+**Which backend should I use?**
+
+Stick with `array` — it works great for most sites. Only switch to `sqlite` if you have 10,000+ posts and notice slow queries or memory issues.
+
+See [Performance - Scaling](performance.md#scaling-to-10000-posts) for detailed benchmarks.
+
+</div>
 
 ### Page Cache
 
@@ -116,7 +142,7 @@ cache: false
 - `./ava pages:clear` - Clear all cached pages
 - `./ava pages:clear /blog/*` - Clear matching pattern
 
-For details, see [Caching](caching.md).
+For details, see [Performance](performance.md).
 
 ### Routing
 

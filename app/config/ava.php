@@ -59,6 +59,11 @@ return [
         // 'never'  - Only rebuilds when you run ./ava rebuild (best for high-traffic production)
         // 'always' - Rebuilds on every request (slow! only for debugging)
         'mode' => 'auto',
+
+        // Backend for storing the content index
+        // 'array'  - Binary serialized arrays (default, works great for most sites)
+        // 'sqlite' - SQLite database (opt-in for large sites with 10k+ items)
+        'backend' => 'array',
     ],
 
     // Page Cache

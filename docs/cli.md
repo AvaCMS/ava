@@ -76,6 +76,7 @@ If you’re used to FTP, think of **SFTP** as the safer modern version. Popular 
 | `pages:clear` | Clear page cache |
 | `stress:generate` | Generate test content |
 | `stress:clean` | Remove test content |
+| `stress:benchmark` | Benchmark index backends |
 
 ---
 
@@ -130,12 +131,13 @@ Shows a quick overview of your site's health:
   <span class="t-dim">───</span> <span class="t-bold">Environment</span> <span class="t-dim">───────────────────────────────────────</span>
 
   <span class="t-dim">PHP:</span>        <span class="t-white">8.3.29</span>
-  <span class="t-dim">Extensions:</span> <span class="t-white">igbinary, opcache</span>
+  <span class="t-dim">Extensions:</span> <span class="t-white">igbinary, pdo_sqlite, opcache</span>
 
   <span class="t-dim">───</span> <span class="t-bold">Content Index</span> <span class="t-dim">─────────────────────────────────────</span>
 
   <span class="t-dim">Status:</span>     <span class="t-green">● Fresh</span>
   <span class="t-dim">Mode:</span>       <span class="t-white">auto</span>
+  <span class="t-dim">Backend:</span>    <span class="t-white">sqlite</span>
   <span class="t-dim">Built:</span>      <span class="t-white">2024-12-28 14:30:00</span>
 
   <span class="t-dim">───</span> <span class="t-bold">Content</span> <span class="t-dim">───────────────────────────────────────────</span>
@@ -476,7 +478,7 @@ The page cache is also automatically cleared when:
 - You run `./ava rebuild`
 - Content changes (in `content_index.mode = 'auto'`)
 
-See [Caching](caching.md) for details.
+See [Performance](performance.md#page-cache-details) for details.
 
 ---
 
@@ -527,6 +529,74 @@ Remove all generated test content:
 
   <span class="t-green">✓</span> Rebuilding content index <span class="t-dim">(12ms)</span>
   <span class="t-green">✓ Done!</span></samp></pre>
+
+### stress:benchmark
+
+Compare performance between array and SQLite backends:
+
+```bash
+./ava stress:benchmark
+```
+
+<pre><samp>  <span class="t-dim">───</span> <span class="t-bold">Content Index Backend Benchmark</span> <span class="t-dim">───────────────────</span>
+
+  <span class="t-dim">Total items:</span><span class="t-cyan">10003</span>
+    <span class="t-dim">page:</span>     <span class="t-white">2</span>
+    <span class="t-dim">post:</span>     <span class="t-white">10001</span>
+
+  Running <span class="t-cyan">10</span> iterations per test...
+
+  Testing array backend...
+  Testing sqlite backend...
+
+  <span class="t-dim">───</span> <span class="t-bold">Results (avg ms)</span> <span class="t-dim">────────────────────────────────────</span>
+
+  <span class="t-dim">Test                     Array       Sqlite      Winner</span>
+  <span class="t-dim">───────────────────────────────────────────────────────</span>
+  Count (all)              54.31ms     1.78ms      <span class="t-cyan">SQLite</span>
+  Count (published)        63.70ms     1.85ms      <span class="t-cyan">SQLite</span>
+  Get by slug              11.52ms     0.57ms      <span class="t-cyan">SQLite</span>
+  List recent (page 1)     0.28ms      9.03ms      <span class="t-green">Array</span>
+  List recent (page 10)    0.28ms      11.61ms     <span class="t-green">Array</span>
+  Search (title)           146.51ms    339.61ms    <span class="t-green">Array</span>
+  All types                61.03ms     1.34ms      <span class="t-cyan">SQLite</span>
+
+  <span class="t-dim">Memory usage:</span>
+    Array: 6 MB
+    Sqlite: 0 B
+
+  <span class="t-dim">Cache sizes:</span>
+    Array: 5.2 MB
+    SQLite: 11.4 MB
+
+  <span class="t-bold">Recommendation:</span>
+    Use <span class="t-cyan">sqlite</span> backend for 10k+ items (constant memory, faster queries).</samp></pre>
+
+Options:
+- `--iterations=N` - Number of test iterations (default: 5)
+- `--backend=name` - Test specific backend only (`array` or `sqlite`)
+
+This command runs performance tests for:
+- Count operations (all items, filtered by status)
+- Single item lookups (by slug)
+- List operations (recent items, pagination)
+- Search queries
+- Type enumeration
+
+Results include timing comparisons, memory usage, and cache file sizes. Use with `stress:generate` to test at different content scales:
+
+```bash
+# Generate 10,000 test posts
+./ava stress:generate post 10000
+
+# Run benchmarks
+./ava stress:benchmark
+
+# Clean up when done
+./ava stress:clean post
+```
+
+See [Performance - Benchmarks](performance.md#benchmark-comparison) for detailed benchmark results at various scales.
 
 ---
 
