@@ -1,7 +1,6 @@
 - [Introduction](/ "Ava CMS | Flat-file PHP/Markdown CMS Documentation")
 - [Configuration](configuration.md "Configuration | Ava CMS")
 - [Content](content.md "Content | Ava CMS")
-- [Hosting](hosting.md "Hosting | Ava CMS")
 - [CLI](cli.md "CLI (Command Line Interface) | Ava CMS")
 - [Admin Dashboard](admin.md "Admin | Ava CMS")
 - [Themes](themes.md "Themes | Ava CMS")
@@ -10,9 +9,10 @@
 - [Caching](caching.md "Caching | Ava CMS")
 - [Creating Plugins](creating-plugins.md "Creating Plugins | Ava CMS")
 - [Bundled Plugins](bundled-plugins.md "Bundled Plugins | Ava CMS")
-- [Showcase](showcase.md "Showcase | Ava CMS")
+- [Hosting](hosting.md "Hosting | Ava CMS")
 - [Updates](updates.md "Updates | Ava CMS")
 - [API](api.md "API | Ava CMS")
+- [Showcase](showcase.md "Showcase | Ava CMS")
 
 **Maintainers**
 - [Releasing](releasing.md "Releasing | Ava CMS")
