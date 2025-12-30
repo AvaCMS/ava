@@ -1,3 +1,5 @@
+![Ava CMS Banner](addy.zip/ava/ava-banner.webp)
+
 # Ava CMS
 
 [![Release](https://img.shields.io/github/v/release/adamgreenough/ava)](https://github.com/adamgreenough/ava/releases)
