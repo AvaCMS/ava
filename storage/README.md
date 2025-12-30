@@ -2,7 +2,7 @@
 
 This directory contains generated runtime files:
 
-- `cache/` — Compiled index files (content_index.php, routes.php, etc.)
+- `cache/` — Content index files and cached HTML pages
 - `logs/` — Error and debug logs
 - `tmp/` — Temporary files
 
@@ -10,13 +10,14 @@ This directory contains generated runtime files:
 
 - This entire directory is safe to delete (will be regenerated)
 - Add to `.gitignore` in production
-- Cache files are auto-rebuilt based on `cache.mode` setting
+- Content index is auto-rebuilt based on `content_index.mode` setting
 
-## Cache Files
+## Content Index Files
 
 | File | Purpose |
 |------|---------|
-| `content_index.php` | All content indexed by type, slug, ID |
-| `tax_index.php` | Taxonomy terms with counts |
-| `routes.php` | Compiled route map |
+| `content_index.bin` | All content indexed by type, slug, ID |
+| `tax_index.bin` | Taxonomy terms with counts |
+| `routes.bin` | Compiled route map |
 | `fingerprint.json` | Change detection data |
+| `pages/*.html` | Cached HTML pages (page cache)

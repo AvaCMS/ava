@@ -103,7 +103,7 @@ If you prefer not to use the built-in updater:
 
 1. Download the latest release from GitHub
 2. Extract and copy the files listed in "What Gets Updated"
-3. Run `php bin/ava rebuild` to rebuild the cache
+3. Run `php bin/ava rebuild` to rebuild the content index
 4. Run `composer install` if `composer.json` changed
 
 ## Troubleshooting
@@ -125,5 +125,5 @@ Your content and configuration are safe. The update only modifies core files. Yo
 ### After updating, site shows errors
 
 1. Run `composer install` to update dependencies
-2. Run `php bin/ava rebuild` to clear caches
+2. Run `php bin/ava rebuild` to rebuild the content index
 3. Check the changelog for breaking changes

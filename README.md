@@ -35,6 +35,7 @@ Key sections:
 - https://ava.addy.zone/#/shortcodes
 - https://ava.addy.zone/#/bundled-plugins
 - https://ava.addy.zone/#/updates
+- https://ava.addy.zone/#/ai-reference
 
 ## Contributing
 

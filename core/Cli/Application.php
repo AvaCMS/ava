@@ -149,8 +149,8 @@ ASCII;
             $this->keyValue('Extensions', implode(', ', $extensions));
         }
 
-        // Cache status
-        $this->sectionHeader('Content Cache');
+        // Content Index status
+        $this->sectionHeader('Content Index');
         $cachePath = $this->app->configPath('storage') . '/cache';
         $fingerprintPath = $cachePath . '/fingerprint.json';
 
@@ -160,7 +160,7 @@ ASCII;
                 ? $this->color('● Fresh', self::GREEN, self::BOLD)
                 : $this->color('○ Stale', self::YELLOW, self::BOLD);
             $this->keyValue('Status', $status);
-            $this->keyValue('Mode', $this->app->config('cache.mode', 'auto'));
+            $this->keyValue('Mode', $this->app->config('content_index.mode', 'auto'));
 
             if (file_exists($cachePath . '/content_index.php')) {
                 $mtime = filemtime($cachePath . '/content_index.php');
@@ -168,7 +168,7 @@ ASCII;
             }
         } else {
             $this->keyValue('Status', $this->color('○ Not built', self::YELLOW));
-            $this->tip('Run ./ava rebuild to build the cache');
+            $this->tip('Run ./ava rebuild to build the index');
         }
 
         // Content counts
@@ -233,12 +233,12 @@ ASCII;
     private function cmdRebuild(array $args): int
     {
         $this->writeln('');
-        $this->withSpinner('Rebuilding content cache', function () {
+        $this->withSpinner('Rebuilding content index', function () {
             $this->app->indexer()->rebuild();
             return true;
         });
 
-        $this->success('Cache rebuilt successfully!');
+        $this->success('Content index rebuilt!');
         $this->writeln('');
         return 0;
     }
@@ -453,7 +453,7 @@ ASCII;
         if ($renamed > 0) {
             $this->success("Renamed {$renamed} file(s)");
             $this->writeln('');
-            $this->nextStep('./ava rebuild', 'Update the cache');
+            $this->nextStep('./ava rebuild', 'Update the content index');
         } else {
             $this->writeln('  ' . $this->color('ℹ', self::CYAN) . ' No files needed renaming.');
         }
@@ -892,11 +892,11 @@ ASCII;
         }
 
         $this->writeln('');
-        $this->withSpinner('Rebuilding cache', function () {
+        $this->withSpinner('Rebuilding content index', function () {
             $this->app->indexer()->rebuild();
             return true;
         });
-        $this->success('Cache rebuilt.');
+        $this->success('Content index rebuilt.');
 
         $this->writeln('');
         return 0;
@@ -993,7 +993,7 @@ ASCII;
         $this->success("Generated {$created} files in {$elapsed}ms");
         $this->writeln('');
 
-        $this->withSpinner('Rebuilding cache', function () {
+        $this->withSpinner('Rebuilding content index', function () {
             $this->app->indexer()->rebuild();
             return true;
         });
@@ -1077,7 +1077,7 @@ ASCII;
         $this->success("Deleted {$deleted} file(s)");
         $this->writeln('');
 
-        $this->withSpinner('Rebuilding cache', function () {
+        $this->withSpinner('Rebuilding content index', function () {
             $this->app->indexer()->rebuild();
             return true;
         });
@@ -1572,7 +1572,7 @@ ASCII;
 
         $this->sectionHeader('Site Management');
         $this->commandItem('status', 'Show site health and overview');
-        $this->commandItem('rebuild', 'Force rebuild all caches');
+        $this->commandItem('rebuild', 'Rebuild the content index');
         $this->commandItem('lint', 'Validate all content files');
 
         $this->sectionHeader('Content');

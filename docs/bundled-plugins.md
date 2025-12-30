@@ -163,7 +163,7 @@ return [
 ];
 ```
 
-After enabling, rebuild the cache:
+After enabling, rebuild the content index:
 
 ```bash
 ./ava rebuild

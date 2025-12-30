@@ -449,7 +449,7 @@ final class Controller
         $fingerprintPath = $cachePath . '/fingerprint.json';
 
         $status = [
-            'mode' => $this->app->config('cache.mode', 'auto'),
+            'mode' => $this->app->config('content_index.mode', 'auto'),
             'fresh' => false,
             'built_at' => null,
             'size' => 0,
@@ -546,7 +546,7 @@ final class Controller
             'base_url' => $this->app->config('site.base_url'),
             'timezone' => $this->app->config('site.timezone', 'UTC'),
             'theme' => $this->app->config('theme', 'default'),
-            'cache_mode' => $this->app->config('cache.mode', 'auto'),
+            'content_index_mode' => $this->app->config('content_index.mode', 'auto'),
             'admin_enabled' => $this->app->config('admin.enabled', false),
             'admin_path' => $this->app->config('admin.path', '/admin'),
             'debug' => $this->app->config('debug', false),

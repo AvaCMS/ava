@@ -10,10 +10,10 @@ Ava includes a simple, optional dashboard to help you keep an eye on your site. 
 
 Think of the dashboard as a friendly window into your site's engine room:
 
-- **🩺 Health Check** — See if your cache is fresh and your system is happy.
+- **🩺 Health Check** — See if your content index is fresh and your system is happy.
 - **📊 Content Overview** — Quickly see how many posts and pages you have.
 - **🧹 Linting** — Check your content files for errors (like missing titles or broken links).
-- **⚡ Cache Control** — Rebuild your site's cache with a single click.
+- **⚡ Index Rebuild** — Rebuild your site's content index with a single click.
 
 ## Enabling the Dashboard
 
@@ -51,9 +51,9 @@ It's like a spellchecker for your site's structure.
     <img src="images/admin-lint.webp" alt="Content linter screen" />
 </a>
 
-### Cache Manager
+### Content Index Status
 
-If you're making changes and they aren't showing up, the Cache Manager tells you why. You can see if the cache is "Fresh" or "Stale" and rebuild it instantly.
+If you're making changes and they aren't showing up, the Content Index panel tells you why. You can see if the index is "Fresh" or "Stale" and rebuild it instantly.
 
 ### Theme Inspector
 
@@ -65,7 +65,7 @@ See exactly which theme is active and list all the available templates and asset
 
 ### Admin Logs
 
-View a log of admin actions — logins, logouts, cache rebuilds, and warnings. Logs are stored in `storage/logs/admin.log` and show:
+View a log of admin actions — logins, logouts, index rebuilds, and warnings. Logs are stored in `storage/logs/admin.log` and show:
 
 <a href="images/admin-log.webp" target="_blank" rel="noopener">
     <img src="images/admin-log.webp" alt="Admin logs screen" />

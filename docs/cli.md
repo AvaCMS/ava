@@ -60,7 +60,7 @@ If you’re used to FTP, think of **SFTP** as the safer modern version. Popular 
 | Command | Description |
 |---------|-------------|
 | `status` | Show site overview and health |
-| `rebuild` | Force cache rebuild |
+| `rebuild` | Rebuild the content index |
 | `lint` | Validate content files |
 | `make <type> "Title"` | Create new content |
 | `prefix <add\|remove> [type]` | Toggle date prefixes on filenames |
@@ -96,7 +96,7 @@ Run `./ava` or `./ava --help` to see all available commands:
   <span class="t-dim">───</span> <span class="t-bold">Site Management</span> <span class="t-dim">───────────────────────────────────</span>
 
     <span class="t-cyan">status</span>                        Show site health and overview
-    <span class="t-cyan">rebuild</span>                       Force rebuild all caches
+    <span class="t-cyan">rebuild</span>                       Rebuild the content index
     <span class="t-cyan">lint</span>                          Validate all content files
 
   <span class="t-dim">───</span> <span class="t-bold">Content</span> <span class="t-dim">───────────────────────────────────────────</span>
@@ -130,7 +130,7 @@ Shows a quick overview of your site's health:
   <span class="t-dim">PHP:</span>        <span class="t-white">8.3.29</span>
   <span class="t-dim">Extensions:</span> <span class="t-white">igbinary, opcache</span>
 
-  <span class="t-dim">───</span> <span class="t-bold">Content Cache</span> <span class="t-dim">─────────────────────────────────────</span>
+  <span class="t-dim">───</span> <span class="t-bold">Content Index</span> <span class="t-dim">─────────────────────────────────────</span>
 
   <span class="t-dim">Status:</span>     <span class="t-green">● Fresh</span>
   <span class="t-dim">Mode:</span>       <span class="t-white">auto</span>
@@ -155,15 +155,15 @@ Shows a quick overview of your site's health:
 
 ### rebuild
 
-Force the cache to rebuild:
+Rebuild the content index:
 
 ```bash
 ./ava rebuild
 ```
 
-<pre><samp>  <span class="t-green">✓</span> Rebuilding content cache <span class="t-dim">(23ms)</span>
+<pre><samp>  <span class="t-green">✓</span> Rebuilding content index <span class="t-dim">(23ms)</span>
 
-  <span class="t-green">✓ Cache rebuilt successfully!</span></samp></pre>
+  <span class="t-green">✓ Content index rebuilt!</span></samp></pre>
 
 Use this after deploying new content in production, or if something looks stuck.
 
@@ -271,7 +271,7 @@ Examples:
 
   <span class="t-green">✓</span> Renamed 2 file(s)
 
-  <span class="t-blue">→</span> <span class="t-cyan">./ava rebuild</span> <span class="t-dim">— Update the cache</span></samp></pre>
+  <span class="t-blue">→</span> <span class="t-cyan">./ava rebuild</span> <span class="t-dim">— Update the content index</span></samp></pre>
 
 This reads the `date` field from frontmatter.
 
@@ -408,7 +408,7 @@ Download and apply the latest update:
 
   <span class="t-green">✓ Update applied successfully!</span>
 
-  <span class="t-green">✓</span> Rebuilding cache <span class="t-dim">(18ms)</span>
+  <span class="t-green">✓</span> Rebuilding content index <span class="t-dim">(18ms)</span>
   <span class="t-green">✓ Done!</span></samp></pre>
 
 Skip confirmation with `-y`:
@@ -467,9 +467,9 @@ Clear cached pages:
 
 The page cache is also automatically cleared when:
 - You run `./ava rebuild`
-- Content changes (in `cache.mode = 'auto'`)
+- Content changes (in `content_index.mode = 'auto'`)
 
-See [Configuration](configuration.md#page-cache) for setup options.
+See [Caching](caching.md) for details.
 
 ---
 
@@ -491,7 +491,7 @@ Generate dummy content for stress testing:
 
   <span class="t-green">✓</span> Generated <span class="t-white">100</span> files in <span class="t-dim">245ms</span>
 
-  <span class="t-green">✓</span> Rebuilding cache <span class="t-dim">(89ms)</span>
+  <span class="t-green">✓</span> Rebuilding content index <span class="t-dim">(89ms)</span>
 
   <span class="t-blue">→</span> <span class="t-cyan">./ava stress:clean post</span> <span class="t-dim">— Remove generated content when done</span></samp></pre>
 
@@ -518,7 +518,7 @@ Remove all generated test content:
 
   <span class="t-green">✓</span> Deleted <span class="t-white">100</span> file(s)
 
-  <span class="t-green">✓</span> Rebuilding cache <span class="t-dim">(12ms)</span>
+  <span class="t-green">✓</span> Rebuilding content index <span class="t-dim">(12ms)</span>
   <span class="t-green">✓ Done!</span></samp></pre>
 
 ---
@@ -540,14 +540,14 @@ Remove all generated test content:
 # Start dev server
 php -S localhost:8000 -t public
 
-# Cache rebuilds automatically when files change
-# (when cache.mode is 'auto')
+# Content index rebuilds automatically when files change
+# (when content_index.mode is 'auto')
 ```
 
 ### Production Deploy
 
 ```bash
-# In production, set cache.mode to 'never'
+# In production, set content_index.mode to 'never'
 # Then rebuild after deploy:
 ./ava rebuild
 ```

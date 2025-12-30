@@ -11,7 +11,7 @@ Ava sits in the sweet spot between a static site generator and a full-blown CMS:
 
 - **📂 Your Files, Your Rules** — Content is Markdown. Config is PHP. Git is source of truth.
 - **✍️ Bring Your Own Editor** — VS Code, Obsidian, Notepad. No WYSIWYG.
-- **🚀 No Database** — Fast PHP arrays loaded from binary cache files.
+- **🚀 No Database** — Fast PHP arrays loaded from a binary content index.
 - **⚡ Edit Live** — Change a file, refresh, see it. No build steps.
 - **🎨 Bespoke by Design** — Any content type without plugins or hacks.
 - **🤖 AI Friendly** — Clean file structure makes it trivial for AI to help.
@@ -38,7 +38,7 @@ Ava sits in the sweet spot between a static site generator and a full-blown CMS:
 | **Required Extensions** | `mbstring`, `json`, `ctype` |
 | **Optional Extensions** | `igbinary` (15× faster cache), `opcache`, `curl`, `gd` |
 
-igbinary fallback: If not available, uses PHP `serialize`. Cache files have format markers (`IG:`/`SZ:`) for auto-detection.
+igbinary fallback: If not available, uses PHP `serialize`. Index files have format markers (`IG:`/`SZ:`) for auto-detection.
 
 ---
 
@@ -47,16 +47,16 @@ igbinary fallback: If not available, uses PHP `serialize`. Cache files have form
 ```
 Request → Router → RouteMatch → Renderer → Response
              ↓
-        Repository ← Cache Files ← Indexer ← Content Files
+        Repository ← Content Index ← Indexer ← Content Files
 ```
 
-**Two-layer caching:**
+**Two layers:**
 1. **Content Index** — Binary serialized metadata (routes, frontmatter, taxonomies)
 2. **Page Cache** — On-demand HTML caching for instant serving
 
 ---
 
-## Cache Files (`storage/cache/`)
+## Storage Files (`storage/cache/`)
 
 | File | Contents |
 |------|----------|
@@ -64,14 +64,14 @@ Request → Router → RouteMatch → Renderer → Response
 | `tax_index.bin` | Taxonomy terms with counts and item refs |
 | `routes.bin` | Compiled route map |
 | `fingerprint.json` | Change detection (mtime, count, hashes) |
-| `pages/*.html` | Cached HTML pages (on-demand) |
+| `pages/*.html` | Cached HTML pages (page cache) |
 
-**Cache modes:**
+**Content index modes (`content_index.mode`):**
 - `auto` — Rebuild when fingerprint changes (default)
 - `never` — Only via CLI (production)
 - `always` — Rebuild every request (debugging)
 
-**Binary format:** Uses igbinary if available, otherwise serialize. Files prefixed with `IG:` or `SZ:` marker for safe environment switching.
+**Binary format:** Uses igbinary if available, otherwise serialize. Files prefixed with `IG:` or `SZ:` marker.
 
 ---
 
@@ -238,8 +238,8 @@ Expanded during rendering via simple string replace.
 
 | Command | Description |
 |---------|-------------|
-| `status` | Site overview, PHP version, extensions, cache stats |
-| `rebuild` | Force cache rebuild (clears page cache too) |
+| `status` | Site overview, PHP version, extensions, index stats |
+| `rebuild` | Rebuild content index (clears page cache too) |
 | `lint` | Validate content files |
 | `make <type> "Title"` | Create content with scaffolding |
 | `prefix <add\|remove> [type]` | Toggle date prefixes on filenames |
@@ -335,13 +335,13 @@ Tested with 10,000 content items:
 
 | Operation | Time |
 |-----------|------|
-| Cache rebuild | ~2.4s |
-| Cache load | ~45ms |
+| Index rebuild | ~2.4s |
+| Index load | ~45ms |
 | Archive query | ~70ms |
 | Page serve (cache hit) | ~0.1ms |
 | CLI status | ~175ms |
 | Memory usage | ~50MB |
-| Cache size | ~4MB |
+| Index size | ~4MB |
 
 ---
 

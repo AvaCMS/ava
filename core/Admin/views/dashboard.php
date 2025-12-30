@@ -95,7 +95,7 @@ $activePage = 'dashboard';
         <?php if (isset($_GET['action']) && $_GET['action'] === 'rebuild'): ?>
         <div class="alert alert-success">
             <span class="material-symbols-rounded">check_circle</span>
-            Cache rebuilt successfully in <?= htmlspecialchars($_GET['time'] ?? '?') ?>ms
+            Content index rebuilt in <?= htmlspecialchars($_GET['time'] ?? '?') ?>ms
         </div>
         <?php endif; ?>
 
@@ -182,13 +182,13 @@ $activePage = 'dashboard';
             -->
         </div>
 
-        <!-- Top Row: Cache, Page Cache, System, Site -->
+        <!-- Top Row: Content Index, Page Cache, System, Site -->
         <div class="grid grid-4">
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">
-                        <span class="material-symbols-rounded">cached</span>
-                        Cache Index
+                        <span class="material-symbols-rounded">database</span>
+                        Content Index
                     </span>
                     <span class="badge <?= $cache['fresh'] ? 'badge-success' : 'badge-warning' ?>">
                         <?= $cache['fresh'] ? 'Fresh' : 'Stale' ?>
@@ -517,7 +517,7 @@ $activePage = 'dashboard';
                     </thead>
                     <tbody>
                         <tr><td><code>./ava status</code></td><td>Show site status and content counts</td></tr>
-                        <tr><td><code>./ava rebuild</code></td><td>Rebuild all cache files</td></tr>
+                        <tr><td><code>./ava rebuild</code></td><td>Rebuild the content index</td></tr>
                         <tr><td><code>./ava lint</code></td><td>Validate all content files</td></tr>
                         <tr><td><code>./ava make &lt;type&gt; "Title"</code></td><td>Create new content</td></tr>
                         <tr><td><code>./ava user:add &lt;email&gt; &lt;pass&gt;</code></td><td>Create admin user</td></tr>

@@ -255,7 +255,7 @@ final class Application
 
     private function ensureCacheFresh(): void
     {
-        $mode = $this->config('cache.mode', 'auto');
+        $mode = $this->config('content_index.mode', 'auto');
 
         if ($mode === 'never') {
             return;

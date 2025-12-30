@@ -1,93 +1,83 @@
 # Caching
 
-Ava uses a multi-layer caching strategy to deliver fast page loads without a database. This page explains how each layer works and how to configure them.
+Ava uses two distinct caching layers to deliver fast page loads without a database.
 
 ## Overview
 
-| Layer | What it caches | When it's used | Cleared by |
-|-------|----------------|----------------|------------|
-| **Content Index** | Frontmatter, routes, taxonomy data | Every request | `./ava rebuild` |
-| **Page Cache** | Full rendered HTML | Public page views | `./ava rebuild`, content changes |
+| Layer | What it stores | Purpose |
+|-------|----------------|---------|
+| **Content Index** | Metadata, routes, taxonomy data | Avoid parsing Markdown on every request |
+| **Page Cache** | Rendered HTML pages | Serve pages instantly without rendering |
 
-The content index is the foundation—a serialized snapshot of your entire content structure. The page cache builds on top, storing the final HTML output for instant serving.
+The **Content Index** is the foundation—a binary snapshot of your content structure. The **Page Cache** stores the final HTML output for instant serving.
 
 ---
 
-## Content Index Cache
+## Content Index
 
 When you add or edit content, Ava doesn't read Markdown files on every request. Instead, it builds an index of all content metadata and stores it in `storage/cache/`.
 
-### Cache Files
+### Index Files
 
 | File | Contents |
 |------|----------|
 | `content_index.bin` | All content items indexed by type, slug, and ID |
 | `tax_index.bin` | Taxonomy terms with item counts |
 | `routes.bin` | Compiled URL → content mappings |
-| `fingerprint.json` | Hash of all content files for change detection |
+| `fingerprint.json` | Hash of content files for change detection |
 
-### Cache Modes
+### Configuration
 
-Set the mode in `app/config/ava.php`:
+Set the rebuild mode in `app/config/ava.php`:
 
-```php
-'cache' => [
+\`\`\`php
+'content_index' => [
     'mode' => 'auto',
 ],
-```
+\`\`\`
 
 | Mode | Behavior | Best for |
 |------|----------|----------|
-| `auto` | Rebuilds when content files change (via fingerprint) | Development, small sites |
-| `never` | Only rebuilds via `./ava rebuild` | Production, CI/CD deploys |
+| `auto` | Rebuilds when content files change | Development, small sites |
+| `never` | Only rebuilds via `./ava rebuild` | Production, CI/CD |
 | `always` | Rebuilds on every request | Debugging only |
 
-**Recommendation:** Use `auto` during development, switch to `never` for high-traffic production sites and rebuild as part of your deployment pipeline.
+**Recommendation:** Use `auto` during development, switch to `never` for production.
 
 ### Binary Serialization
 
-Cache files use binary serialization for fast loading:
+Index files use binary serialization for fast loading:
 
-- **igbinary** (if installed): ~15x faster, ~90% smaller than PHP serialize
-- **PHP serialize** (fallback): Works everywhere, slightly slower
+- **igbinary** (if installed): ~15x faster, ~90% smaller
+- **PHP serialize** (fallback): Works everywhere
 
-The cache format is auto-detected on read, so you can switch PHP environments safely. Cache files include a format marker (`IG:` for igbinary, `SZ:` for serialize) to ensure correct deserialization.
-
-**Fallback behavior:** If you build your cache on a server with igbinary and then deploy to one without it, Ava detects the format mismatch and returns empty data. Simply run `./ava rebuild` on the new environment to regenerate the cache in the available format.
-
-To check your current format:
-
-```bash
-./ava status
-# Shows: PHP 8.3.29
-#        Extensions: igbinary
-```
+Files include a format marker (`IG:` or `SZ:`) for safe environment switching. Run `./ava rebuild` after changing PHP environments.
 
 ### Manual Rebuild
 
-```bash
+\`\`\`bash
 ./ava rebuild
-```
+\`\`\`
 
-This rebuilds all cache files and clears the page cache. Takes ~2-3 seconds for 10,000 content items.
+Rebuilds the content index and clears the page cache. Takes ~2-3 seconds for 10,000 items.
 
 ---
 
 ## Page Cache
 
-The page cache stores fully-rendered HTML pages. When a visitor requests a page that's been cached, Ava serves the static HTML directly—no template rendering, no shortcode processing, no Markdown parsing.
+The page cache stores fully-rendered HTML. When a visitor requests a cached page, Ava serves the static HTML directly—no template rendering, no Markdown parsing.
 
 ### How It Works
 
 1. **First request**: Page is rendered normally (~30-50ms)
-2. **Cache write**: HTML is saved to `storage/cache/pages/`
-3. **Subsequent requests**: Cached HTML is served (~0.1ms)
+2. **Cache write**: HTML saved to `storage/cache/pages/`
+3. **Subsequent requests**: Cached HTML served (~0.1ms)
 
-This is an **on-demand** cache—pages are only cached after their first visit. There's no static site generation step.
+This is **on-demand** caching—pages are cached after their first visit.
 
 ### Configuration
 
-```php
+\`\`\`php
 'page_cache' => [
     'enabled' => true,
     'ttl' => null,
@@ -96,120 +86,96 @@ This is an **on-demand** cache—pages are only cached after their first visit. 
         '/preview/*',
     ],
 ],
-```
+\`\`\`
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `enabled` | bool | `true` | Master switch for page caching |
-| `ttl` | int\|null | `null` | Cache lifetime in seconds. `null` = until rebuild |
-| `exclude` | array | `['/api/*', '/preview/*']` | URL patterns to never cache |
+| `enabled` | bool | `true` | Enable HTML page caching |
+| `ttl` | int\|null | `null` | Lifetime in seconds. `null` = until rebuild |
+| `exclude` | array | `[]` | URL patterns to never cache |
 
 ### What Gets Cached
 
 - ✅ Single content pages (posts, pages, custom types)
 - ✅ Archive pages (post lists, paginated archives)
-- ✅ Taxonomy pages (categories, tags, custom taxonomies)
+- ✅ Taxonomy pages (categories, tags)
 - ❌ Admin pages
-- ❌ Pages with query parameters (except UTM tracking)
-- ❌ Requests from logged-in admin users
+- ❌ URLs with query parameters (except UTM)
+- ❌ Logged-in admin users
 - ❌ POST/PUT/DELETE requests
 
 ### Per-Page Override
 
-Override the global setting in any content file's frontmatter:
+Override the global setting in frontmatter:
 
-```yaml
+\`\`\`yaml
 ---
 title: My Dynamic Page
 cache: false
 ---
-```
-
-Or force-enable caching for a page that would otherwise be excluded:
-
-```yaml
----
-title: My Static API Response  
-cache: true
----
-```
+\`\`\`
 
 ### Cache Invalidation
 
-The page cache is automatically cleared when:
+The page cache is cleared when:
 
 - `./ava rebuild` is run
-- Content files change (in `cache.mode = 'auto'`)
-- You click "Rebuild Now" in the admin dashboard
-- You click "Flush Pages" in the admin dashboard
+- Content changes (with `content_index.mode = 'auto'`)
+- "Rebuild Now" clicked in admin
+- "Flush Pages" clicked in admin
 
-You can also clear it manually:
+Clear manually:
 
-```bash
-# Clear all cached pages
-./ava pages:clear
-
-# Clear pages matching a URL pattern
-./ava pages:clear /blog/*
-./ava pages:clear /category/*
-```
+\`\`\`bash
+./ava pages:clear              # Clear all
+./ava pages:clear /blog/*      # Clear matching pattern
+\`\`\`
 
 ### HTML Comments
 
-Every page includes a footer comment showing its cache status:
+Every page includes a footer comment:
 
 **Fresh render:**
-```html
+\`\`\`html
 <!-- Generated by Ava CMS v25.12.1 | Rendered: 2025-12-29 10:00:00 | 32ms -->
-```
+\`\`\`
 
 **Cached page:**
-```html
-<!-- Page cached: 2025-12-29 10:00:00 -->
+\`\`\`html
 <!-- Generated by Ava CMS v25.12.1 | Cached: 2025-12-29 10:00:00 -->
-```
-
-This helps you verify caching is working and debug performance.
+\`\`\`
 
 ---
 
-## Cache Statistics
+## Monitoring
 
 ### CLI
 
-```bash
-./ava status
-```
-
-Shows content cache freshness and page cache stats.
-
-```bash
-./ava pages:stats
-```
-
-Shows detailed page cache information: page count, total size, oldest/newest entries.
+\`\`\`bash
+./ava status         # Shows content index and page cache status
+./ava pages:stats    # Detailed page cache stats
+\`\`\`
 
 ### Admin Dashboard
 
-The dashboard displays cache status for both layers with quick-action buttons:
-- **Rebuild Now**: Clears all caches and rebuilds the content index
-- **Flush Pages**: Clears only the page cache
+The dashboard shows both layers with quick actions:
+- **Rebuild Now**: Rebuilds content index (clears page cache)
+- **Flush Pages**: Clears page cache only
 
 ---
 
-## Performance Benchmarks
+## Performance
 
 Tested with 10,000 content items:
 
 | Operation | Time |
 |-----------|------|
-| Content cache rebuild | ~2.4 seconds |
-| Content cache load | ~45ms |
-| Page render (cache miss) | ~70ms |
-| Page serve (cache hit) | ~0.1ms |
-| CLI status check | ~175ms |
+| Content index rebuild | ~2.4s |
+| Content index load | ~45ms |
+| Page render (uncached) | ~70ms |
+| Page serve (cached) | ~0.1ms |
 
-Cache sizes:
+Sizes:
 - Content index: ~4MB (10k items with igbinary)
 - Page cache: ~1-5KB per page
 
@@ -217,66 +183,15 @@ Cache sizes:
 
 ## Security
 
-The page cache is designed to be secure by default. Here's how it protects against common attack vectors:
+The page cache is secure by default:
 
-### Cache Poisoning Protection
-
-**Query strings are excluded:**
-- Any URL with query parameters (except UTM tracking) is NOT cached
-- This prevents attackers from caching pages with malicious `?param=<script>` values
-- Even if your theme unsafely echoes `$_GET` values, those pages won't be cached
-
-**POST/PUT/DELETE requests:**
-- Only GET requests are cached
-- Form submissions and API calls never touch the cache
-
-**User input isolation:**
-- The cache key is based solely on the URL path, not on headers, cookies, or request body
-- Two users requesting the same URL path get the same cached content
-- There's no way to "inject" content into the cache via request manipulation
-
-### What This Means for Themes
-
-If your theme does something unsafe like:
-
-```php
-<!-- DON'T DO THIS - but even if you do, page cache protects you -->
-<h1>Search: <?= $_GET['q'] ?></h1>
-```
-
-The page cache **won't cache this** because:
-1. The URL has a query parameter (`?q=...`)
-2. Query parameters trigger cache bypass
-
-However, you should still sanitize output:
-
-```php
-<!-- ALWAYS DO THIS -->
-<h1>Search: <?= htmlspecialchars($request->query('q', ''), ENT_QUOTES, 'UTF-8') ?></h1>
-```
-
-### Admin Session Protection
-
-- Logged-in admin users **never** receive cached pages
-- The cache checks for active sessions before serving
-- This prevents admin-specific content from leaking to public users
-
-### Safe Defaults
-
-| Attack Vector | Protection |
-|---------------|------------|
-| XSS via query strings | Query params bypass cache |
-| Cache poisoning via headers | Headers not used in cache key |
-| Session data leakage | Admin sessions bypass cache |
-| POST data injection | Only GET requests cached |
-| Path traversal in cache files | Filenames are hashed (MD5 of path) |
-
-### Best Practices
-
-1. **Always escape output** — Don't rely on cache bypass as your only protection
-2. **Use exclude patterns** — Add dynamic pages to `page_cache.exclude`
-3. **Test logged out** — Verify pages look correct when not authenticated
-4. **Monitor cache size** — Large caches could indicate a problem
+| Protection | How |
+|------------|-----|
+| Query string XSS | URLs with \`?params\` bypass cache |
+| Cache poisoning | Cache key is URL path only |
+| Session leakage | Admin users bypass cache |
+| POST injection | Only GET requests cached |
+| Path traversal | Filenames are MD5 hashed |
 
 ---
 
@@ -284,28 +199,17 @@ However, you should still sanitize output:
 
 ### Pages not being cached
 
-1. **Check if enabled**: Run `./ava status` and look for "Page Cache: ✓ Enabled"
-2. **Check if logged in**: Admin users are never served cached pages
-3. **Check exclusions**: Your URL might match an exclude pattern
-4. **Check query params**: URLs with `?` parameters (except UTM) aren't cached
+1. Check if enabled: \`./ava status\`
+2. Log out of admin (admin users bypass cache)
+3. Check exclude patterns
+4. Check for query parameters in URL
 
-### Cache not updating after content changes
+### Content changes not appearing
 
-1. **Check cache mode**: If `mode` is `never`, you must run `./ava rebuild`
-2. **Check fingerprint**: Delete `storage/cache/fingerprint.json` to force rebuild
-3. **Clear manually**: Run `./ava rebuild` to reset everything
+1. If \`mode\` is \`never\`, run \`./ava rebuild\`
+2. Delete \`storage/cache/fingerprint.json\` to force rebuild
+3. Run \`./ava rebuild\` to reset everything
 
-### igbinary cache won't load
+### Empty content after PHP change
 
-If you see empty content after switching PHP versions:
-
-1. The format marker system handles this automatically
-2. Just run `./ava rebuild` to regenerate in the current format
-3. The cache will use whatever serializer is available
-
-### High memory usage during rebuild
-
-The indexer loads all content metadata into memory. For extremely large sites (50k+ items):
-
-1. Increase PHP memory limit: `php -d memory_limit=512M bin/ava rebuild`
-2. Consider splitting content into multiple sites
+Run \`./ava rebuild\` to regenerate index files in the current format.

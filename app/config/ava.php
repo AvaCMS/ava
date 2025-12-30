@@ -38,20 +38,21 @@ return [
     // Active theme
     'theme' => 'default',
 
-    // Cache settings
-    'cache' => [
-        // auto: rebuild when fingerprint changes
-        // always: rebuild on every request (dev)
-        // never: only rebuild via CLI (prod)
+    // Content Index - binary index of content metadata (routes, frontmatter, taxonomies)
+    // This index is rebuilt when content files change
+    'content_index' => [
+        // auto: rebuild when content fingerprint changes
+        // always: rebuild on every request (debugging only)
+        // never: only rebuild via CLI (production)
         'mode' => 'auto',
     ],
 
-    // Page cache settings (on-demand HTML caching)
+    // Page Cache - stores rendered HTML for instant serving
     'page_cache' => [
-        // Enable/disable page caching
+        // Enable/disable HTML page caching
         'enabled' => true,
 
-        // Time-to-live in seconds (null = forever, until rebuild)
+        // Time-to-live in seconds (null = forever, cleared on rebuild)
         'ttl' => null,
 
         // URL patterns to exclude from caching (glob-style)

@@ -29,7 +29,7 @@ Ava is designed for people who love the web. It sits in the sweet spot between a
 | **Smart Routing** | URLs are generated automatically based on your content structure. |
 | **Themes** | Write standard HTML and CSS. Use PHP only where you need dynamic data. |
 | **Plugins** | Add functionality like sitemaps and feeds without bloat. |
-| **Speed** | Built-in caching makes your site load instantly, even on cheap hosting. |
+| **Speed** | Built-in page caching makes your site load instantly, even on cheap hosting. |
 
 ## Performance
 
@@ -37,14 +37,14 @@ Ava is built to scale. Here's what it can handle:
 
 | Metric | 10,000 Posts |
 |--------|--------------|
-| Cache rebuild | ~2.4 seconds |
+| Content index rebuild | ~2.4 seconds |
 | CLI status check | ~175ms |
 | Archive page query | ~70ms |
-| Cache load | ~45ms |
+| Content index load | ~45ms |
 | Memory usage | ~50MB |
-| Cache size | ~4MB |
+| Content index size | ~4MB |
 
-The caching system uses optimized binary serialization (igbinary when available) for fast loading even with massive content libraries. There's no database—just lightning-fast PHP arrays loaded from disk.
+The content index uses optimized binary serialization (igbinary when available) for fast loading even with massive content libraries. There's no database—just lightning-fast PHP arrays loaded from disk.
 
 
 ## Requirements
@@ -63,11 +63,11 @@ These are bundled with most PHP installations. If you're missing one, your host'
 
 **Optional Extensions:**
 
-- `igbinary` — Faster cache serialization (15× faster, 90% smaller)
+- `igbinary` — Faster content index (15× faster, 90% smaller)
 - `opcache` — Opcode caching for production
 - `gd` or `imagick` — Image processing if you add it later
 
-If `igbinary` isn't available, Ava automatically falls back to PHP's built-in `serialize`. You get the same functionality, just slightly slower cache loads. The system auto-detects which format was used when reading cache files, so you can add or remove igbinary at any time.
+If `igbinary` isn't available, Ava falls back to PHP's built-in `serialize`. The system auto-detects which format was used when reading index files.
 
 ## Quick Start
 
@@ -88,7 +88,7 @@ composer install
 # 4. Check status (shows PHP version and extensions)
 ./ava status
 
-# 5. Build the cache
+# 5. Build the content index
 ./ava rebuild
 
 # 6. Optionally, if running locally, start local development server at http://localhost:8000
@@ -103,7 +103,7 @@ php -S localhost:8000 -t public
 2. Extract the ZIP file to your desired location
 3. Run `composer install` to install dependencies
 4. Configure your site by editing `app/config/ava.php`
-5. Run `./ava rebuild` to build the cache
+5. Run `./ava rebuild` to build the content index
 6. (Optional) If you're running Ava locally, run `php -S localhost:8000 -t public` to start the development server and visit [http://localhost:8000](http://localhost:8000) to see your site
 
 ### Default Site
@@ -120,7 +120,7 @@ The default theme provides a clean, minimal starting point for your site. Custom
 mysite/
 ├── app/
 │   ├── config/          # Configuration files
-│   │   ├── ava.php      # Main config (site, paths, cache)
+│   │   ├── ava.php      # Main config (site, paths, caching)
 │   │   ├── content_types.php
 │   │   └── taxonomies.php
 │   ├── hooks.php        # Custom hooks
@@ -137,7 +137,7 @@ mysite/
 ├── snippets/            # Safe PHP snippets for [snippet] shortcode
 ├── public/              # Web root
 │   └── index.php        # Entry point
-├── storage/cache/       # Generated cache (gitignored)
+├── storage/cache/       # Content index and page cache (gitignored)
 └── ava                  # CLI tool
 ```
 
