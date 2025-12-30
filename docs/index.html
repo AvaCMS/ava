@@ -5,7 +5,7 @@
   <title>Ava CMS | Flat-file PHP/Markdown CMS Documentation</title>
   <meta name="description" content="Documentation for Ava CMS - A developer-first flat-file PHP CMS">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+  <link rel="icon" type="image/png" href="icon.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1/themes/prism-one-light.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,8 +17,8 @@
        ======================================== */
 
     :root {
-      --theme-color: #3d52b8;
-      --theme-color-dark: #24398b;
+      --theme-color: #7c59ab;
+      --theme-color-dark: #523679;
       --theme-color-light: #5d73e5;
       --theme-color-lighter: #7d93f0;
       --text-primary: #0e1c31;
@@ -55,20 +55,21 @@
 
     .sidebar > h1 {
       margin: 0 !important;
-      padding: 1.25rem 1.5rem 1rem !important;
+      padding: 0rem 1.5rem 0rem !important;
       text-align: left !important;
-      font-size: 1.25rem !important;
+      font-size: 3rem !important;
       font-weight: 700 !important;
     }
 
     .app-name {
       padding: 1.25rem 1.5rem 1rem;
       text-align: left;
+      font-size: 3rem !important;
       margin: 0;
     }
 
     .app-name-link {
-      font-size: 1.25rem;
+      font-size: 1.75rem !important;
       font-weight: 700;
       color: var(--text-primary) !important;
       letter-spacing: -0.01em;
@@ -532,7 +533,7 @@
     /* Main heading */
     section.cover h1 {
       display: block !important;
-      font-size: 6rem !important;
+      font-size: 7rem !important;
       font-weight: 800 !important;
       letter-spacing: -0.04em !important;
       line-height: 1 !important;
@@ -817,7 +818,7 @@
   <div id="app"></div>
   <script>
     window.$docsify = {
-      name: 'Ava CMS ✨',
+      name: 'Ava CMS',
       repo: 'adamgreenough/ava',
       loadSidebar: true,
       coverpage: true,

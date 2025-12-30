@@ -399,7 +399,10 @@ Download and apply the latest update:
     <span class="t-green">•</span> Custom themes and plugins
     <span class="t-green">•</span> Storage and cache files
 
-  Continue? <span class="t-dim">[y/N]:</span> <span class="t-green">y</span>
+  <span class="t-yellow">⚠️  Have you backed up your site and have a secure copy saved off-site?</span>
+  <span class="t-dim">[y/N]:</span> <span class="t-green">y</span>
+
+  Continue with update? <span class="t-dim">[y/N]:</span> <span class="t-green">y</span>
 
   <span class="t-green">✓</span> Downloading update <span class="t-dim">(342ms)</span>
 

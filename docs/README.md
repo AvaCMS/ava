@@ -4,8 +4,10 @@
 [![Issues](https://img.shields.io/github/issues/adamgreenough/ava)](https://github.com/adamgreenough/ava/issues)
 [![Code size](https://img.shields.io/github/languages/code-size/adamgreenough/ava)](https://github.com/adamgreenough/ava)
 [![Discord](https://img.shields.io/discord/1028357262189801563)](https://discord.gg/Z7bF9YeK)
+[![GitHub Repo stars](https://img.shields.io/github/stars/adamgreenough/ava)](https://github.com/adamgreenough/ava)
 
-A friendly, flat-file CMS for bespoke personal websites, blogs and more.
+
+A friendly, flexible, flat-file PHP-based CMS for bespoke personal websites, blogs and more.
 
 ## Philosophy
 

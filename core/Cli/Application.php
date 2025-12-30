@@ -846,7 +846,20 @@ ASCII;
             echo "    " . $this->color('•', self::DIM) . " Custom themes and plugins\n";
             echo "    " . $this->color('•', self::DIM) . " Storage and cache files\n";
             $this->writeln('');
-            echo '  Continue? [' . $this->color('y', self::GREEN) . '/N]: ';
+
+            // Backup check
+            $this->writeln($this->color('  ⚠️  Have you backed up your site and have a secure copy saved off-site?', self::YELLOW, self::BOLD));
+            echo '  [' . $this->color('y', self::GREEN) . '/N]: ';
+            $backupAnswer = trim(fgets(STDIN));
+            if (strtolower($backupAnswer) !== 'y') {
+                $this->writeln('');
+                $this->writeln('  ' . $this->color('ℹ', self::CYAN) . ' Please backup your site before updating.');
+                $this->writeln('');
+                return 0;
+            }
+            $this->writeln('');
+
+            echo '  Continue with update? [' . $this->color('y', self::GREEN) . '/N]: ';
             $answer = trim(fgets(STDIN));
             if (strtolower($answer) !== 'y') {
                 $this->writeln('');

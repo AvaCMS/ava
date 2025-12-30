@@ -1,6 +1,6 @@
-<h1>Ava CMS ✨</h1>
+<h1>Ava CMS</h1>
 
- > A friendly, flat-file CMS for bespoke personal websites, blogs and more.
+ > A friendly, flexible, flat-file PHP-based CMS for bespoke personal websites, blogs and more.
 
 
 <div class="feature-grid">
@@ -47,4 +47,5 @@
 </div>
 
 [Get Started](#main)
+[Discord](https://discord.gg/Z7bF9YeK)
 [GitHub](https://github.com/adamgreenough/ava)
