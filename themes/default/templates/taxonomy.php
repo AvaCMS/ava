@@ -1,36 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $ava->e($tax['term']['name'] ?? $tax['name']) ?> - <?= $ava->e($site['name']) ?></title>
-    <link rel="stylesheet" href="<?= $ava->asset('style.css') ?>">
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <a href="/" class="site-title"><?= $ava->e($site['name']) ?></a>
-            <nav class="main-nav">
-                <a href="/">Home</a>
-                <a href="/blog">Blog</a>
-                <a href="/search">Search</a>
-            </nav>
-        </div>
-    </header>
+<?php
+$termName = $tax['term']['name'] ?? 'Unknown';
+$pageTitle = $termName . ' - ' . $site['name'];
+?>
+<?= $ava->partial('header', ['request' => $request, 'pageTitle' => $pageTitle]) ?>
 
-    <main class="site-main">
         <div class="container">
-            <header class="taxonomy-header">
-                <h1><?= $ava->e($tax['term']['name'] ?? 'Unknown') ?></h1>
+            <header class="page-header">
+                <h1><?= $ava->e($termName) ?></h1>
                 <?php if (!empty($tax['term']['description'])): ?>
-                    <p class="term-description"><?= $ava->e($tax['term']['description']) ?></p>
+                    <p class="subtitle"><?= $ava->e($tax['term']['description']) ?></p>
                 <?php endif; ?>
             </header>
 
             <?php $items = $query->get(); ?>
 
             <?php if (empty($items)): ?>
-                <p>No content found in this category.</p>
+                <div class="search-empty">
+                    <p>No content found in this category.</p>
+                </div>
             <?php else: ?>
                 <div class="archive-list">
                     <?php foreach ($items as $item): ?>
@@ -42,9 +29,11 @@
                             </h2>
 
                             <?php if ($item->date()): ?>
-                                <time datetime="<?= $item->date()->format('c') ?>">
-                                    <?= $ava->date($item->date()) ?>
-                                </time>
+                                <div class="meta">
+                                    <time datetime="<?= $item->date()->format('c') ?>">
+                                        <?= $ava->date($item->date()) ?>
+                                    </time>
+                                </div>
                             <?php endif; ?>
 
                             <?php if ($item->excerpt()): ?>
@@ -57,12 +46,5 @@
                 <?= $ava->pagination($query, $request->path()) ?>
             <?php endif; ?>
         </div>
-    </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; <?= date('Y') ?> <?= $ava->e($site['name']) ?></p>
-        </div>
-    </footer>
-</body>
-</html>
+<?= $ava->partial('footer') ?>

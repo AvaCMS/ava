@@ -13,13 +13,15 @@
     <link rel="stylesheet" href="<?= $ava->asset('style.css') ?>">
 </head>
 <body>
+    <?php $currentPath = isset($request) ? $request->path() : '/'; ?>
     <header class="site-header">
         <div class="container">
             <a href="/" class="site-logo"><?= $ava->e($site['name']) ?></a>
             <nav class="site-nav">
-                <a href="/" <?= $request->path() === '/' ? 'class="active"' : '' ?>>Home</a>
-                <a href="/blog" <?= str_starts_with($request->path(), '/blog') ? 'class="active"' : '' ?>>Blog</a>
-                <a href="/search" <?= $request->path() === '/search' ? 'class="active"' : '' ?>>Search</a>
+                <a href="/"<?= $currentPath === '/' ? ' class="active"' : '' ?>>Home</a>
+                <a href="/about"<?= $currentPath === '/about' ? ' class="active"' : '' ?>>About</a>
+                <a href="/blog"<?= str_starts_with($currentPath, '/blog') ? ' class="active"' : '' ?>>Blog</a>
+                <a href="/search"<?= $currentPath === '/search' ? ' class="active"' : '' ?>>Search</a>
             </nav>
             <button class="nav-toggle" aria-label="Toggle navigation">
                 <span></span>

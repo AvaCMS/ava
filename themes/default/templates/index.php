@@ -1,38 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <?php if (isset($page)): ?>
-        <?= $ava->metaTags($page) ?>
-        <?= $ava->itemAssets($page) ?>
-    <?php else: ?>
-        <title><?= $ava->e($site['name']) ?></title>
-    <?php endif; ?>
-    <link rel="stylesheet" href="<?= $ava->asset('style.css') ?>">
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <a href="/" class="site-title"><?= $ava->e($site['name']) ?></a>
-            <nav class="main-nav">
-                <a href="/">Home</a>
-                <a href="/blog">Blog</a>
-                <a href="/search">Search</a>
-            </nav>
-        </div>
-    </header>
+<?= $ava->partial('header', ['request' => $request, 'pageTitle' => $site['name'], 'pageDescription' => 'Welcome to ' . $site['name']]) ?>
 
-    <main class="site-main">
         <div class="container">
             <?php if (isset($page)): ?>
-                <article class="single">
+                <article class="entry">
                     <header class="entry-header">
                         <h1><?= $ava->e($page->title()) ?></h1>
                         <?php if ($page->date()): ?>
-                            <time datetime="<?= $page->date()->format('c') ?>">
-                                <?= $ava->date($page->date()) ?>
-                            </time>
+                            <div class="entry-meta">
+                                <time datetime="<?= $page->date()->format('c') ?>">
+                                    <?= $ava->date($page->date()) ?>
+                                </time>
+                            </div>
                         <?php endif; ?>
                     </header>
 
@@ -43,33 +21,33 @@
             <?php elseif (isset($query)): ?>
                 <?php $items = $query->get(); ?>
                 <?php if (empty($items)): ?>
-                    <p>No content found.</p>
+                    <div class="search-empty">
+                        <p>No content found.</p>
+                    </div>
                 <?php else: ?>
-                    <?php foreach ($items as $item): ?>
-                        <article class="archive-item">
-                            <h2>
-                                <a href="<?= $ava->url($item->type(), $item->slug()) ?>">
-                                    <?= $ava->e($item->title()) ?>
-                                </a>
-                            </h2>
-                            <?php if ($item->excerpt()): ?>
-                                <p><?= $ava->e($item->excerpt()) ?></p>
-                            <?php endif; ?>
-                        </article>
-                    <?php endforeach; ?>
+                    <div class="archive-list">
+                        <?php foreach ($items as $item): ?>
+                            <article class="archive-item">
+                                <h2>
+                                    <a href="<?= $ava->url($item->type(), $item->slug()) ?>">
+                                        <?= $ava->e($item->title()) ?>
+                                    </a>
+                                </h2>
+                                <?php if ($item->excerpt()): ?>
+                                    <p class="excerpt"><?= $ava->e($item->excerpt()) ?></p>
+                                <?php endif; ?>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
 
                     <?= $ava->pagination($query) ?>
                 <?php endif; ?>
             <?php else: ?>
-                <p>Welcome to <?= $ava->e($site['name']) ?></p>
+                <div class="page-header">
+                    <h1>Welcome to <?= $ava->e($site['name']) ?></h1>
+                    <p class="subtitle">A site powered by Ava CMS</p>
+                </div>
             <?php endif; ?>
         </div>
-    </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; <?= date('Y') ?> <?= $ava->e($site['name']) ?></p>
-        </div>
-    </footer>
-</body>
-</html>
+<?= $ava->partial('footer') ?>
