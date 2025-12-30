@@ -1,4 +1,4 @@
-![Ava CMS Banner](addy.zip/ava/ava-banner.webp)
+![Ava CMS Banner](https://addy.zip/ava/ava-banner.webp)
 
 # Ava CMS
 
