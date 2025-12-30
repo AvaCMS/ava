@@ -279,7 +279,8 @@ final class Updater
         $response = @file_get_contents($url, false, $context);
 
         if ($response === false) {
-            return null;
+            $error = error_get_last()['message'] ?? 'Unknown error';
+            throw new \RuntimeException('GitHub API request failed: ' . $error);
         }
 
         $data = json_decode($response, true);
@@ -296,22 +297,19 @@ final class Updater
                 'method' => 'GET',
                 'header' => [
                     'User-Agent: Ava-CMS-Updater/' . AVA_VERSION,
-                    'Accept: application/octet-stream',
+                    'Accept: application/vnd.github.v3+json',
                 ],
                 'timeout' => 120,
-                'follow_location' => true,
+                'follow_location' => 1,
             ],
         ]);
 
-        $content = @file_get_contents($url, false, $context);
-
-        if ($content === false) {
-            throw new \RuntimeException('Failed to download update file');
+        if (@copy($url, $destination, $context)) {
+            return;
         }
 
-        if (file_put_contents($destination, $content) === false) {
-            throw new \RuntimeException('Failed to save update file');
-        }
+        $error = error_get_last()['message'] ?? 'Unknown error';
+        throw new \RuntimeException('Failed to download update file: ' . $error);
     }
 
     /**

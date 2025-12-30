@@ -128,9 +128,6 @@ $activePage = 'dashboard';
             <span class="material-symbols-rounded">system_update</span>
             <div style="flex: 1;">
                 <strong>Update available:</strong> v<?= htmlspecialchars($updateCheck['latest']) ?>
-                <?php if ($updateCheck['release']['name'] ?? null): ?>
-                    — <?= htmlspecialchars($updateCheck['release']['name']) ?>
-                <?php endif; ?>
                 <br>
                 <span class="text-xs" style="opacity: 0.7;">
                     Run <code>./ava update:apply</code> or <a href="https://ava.addy.zone/#/updates" target="_blank" style="color: inherit;">see the update guide</a>
