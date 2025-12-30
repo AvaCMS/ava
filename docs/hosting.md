@@ -11,7 +11,13 @@ Ava needs two things:
 
 That's it. No database, no special server software, no complex stack to configure.
 
-> **What's Composer?** [Composer](https://getcomposer.org/) manages PHP dependencies (the libraries Ava uses). Most hosts have it pre-installed. You only need to run `composer install` once after uploading Ava—it downloads everything into the `vendor/` folder.
+<div class="beginner-box">
+
+### What's Composer?
+
+[Composer](https://getcomposer.org/) manages PHP dependencies (the libraries Ava uses). Most hosts have it pre-installed. You only need to run `composer install` once after uploading Ava—it downloads everything into the `vendor/` folder.
+
+</div>
 
 ---
 
@@ -220,7 +226,13 @@ Contact support and ask: "Can you enable Composer for my account?" Many hosts ca
 
 Run `composer install` on your local computer, then upload the entire `vendor/` folder along with your Ava files. This works but makes updates slightly more manual.
 
-> **Stuck?** Join the [Discord community](https://discord.gg/Z7bF9YeK)—we're happy to help you get set up, even if you're brand new to all this!
+<div class="beginner-box">
+
+### Stuck?
+
+Join the [Discord community](https://discord.gg/Z7bF9YeK)—we're happy to help you get set up, even if you're brand new to all this!
+
+</div>
 
 ---
 

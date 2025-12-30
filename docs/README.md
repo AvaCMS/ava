@@ -118,7 +118,13 @@ php -S localhost:8000 -t public
 
 Then visit [http://localhost:8000](http://localhost:8000) in your browser.
 
-> **Ready for production?** See the [Hosting Guide](hosting.md) for shared hosting, VPS options, and deployment tips.
+<div class="beginner-box">
+
+### Ready for Production?
+
+See the [Hosting Guide](hosting.md) for shared hosting, VPS options, and deployment tips.
+
+</div>
 
 ### Default Site
 
