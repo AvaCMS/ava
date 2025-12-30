@@ -71,25 +71,38 @@ If `igbinary` isn't available, Ava automatically falls back to PHP's built-in `s
 
 ## Quick Start
 
+### Clone from GitHub
+
 ```bash
-# Clone the repo
+# 1. Clone the repo
 git clone https://github.com/adamgreenough/ava.git mysite
 cd mysite
 
-# Install dependencies
+# 2. Install dependencies
 composer install
 
-# Check status (shows PHP version and extensions)
+# 3. Configure your site by editing app/config/ava.php
+
+# 4. Check status (shows PHP version and extensions)
 ./ava status
 
-# Build the cache
+# 5. Build the cache
 ./ava rebuild
 
-# Start development server
+# 6. Optionally, if running locally, start local development server at http://localhost:8000
 php -S localhost:8000 -t public
 ```
 
-Visit [http://localhost:8000](http://localhost:8000) to see your site.
+### Upload Latest Release Manually
+
+[![Release](https://img.shields.io/github/v/release/adamgreenough/ava)](https://github.com/adamgreenough/ava/releases)
+
+1. Download the latest release from [GitHub Releases](https://github.com/adamgreenough/ava/releases)
+2. Extract the ZIP file to your desired location
+3. Run `composer install` to install dependencies
+4. Configure your site by editing `app/config/ava.php`
+5. Run `./ava rebuild` to build the cache
+6. (Optional) If you're running Ava locally, run `php -S localhost:8000 -t public` to start the development server and visit [http://localhost:8000](http://localhost:8000) to see your site
 
 ## Project Structure
 

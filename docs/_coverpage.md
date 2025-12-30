@@ -1,6 +1,8 @@
+<div class="cover-badge">Full Release! ✨</div>
+
 <h1>Ava CMS</h1>
 
- > A friendly, flexible, flat-file PHP-based CMS for bespoke personal websites, blogs and more.
+ > A friendly, flexible, flat-file, PHP-based CMS for bespoke personal websites, blogs and more.
 
 
 <div class="feature-grid">
