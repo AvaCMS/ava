@@ -13,10 +13,10 @@ A friendly, flexible, flat-file PHP-based CMS for bespoke personal websites, blo
 
 Ava is designed for people who love the web. It sits in the sweet spot between a static site generator and a full-blown CMS:
 
-- **📂 Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Everything lives in your Git repo, so you own your data forever.
+- **📂 Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Your files are the source of truth—back them up however you like, and you own your data forever.
 - **✍️ Bring Your Own Editor.** No clunky WYSIWYG editors here. Write in VS Code, Obsidian, or Notepad. If you can write HTML and CSS, you can build a theme.
 - **🚀 No Database Required.** Ava indexes your content into fast PHP arrays. You get the speed of a static site with the dynamic power of PHP.
-- **⚡ Edit Live.** Change a file, hit refresh, and see it instantly. No build steps, no waiting for deploys.
+- **⚡ Edit Live.** Change a file, hit refresh, and see it instantly. No build steps required.
 - **🎨 Bespoke by Design.** Don't fight a platform. Create any content type you want—blogs, portfolios, recipe collections, changelogs—without plugins or hacks.
 - **🤖 AI Friendly.** The clean, file-based structure and integrated docs makes it trivial for AI assistants to read your content, understand your config, and help you build features.
 
@@ -51,7 +51,7 @@ The content index uses optimized binary serialization (igbinary when available) 
 
 <img src="https://addy.zip/ava/i-love-php.webp" alt="I love PHP" style="float: right; width: 180px; margin: 0 0 1rem 1.5rem;" />
 
-Ava requires **PHP 8.3** or later. Most modern hosts include this, but check before you start.
+Ava requires **PHP 8.3** or later and **SSH access** for some simple commands. Most good hosts include this, but check before you start.
 
 **Required Extensions:**
 
@@ -71,9 +71,25 @@ If `igbinary` isn't available, Ava falls back to PHP's built-in `serialize`. The
 
 ## Quick Start
 
-Getting started with Ava is incredibly simple and the default set-up can be put live in just a minute. You have two main options:
+Getting started with Ava is incredibly simple and the default set-up can be put live in just a minute. Here are a few options:
 
-### Clone from GitHub
+### Download and Upload
+
+The simplest approach—no special tools required:
+
+[![Release](https://img.shields.io/github/v/release/adamgreenough/ava)](https://github.com/adamgreenough/ava/releases)
+
+1. Download the latest release from [GitHub Releases](https://github.com/adamgreenough/ava/releases)
+2. Extract the ZIP file
+3. Upload to your web host (via SFTP, your host's file manager, or however you prefer)
+4. Run `composer install` to install dependencies
+5. Configure your site by editing `app/config/ava.php`
+6. Run `./ava rebuild` to build the content index
+7. Visit your site!
+
+### Clone with Git
+
+If you're comfortable with Git and want version control from the start:
 
 ```bash
 # 1. Clone the repo
@@ -90,21 +106,19 @@ composer install
 
 # 5. Build the content index
 ./ava rebuild
+```
 
-# 6. Optionally, if running locally, start local development server at http://localhost:8000
+### Local Development (Optional)
+
+If you want to preview your site on your own computer before going live:
+
+```bash
 php -S localhost:8000 -t public
 ```
 
-### Upload Latest Release Manually
+Then visit [http://localhost:8000](http://localhost:8000) in your browser.
 
-[![Release](https://img.shields.io/github/v/release/adamgreenough/ava)](https://github.com/adamgreenough/ava/releases)
-
-1. Download the latest release from [GitHub Releases](https://github.com/adamgreenough/ava/releases)
-2. Extract the ZIP file to your desired location
-3. Run `composer install` to install dependencies
-4. Configure your site by editing `app/config/ava.php`
-5. Run `./ava rebuild` to build the content index
-6. (Optional) If you're running Ava locally, run `php -S localhost:8000 -t public` to start the development server and visit [http://localhost:8000](http://localhost:8000) to see your site
+> **Ready for production?** See the [Hosting Guide](hosting.md) for shared hosting, VPS options, and deployment tips.
 
 ### Default Site
 
@@ -151,7 +165,12 @@ The system handles all the boring stuff: routing, sorting, pagination, and searc
 
 ## Editing Content: Pick Your Style
 
-Ava is flexible about *how* you edit. Start with local-first. It’s the fastest feedback loop: type → save → refresh.
+Ava is flexible about *how* you work. There's no "correct" way to edit—pick whatever fits your workflow:
+
+- **Edit directly on your server** — SFTP, SSH, or your host's file manager. Changes appear instantly.
+- **Work locally** — Edit on your computer and upload when ready. Great for bigger changes.
+- **Use Git** — Version control with GitHub, GitLab, etc. Perfect for collaboration and history.
+- **Mix and match** — Quick fixes on the server, bigger projects locally. Whatever works for you.
 
 If you want some beginner-friendly background on the tools involved:
 
@@ -172,6 +191,7 @@ It won't be a good fit if you need a drag-and-drop page builder or a massive eco
 
 - [Configuration](configuration.md) — Site settings and content types
 - [Content](content.md) — Writing pages and posts
+- [Hosting](hosting.md) — Getting your site live
 - [Themes](themes.md) — Creating templates
 - [Admin](admin.md) — Optional dashboard
 - [CLI](cli.md) — Command-line tools

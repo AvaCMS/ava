@@ -13,21 +13,34 @@ declare(strict_types=1);
 return [
     // Site settings
     'site' => [
+        // Your site's display name (used in templates, feeds, etc.)
         'name' => 'My Ava Site',
+
+        // Full URL where your site is hosted (no trailing slash)
+        // Used for sitemaps, feeds, and absolute URL generation
         'base_url' => 'http://localhost:8000',
+
+        // Timezone for dates and times
+        // Use a standard timezone identifier from: https://www.php.net/manual/en/timezones.php
+        // Examples: 'UTC', 'America/New_York', 'Europe/London', 'Asia/Tokyo', 'Australia/Sydney'
         'timezone' => 'UTC',
+
+        // Locale for number/date formatting (uses PHP's setlocale)
+        // Examples: 'en_GB', 'en_US', 'de_DE', 'fr_FR', 'ja_JP'
         'locale' => 'en_GB',
     ],
 
-    // Paths (relative to AVA_ROOT)
+    // Paths (relative to AVA_ROOT) - you usually won't need to change these
     'paths' => [
-        'content' => 'content',
-        'themes' => 'themes',
-        'plugins' => 'plugins',
-        'snippets' => 'snippets',
-        'storage' => 'storage',
+        'content' => 'content',      // Where your Markdown files live
+        'themes' => 'themes',        // Available themes
+        'plugins' => 'plugins',      // Plugin directory
+        'snippets' => 'snippets',    // PHP snippets for [snippet] shortcode
+        'storage' => 'storage',      // Cache, logs, temp files
 
-        // Path aliases for content references
+        // Path aliases for use in your Markdown content
+        // Write @media:image.jpg instead of /media/image.jpg
+        // Makes it easy to reorganize assets later without updating every file
         'aliases' => [
             '@media:' => '/media/',
             '@uploads:' => '/media/uploads/',
@@ -38,24 +51,25 @@ return [
     // Active theme
     'theme' => 'default',
 
-    // Content Index - binary index of content metadata (routes, frontmatter, taxonomies)
-    // This index is rebuilt when content files change
+    // Content Index
+    // Ava builds an efficient binary index of your content for fast lookups.
+    // This avoids re-parsing Markdown files on every request.
     'content_index' => [
-        // auto: rebuild when content fingerprint changes
-        // always: rebuild on every request (debugging only)
-        // never: only rebuild via CLI (production)
+        // 'auto'   - Rebuilds automatically when content changes (recommended for most sites)
+        // 'never'  - Only rebuilds when you run ./ava rebuild (best for high-traffic production)
+        // 'always' - Rebuilds on every request (slow! only for debugging)
         'mode' => 'auto',
     ],
 
-    // Page Cache - stores rendered HTML for instant serving
+    // Page Cache
+    // Stores fully-rendered HTML pages for instant serving (~0.1ms vs ~30ms).
+    // Pages are cached on first visit and cleared automatically on rebuild.
     'page_cache' => [
-        // Enable/disable HTML page caching
-        'enabled' => true,
+        'enabled' => true,             // Set to false to disable caching entirely
 
-        // Time-to-live in seconds (null = forever, cleared on rebuild)
-        'ttl' => null,
+        'ttl' => null,                 // Cache lifetime in seconds (null = until next rebuild)
 
-        // URL patterns to exclude from caching (glob-style)
+        // URL patterns that should never be cached (glob-style wildcards)
         'exclude' => [
             '/api/*',
             '/preview/*',
@@ -84,16 +98,24 @@ return [
     // Security
     'security' => [
         'shortcodes' => [
+            // Allow the [snippet] shortcode to execute PHP files from snippets/
+            // Set to false if you don't use snippets or want to restrict this
             'allow_php_snippets' => true,
         ],
-        // Token for previewing draft content via ?preview=1&token=xxx
+
+        // Secret token for previewing draft content
+        // Access drafts via: /your-draft-url?preview=1&token=your-token-here
+        // Use a long random string in production!
         'preview_token' => 'ava-preview-secret',
     ],
 
-    // Admin settings (disabled by default)
+    // Admin Dashboard
+    // A simple web UI for site health, content overview, and quick actions.
+    // Not an editor—your files remain the source of truth.
+    // Create users first with: ./ava user:add
     'admin' => [
-        'enabled' => true,
-        'path' => '/admin',
+        'enabled' => true,             // Set to false to disable the dashboard
+        'path' => '/admin',            // URL path (e.g., /admin, /dashboard, /_ava)
     ],
 
     // Active plugins (in load order)

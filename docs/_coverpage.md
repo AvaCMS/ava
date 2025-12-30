@@ -48,6 +48,14 @@
   </div>
 </div>
 
+<style>
+.cover-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+.cover-buttons a { white-space: nowrap; }
+</style>
+<div class="cover-buttons">
+
 [Get Started](#main)
 [Discord](https://discord.gg/Z7bF9YeK)
 [GitHub](https://github.com/adamgreenough/ava)
+
+</div>

@@ -38,7 +38,9 @@ It’s the folder that contains your Ava project — where you can see `composer
 
 ### Running Commands on a Server (SSH)
 
-You’ll often do Ava work locally, then deploy. But if you want to manage content/config directly on a server, the usual flow is **SSH**:
+One of Ava's strengths is flexibility—you can work however suits you best. Edit files directly on your server, work locally and deploy, or mix both approaches. There's no "correct" way.
+
+If you need to run CLI commands on a remote server, use **SSH**:
 
 ```bash
 ssh user@your-domain-or-server-ip
@@ -49,7 +51,7 @@ cd /path/to/your/site
 **SSH clients people like**
 - **Built-in (recommended):** macOS Terminal, Linux Terminal, Windows Terminal / PowerShell
 - **GUI options:** Termius, PuTTY
-
+For a deeper dive into SSH, hosting options, and getting Ava live on the internet, see the [Hosting Guide](hosting.md).
 ### Uploading files (SFTP)
 If you’re used to FTP, think of **SFTP** as the safer modern version. Popular clients include FileZilla, WinSCP, Cyberduck, and Transmit.
 
@@ -297,6 +299,11 @@ Create a new admin user:
   <span class="t-dim">Name:</span>       <span class="t-white">Admin User</span>
 
   <span class="t-blue">→</span> <span class="t-cyan">/admin</span> <span class="t-dim">— Login at your admin dashboard</span></samp></pre>
+
+**Password Security:** Your password is hashed using [bcrypt](https://en.wikipedia.org/wiki/Bcrypt) before being stored in `app/config/users.php`. This means:
+- Your actual password is never saved—only an irreversible hash
+- Even if someone accesses the users file, they can't recover your password
+- Each password has a unique salt, so identical passwords have different hashes
 
 ### user:password
 

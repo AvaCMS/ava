@@ -1,63 +1,145 @@
 # Shortcodes
 
-Shortcodes are little magic tags you can put in your Markdown to do things that Markdown can't do.
+Shortcodes are simple, reusable tags you can use in your Markdown to add dynamic content or complex HTML structures without cluttering your writing.
 
-## Why use them?
+## Why Use Them?
 
-Sometimes you need more than just text and images. Shortcodes let you:
-- **✨ Insert dynamic data** (like the current year).
-- **🧩 Add complex HTML** (like buttons or cards) without writing HTML in your post.
-- **♻️ Reuse content** across multiple pages.
+Markdown is great for writing, but sometimes you need more:
+- **📅 Dynamic data** — Insert the current year, site name, or other live values.
+- **🧩 Rich components** — Add buttons, cards, or callouts without raw HTML.
+- **♻️ Reusable blocks** — Create once, use everywhere. Update in one place.
 
-## How they look
+## How They Work
 
-They look like tags in square brackets:
+Shortcodes use square brackets. They can be self-closing or wrap content:
 
 ```markdown
-Hello, it is currently [year].
+Copyright © [year] [site_name]
 
 [button url="/contact"]Get in Touch[/button]
 ```
 
+When the page renders, Ava replaces these with the actual values.
+
 ## Built-in Shortcodes
 
-Ava comes with a few handy ones out of the box:
+| Shortcode | What it does | Example output |
+|-----------|--------------|----------------|
+| `[year]` | Current year | `2024` |
+| `[site_name]` | Your site's name from config | `My Ava Site` |
+| `[email]you@example.com[/email]` | Spam-protected email link | Obfuscated mailto link |
+| `[button url="/path"]Text[/button]` | Styled button | `<a class="button">` element |
+| `[snippet name="file"]` | Include PHP snippet | Output of `snippets/file.php` |
 
-| Shortcode | What it does |
-|-----------|--------------|
-| `[year]` | Prints the current year (great for footers!). |
-| `[site_name]` | Prints your site's name. |
-| `[email]me@example.com[/email]` | Creates a spam-proof email link. |
-| `[button url="/"]Click Me[/button]` | Creates a styled button. |
+## The Snippet Shortcode
 
-## Custom Snippets
+The `[snippet]` shortcode is where things get really powerful. It lets you create reusable PHP components and use them anywhere in your content.
 
-The most powerful feature is the `[snippet]` shortcode. It lets you write a small PHP file and use it anywhere in your content.
+### Creating a Snippet
 
-### 1. Create the snippet
-Make a file at `snippets/alert.php`:
+Create a PHP file in your `snippets/` folder:
 
 ```php
-<div class="alert" style="background: #eee; padding: 1rem;">
-    <strong>Note:</strong> <?= $content ?>
+<?php // snippets/cta.php ?>
+<div class="cta-box" style="background: #f0f4f8; padding: 2rem; border-radius: 8px;">
+    <h3><?= htmlspecialchars($heading ?? 'Ready to get started?') ?></h3>
+    <p><?= $content ?></p>
+    <a href="<?= htmlspecialchars($url ?? '/contact') ?>" class="button">
+        <?= htmlspecialchars($button ?? 'Learn More') ?>
+    </a>
 </div>
 ```
 
-### 2. Use it in Markdown
+### Using It in Content
+
 ```markdown
-[snippet name="alert"]
-This is a very important note!
+[snippet name="cta" heading="Join Our Newsletter" button="Subscribe" url="/subscribe"]
+Get weekly tips and updates delivered straight to your inbox.
 [/snippet]
 ```
 
-Want to learn more about customizing your site's look? Check out the [Themes guide](themes.md).
+### Variables Available in Snippets
 
-This keeps your content clean and your design consistent.
+| Variable | Description |
+|----------|-------------|
+| `$content` | Everything between opening and closing tags |
+| `$name` | The snippet name |
+| `$attrs` | Array of all attributes passed |
+| `$heading`, `$url`, etc. | Individual attributes as variables |
 
+## Practical Use Cases
+
+### Pricing Tables
+
+```php
+<?php // snippets/pricing.php ?>
+<div class="pricing-card">
+    <h3><?= $ava->e($name ?? 'Plan') ?></h3>
+    <div class="price"><?= $ava->e($price ?? '$0') ?><span>/month</span></div>
+    <ul>
+        <?php foreach (explode(',', $features ?? '') as $feature): ?>
+            <li><?= $ava->e(trim($feature)) ?></li>
+        <?php endforeach; ?>
+    </ul>
+    <a href="<?= $ava->e($url ?? '#') ?>" class="button"><?= $ava->e($cta ?? 'Get Started') ?></a>
+</div>
+```
+
+Usage: `[snippet name="pricing" name="Pro" price="$29" features="10 projects, Priority support, API access" url="/signup/pro"]`
+
+### Image Galleries
+
+```php
+<?php // snippets/gallery.php ?>
+<div class="gallery" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+    <?php foreach (explode(',', $images ?? '') as $img): ?>
+        <img src="<?= $ava->e(trim($img)) ?>" alt="" loading="lazy">
+    <?php endforeach; ?>
+</div>
+```
+
+Usage: `[snippet name="gallery" images="@uploads:photo1.jpg, @uploads:photo2.jpg, @uploads:photo3.jpg"]`
+
+### Third-Party Widgets
+
+```php
+<?php // snippets/youtube.php ?>
+<div class="video-embed" style="aspect-ratio: 16/9;">
+    <iframe 
+        src="https://www.youtube.com/embed/<?= $ava->e($id ?? '') ?>" 
+        frameborder="0" 
+        allowfullscreen 
+        style="width: 100%; height: 100%;">
+    </iframe>
+</div>
+```
+
+Usage: `[snippet name="youtube" id="dQw4w9WgXcQ"]`
+
+### Alert/Notice Boxes
+
+```php
+<?php // snippets/notice.php ?>
+<?php
+$types = ['info' => '💡', 'warning' => '⚠️', 'success' => '✅', 'error' => '❌'];
+$icon = $types[$type ?? 'info'] ?? '💡';
+?>
+<div class="notice notice-<?= $ava->e($type ?? 'info') ?>">
+    <span class="notice-icon"><?= $icon ?></span>
+    <div class="notice-content"><?= $content ?></div>
+</div>
+```
+
+Usage:
+```markdown
+[snippet name="notice" type="warning"]
+This feature is experimental. Use with caution.
+[/snippet]
+```
 
 ## Custom Shortcodes
 
-Register in `app/shortcodes.php`:
+For simpler shortcodes that don't need a file, register them in `app/shortcodes.php`:
 
 ```php
 <?php
@@ -66,23 +148,29 @@ Register in `app/shortcodes.php`:
 use Ava\Application;
 
 $shortcodes = Application::getInstance()->shortcodes();
+
+// Simple greeting
 $shortcodes->register('greeting', function (array $attrs) {
-    $name = $attrs['name'] ?? 'World';
+    $name = $attrs['name'] ?? 'friend';
     return "Hello, " . htmlspecialchars($name) . "!";
 });
 
-// Using the app
+// Recent posts list
 $shortcodes->register('recent_posts', function (array $attrs) {
-    $app = \\Ava\\Application::getInstance();
+    $app = Application::getInstance();
     $count = (int) ($attrs['count'] ?? 5);
     
-    $posts = $app->repository()->published('post');
-    $posts = array_slice($posts, 0, $count);
+    $posts = $app->query()
+        ->type('post')
+        ->published()
+        ->orderBy('date', 'desc')
+        ->perPage($count)
+        ->get();
     
     $html = '<ul class="recent-posts">';
     foreach ($posts as $post) {
         $url = $app->router()->urlFor('post', $post->slug());
-        $html .= '<li><a href="' . $url . '">' . htmlspecialchars($post->title()) . '</a></li>';
+        $html .= '<li><a href="' . htmlspecialchars($url) . '">' . htmlspecialchars($post->title()) . '</a></li>';
     }
     $html .= '</ul>';
     
@@ -90,15 +178,17 @@ $shortcodes->register('recent_posts', function (array $attrs) {
 });
 ```
 
-## Processing Order
+## How Processing Works
 
-1. Markdown is rendered to HTML
+1. Your Markdown is converted to HTML
 2. Shortcodes are processed in the HTML output
+3. The final result is sent to the browser
 
-This means shortcodes can output raw HTML without escaping.
+This means shortcodes can safely output raw HTML—it won't be escaped.
 
-## Security Notes
+## Security
 
-- Snippet names are validated (no path traversal)
-- Snippets can be disabled via `security.shortcodes.allow_php_snippets`
-- Unknown shortcodes are left as-is (not an error)
+- **Path safety:** Snippet names can't contain `..` or `/`—no directory traversal
+- **Disable snippets:** Set `security.shortcodes.allow_php_snippets` to `false`
+- **Unknown shortcodes:** Left as-is in the output (no errors thrown)
+- **Escaping:** Use `htmlspecialchars()` or `$ava->e()` for user-provided values

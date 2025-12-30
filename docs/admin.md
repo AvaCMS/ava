@@ -28,13 +28,15 @@ It's disabled by default. To turn it on, edit `app/config/ava.php`:
 
 ## Creating Your First User
 
-Since there's no database, users are stored in a simple config file. Use the CLI to create one:
+Since there's no database, users are stored in a config file. Use the CLI to create one:
 
 ```bash
 ./ava user:add admin@example.com yourpassword "Your Name"
 ```
 
-This creates a secure `app/config/users.php` file (which is ignored by Git, so your secrets stay safe).
+This creates a secure `app/config/users.php` file. If you're using version control, this file is gitignored by default to keep your credentials safe.
+
+**Password Security:** Your password is hashed using [bcrypt](https://en.wikipedia.org/wiki/Bcrypt)—a strong, industry-standard algorithm. The file stores only the hash, not your actual password, so even if someone accesses the file, they can't recover your password.
 
 ## Features
 
@@ -99,7 +101,7 @@ Browse all content by type. Each item shows:
 - Date (for dated types)
 - Quick links to view on site
 
-This is read-only — to edit content, use your text editor and Git.
+This is read-only — to edit content, use your preferred text editor.
 
 <a href="images/admin-content.webp" target="_blank" rel="noopener">
     <img src="images/admin-content.webp" alt="Content browser screen" />
@@ -139,7 +141,7 @@ The admin dashboard includes several security measures:
 - Use a strong, unique password
 - Consider changing the admin path from `/admin` to something less guessable
 - Use HTTPS in production
-- Keep `users.php` out of version control (it's gitignored by default)
+- Keep `users.php` out of version control if you're using Git (it's gitignored by default)
 
 ## Customizing the Path
 

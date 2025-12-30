@@ -117,8 +117,10 @@ Templates have access to `$ava` with these methods:
 
 ### Queries
 
+The `$ava->query()` method returns a fluent query builder for fetching content. All queries are immutable—each method returns a new query instance.
+
 ```php
-// New query
+// Get the 5 most recent published posts
 $posts = $ava->query()
     ->type('post')
     ->published()
@@ -126,14 +128,190 @@ $posts = $ava->query()
     ->perPage(5)
     ->get();
 
+// Loop through results
+foreach ($posts as $post) {
+    echo $post->title();
+}
+```
+
+#### Query Methods Reference
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `type(string)` | Filter by content type | `->type('post')` |
+| `status(string)` | Filter by status | `->status('published')` |
+| `published()` | Shortcut for `status('published')` | `->published()` |
+| `whereTax(tax, term)` | Filter by taxonomy term | `->whereTax('category', 'tutorials')` |
+| `where(field, value, op)` | Filter by field value | `->where('featured', true)` |
+| `orderBy(field, dir)` | Sort results | `->orderBy('date', 'desc')` |
+| `perPage(int)` | Items per page (max 100) | `->perPage(10)` |
+| `page(int)` | Current page number | `->page(2)` |
+| `search(string)` | Full-text search | `->search('php tutorial')` |
+
+#### Query Result Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `get()` | `Item[]` | Execute query, get items |
+| `first()` | `Item\|null` | Get first matching item |
+| `count()` | `int` | Total items (before pagination) |
+| `totalPages()` | `int` | Number of pages |
+| `currentPage()` | `int` | Current page number |
+| `hasMore()` | `bool` | Are there more pages? |
+| `hasPrevious()` | `bool` | Are there previous pages? |
+| `isEmpty()` | `bool` | No results? |
+| `pagination()` | `array` | Full pagination info |
+
+#### Helper Shortcuts
+
+```php
 // Recent items shortcut
 $recent = $ava->recent('post', 5);
 
-// Get specific item
+// Get specific item by slug
 $about = $ava->get('page', 'about');
 
 // Get taxonomy terms
 $categories = $ava->terms('category');
+```
+
+### The `$page` (Item) Object
+
+Every content item gives you access to its data through the `$page` variable (or `$item` in loops).
+
+#### Core Properties
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `id()` | `string\|null` | Unique identifier (ULID) |
+| `title()` | `string` | Title from frontmatter |
+| `slug()` | `string` | URL-friendly slug |
+| `status()` | `string` | `draft`, `published`, or `private` |
+| `type()` | `string` | Content type (`page`, `post`, etc.) |
+
+#### Status Helpers
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `isPublished()` | `bool` | Is status "published"? |
+| `isDraft()` | `bool` | Is status "draft"? |
+| `isPrivate()` | `bool` | Is status "private"? |
+
+#### Dates
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `date()` | `DateTimeImmutable\|null` | Publication date |
+| `updated()` | `DateTimeImmutable\|null` | Last updated (falls back to date) |
+
+```php
+<?php if ($page->date()): ?>
+    <time datetime="<?= $page->date()->format('c') ?>">
+        <?= $ava->date($page->date(), 'F j, Y') ?>
+    </time>
+<?php endif; ?>
+```
+
+#### Content
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `rawContent()` | `string` | Raw Markdown body |
+| `html()` | `string\|null` | Rendered HTML (after processing) |
+| `excerpt()` | `string\|null` | Excerpt from frontmatter |
+
+```php
+// Render the Markdown body to HTML
+<?= $ava->content($page) ?>
+
+// Or access excerpt
+<p><?= $ava->e($page->excerpt()) ?></p>
+```
+
+#### Custom Fields
+
+Access any frontmatter field using `get()`:
+
+```php
+// Get a custom field with optional default
+$role = $page->get('role', 'Unknown');
+$featured = $page->get('featured', false);
+
+// Check if a field exists
+if ($page->has('website')) {
+    echo '<a href="' . $ava->e($page->get('website')) . '">Visit Website</a>';
+}
+```
+
+#### Taxonomies
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `terms()` | `array` | All taxonomy terms |
+| `terms('category')` | `array` | Terms for specific taxonomy |
+
+```php
+<?php foreach ($page->terms('category') as $term): ?>
+    <a href="<?= $ava->termUrl('category', $term) ?>"><?= $ava->e($term) ?></a>
+<?php endforeach; ?>
+```
+
+#### SEO Fields
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `metaTitle()` | `string\|null` | Custom meta title |
+| `metaDescription()` | `string\|null` | Meta description |
+| `noindex()` | `bool` | Should search engines skip this? |
+| `canonical()` | `string\|null` | Canonical URL |
+| `ogImage()` | `string\|null` | Open Graph image URL |
+
+#### Assets & Hierarchy
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `css()` | `array` | Per-item CSS files |
+| `js()` | `array` | Per-item JS files |
+| `template()` | `string\|null` | Custom template name |
+| `parent()` | `string\|null` | Parent page slug |
+| `order()` | `int` | Manual sort order |
+| `redirectFrom()` | `array` | Old URLs that redirect here |
+| `filePath()` | `string` | Path to the Markdown file |
+
+### Advanced Query Examples
+
+```php
+// Posts in a category
+$tutorials = $ava->query()
+    ->type('post')
+    ->published()
+    ->whereTax('category', 'tutorials')
+    ->orderBy('date', 'desc')
+    ->perPage(10)
+    ->get();
+
+// Featured items (custom field)
+$featured = $ava->query()
+    ->type('post')
+    ->published()
+    ->where('featured', true)
+    ->get();
+
+// Search results
+$results = $ava->query()
+    ->type('post')
+    ->published()
+    ->search($request->query('q'))
+    ->perPage(20)
+    ->page($request->query('page', 1))
+    ->get();
+
+// All items ordered by title
+$alphabetical = $ava->query()
+    ->type('page')
+    ->published()
+    ->orderBy('title', 'asc')
+    ->get();
 ```
 
 ### SEO

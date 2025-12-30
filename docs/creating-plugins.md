@@ -4,12 +4,13 @@ Want to add a new feature to Ava? Plugins are the way to do it.
 
 ## What is a Plugin?
 
-A plugin is just a folder with a PHP file in it. It lets you add code to your site without messing up the core files.
+A plugin is just a folder with a PHP file in it. It lets you add code to your site without touching core files.
 
 You can use plugins to:
-- Add new shortcodes.
-- Create custom routes (like a JSON API).
-- Hook into Ava's events (like "after a page is saved").
+- Add new [shortcodes](shortcodes.md)
+- Create custom routes (like a JSON API)
+- Hook into Ava's lifecycle (modify content, add template variables, etc.)
+- Add pages to the admin dashboard
 
 ## Your First Plugin
 
@@ -27,82 +28,129 @@ return [
         
         // Example: Add a custom route
         $app->router()->addRoute('/hello', function() {
-            return 'Hello World!';
+            return new \Ava\Http\Response('Hello World!');
         });
     }
 ];
 ```
 
-3. Enable it in `app/config/ava.php`.
+3. Enable it in `app/config/ava.php`:
 
-That's it! You've extended Ava.
 ```php
-$context = Hooks::apply('render.context', $context);
+'plugins' => [
+    'sitemap',
+    'feed',
+    'my-plugin',  // Add your plugin here
+],
 ```
 
-To trigger actions:
+That's it! Visit `/hello` and see your plugin in action.
+
+---
+
+## Understanding Hooks
+
+Hooks are the backbone of Ava's plugin system. They let your code run at specific moments during Ava's lifecycle—like when content is being parsed, when a template is about to render, or when the admin sidebar is being built.
+
+There are two types of hooks:
+
+### Filters
+
+Filters let you **modify data** as it passes through Ava. You receive a value, change it, and return it:
+
 ```php
-Hooks::doAction('content.after_index', $items);
+use Ava\Plugins\Hooks;
+
+// Add a variable to every template
+Hooks::addFilter('render.context', function($context) {
+    $context['my_plugin_version'] = '1.0';
+    return $context;  // Must return the modified value
+});
 ```
 
-### Available Hooks
+### Actions
 
-#### Content Hooks
+Actions let you **react to events** without modifying data. Useful for logging, sending notifications, or side effects:
 
-| Hook | Description | Parameters |
-|------|-------------|------------|
-| `content.before_parse` | Before Markdown is parsed | `$content`, `$filePath` |
-| `content.after_parse` | After Item is created | `$item` |
-| `content.after_index` | After all content indexed | `$items[]` |
+```php
+use Ava\Plugins\Hooks;
 
-#### Rendering Hooks
-
-| Hook | Description | Parameters |
-|------|-------------|------------|
-| `render.context` | Modify template context | `$context[]` |
-| `render.before` | Before template renders | `$template`, `$context` |
-| `render.after` | After HTML generated | `$html` |
-| `markdown.before` | Before Markdown conversion | `$markdown` |
-| `markdown.after` | After Markdown conversion | `$html` |
-
-#### Routing Hooks
-
-| Hook | Description | Parameters |
-|------|-------------|------------|
-| `router.before_match` | Before route matching | `$request`, `$router` |
-| `router.after_match` | After route matched | `$match`, `$request` |
-
-#### Shortcode Hooks
-
-| Hook | Description | Parameters |
-|------|-------------|------------|
-| `shortcode.before` | Before shortcode processed | `$name`, `$attrs`, `$content` |
-| `shortcode.after` | After shortcode processed | `$output`, `$name` |
-
-#### Admin Hooks
-
-| Hook | Description | Parameters |
-|------|-------------|------------|
-| `admin.register_pages` | Register custom admin pages | `$pages[]`, `$app` |
-| `admin.sidebar_items` | Add custom sidebar items | `$items[]`, `$app` |
+// Log when content is indexed
+Hooks::addAction('content.after_index', function($items) {
+    error_log('Indexed ' . count($items) . ' items');
+});
+```
 
 ### Hook Priority
 
-Add a priority (lower runs first):
+Hooks run in priority order (lower numbers first). Default is 10:
 
 ```php
-// Run early (priority 5)
-Hooks::add('render.context', $callback, 5);
+// Run early (before most other hooks)
+Hooks::addFilter('render.context', $callback, 5);
 
-// Run late (priority 100)
-Hooks::add('render.context', $callback, 100);
-
-// Default priority is 10
+// Run late (after most other hooks)
+Hooks::addFilter('render.context', $callback, 100);
 ```
+
+---
+
+## Available Hooks Reference
+
+### Content Hooks
+
+These fire during content parsing and indexing.
+
+| Hook | Type | Description | Parameters |
+|------|------|-------------|------------|
+| `content.before_parse` | Filter | Before Markdown is parsed | `$content`, `$filePath` |
+| `content.after_parse` | Filter | After Item object is created | `$item` |
+| `content.after_index` | Action | After all content is indexed | `$items[]` |
+
+### Rendering Hooks
+
+These fire during page rendering.
+
+| Hook | Type | Description | Parameters |
+|------|------|-------------|------------|
+| `render.context` | Filter | Modify template variables | `$context[]` |
+| `render.before` | Action | Before template renders | `$template`, `$context` |
+| `render.after` | Filter | After HTML is generated | `$html` |
+| `markdown.before` | Filter | Before Markdown conversion | `$markdown` |
+| `markdown.after` | Filter | After Markdown conversion | `$html` |
+
+### Routing Hooks
+
+These fire during request handling.
+
+| Hook | Type | Description | Parameters |
+|------|------|-------------|------------|
+| `router.before_match` | Action | Before route matching | `$request`, `$router` |
+| `router.after_match` | Filter | After route matched | `$match`, `$request` |
+
+### Shortcode Hooks
+
+These fire when shortcodes are processed.
+
+| Hook | Type | Description | Parameters |
+|------|------|-------------|------------|
+| `shortcode.before` | Filter | Before shortcode runs | `$name`, `$attrs`, `$content` |
+| `shortcode.after` | Filter | After shortcode runs | `$output`, `$name` |
+
+### Admin Hooks
+
+These let you extend the admin dashboard.
+
+| Hook | Type | Description | Parameters |
+|------|------|-------------|------------|
+| `admin.register_pages` | Filter | Add custom admin pages | `$pages[]` |
+| `admin.sidebar_items` | Filter | Add sidebar items | `$items[]` |
+
+---
 
 ## Adding Routes
 
-Plugins can register custom routes that return Response objects directly:
+Plugins can register custom routes:
 
 ```php
 use Ava\Http\Request;
@@ -111,9 +159,12 @@ use Ava\Http\Response;
 'boot' => function($app) {
     $router = $app->router();
     
-    // Route returning Response directly
+    // Simple route
     $router->addRoute('/api/posts', function(Request $request) use ($app) {
-        $posts = $app->repository()->published('post');
+        $posts = $app->query()
+            ->type('post')
+            ->published()
+            ->get();
         
         return Response::json(
             array_map(fn($p) => [
@@ -127,22 +178,19 @@ use Ava\Http\Response;
     $router->addRoute('/api/posts/{slug}', function(Request $request, array $params) use ($app) {
         $post = $app->repository()->get('post', $params['slug']);
         if (!$post) {
-            return new Response('Not found', 404);
+            return Response::json(['error' => 'Not found'], 404);
         }
         return Response::json(['title' => $post->title()]);
     });
     
-    // Prefix route (matches anything under /api/*)
+    // Prefix route (catch-all for /api/*)
     $router->addPrefixRoute('/api/', function(Request $request) {
-        // Handle all /api/* requests
         return Response::json(['error' => 'Unknown endpoint'], 404);
     });
 }
 ```
 
 ## Adding Admin Pages
-
-Plugins can add pages to the admin interface:
 
 ```php
 use Ava\Plugins\Hooks;
@@ -157,12 +205,9 @@ use Ava\Application;
             'icon' => 'extension',            // Material icon name
             'section' => 'Plugins',           // Sidebar section
             'handler' => function(Request $request, Application $app, $controller) {
-                // Your admin page logic
                 ob_start();
                 include __DIR__ . '/views/admin.php';
-                $html = ob_get_clean();
-                
-                return Response::html($html);
+                return Response::html(ob_get_clean());
             },
         ];
         return $pages;
@@ -177,40 +222,37 @@ use Ava\Application;
     $shortcodes = $app->shortcodes();
     
     $shortcodes->register('button', function($attrs, $content) {
-        $href = $attrs['href'] ?? '#';
-        $class = $attrs['class'] ?? 'btn';
+        $href = htmlspecialchars($attrs['href'] ?? '#');
+        $class = htmlspecialchars($attrs['class'] ?? 'btn');
         return "<a href=\"{$href}\" class=\"{$class}\">{$content}</a>";
     });
 }
 ```
 
-Usage in content:
-```markdown
-[button href="/contact" class="btn-primary"]Get in Touch[/button]
-```
+Usage: `[button href="/contact" class="btn-primary"]Get in Touch[/button]`
+
+See [Shortcodes](shortcodes.md) for more details.
 
 ## Enabling Plugins
 
-Add plugins to your `app/config/ava.php`:
+Add plugins to `app/config/ava.php`:
 
 ```php
-return [
-    // ...
-    
-    'plugins' => [
-        'sitemap',
-        'feed',
-        'redirects',
-        'my-plugin',
-    ],
-];
+'plugins' => [
+    'sitemap',
+    'feed',
+    'redirects',
+    'my-plugin',
+],
 ```
 
-Plugins are loaded in the order listed.
+Plugins load in the order listed.
 
-## Example Plugin: Reading Time
+---
 
-A complete example that adds reading time to posts:
+## Complete Example: Reading Time
+
+A full plugin that adds reading time estimates to posts:
 
 ```php
 <?php
@@ -225,7 +267,6 @@ return [
     'author' => 'Ava CMS',
     
     'boot' => function($app) {
-        // Add reading_time to template context
         Hooks::addFilter('render.context', function($context) {
             if (isset($context['page']) && $context['page'] instanceof \Ava\Content\Item) {
                 $content = $context['page']->rawContent();
@@ -239,7 +280,7 @@ return [
 ];
 ```
 
-Usage in templates:
+In your template:
 ```php
 <?php if (isset($reading_time)): ?>
     <span class="reading-time"><?= $reading_time ?> min read</span>
@@ -248,7 +289,7 @@ Usage in templates:
 
 ## Plugin Assets
 
-To include CSS or JS from your plugin:
+Include CSS or JS from your plugin:
 
 ```php
 'boot' => function($app) {

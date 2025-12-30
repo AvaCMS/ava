@@ -27,7 +27,8 @@ return [
     'site' => [
         'name' => 'My Awesome Site',
         'base_url' => 'https://example.com',
-        'timezone' => 'UTC',
+        'timezone' => 'Europe/London',
+        'locale' => 'en_GB',
     ],
     // ...
 ];
@@ -35,9 +36,28 @@ return [
 
 ### Key Options
 
-- **`site.name`**: Used in your templates (e.g., `<title>`).
-- **`site.base_url`**: Important for generating correct links in sitemaps and feeds.
-- **`paths`**: Tells Ava where to find your content and themes. You usually don't need to touch this.
+| Option | Description |
+|--------|-------------|
+| `site.name` | Your site's display name (used in templates, feeds, etc.) |
+| `site.base_url` | Full URL where your site lives (no trailing slash). Used for sitemaps and absolute links. |
+| `site.timezone` | Timezone for dates. Use a [PHP timezone identifier](https://www.php.net/manual/en/timezones.php). |
+| `site.locale` | Locale for formatting (e.g., `en_GB`, `en_US`, `de_DE`). |
+| `paths` | Where Ava finds content, themes, plugins. Usually no need to change. |
+
+#### Timezone Examples
+
+| Region | Timezone Identifier |
+|--------|---------------------|
+| UTC (default) | `UTC` |
+| London | `Europe/London` |
+| New York | `America/New_York` |
+| Los Angeles | `America/Los_Angeles` |
+| Tokyo | `Asia/Tokyo` |
+| Sydney | `Australia/Sydney` |
+| Paris | `Europe/Paris` |
+| Berlin | `Europe/Berlin` |
+
+See the [full list of PHP timezones](https://www.php.net/manual/en/timezones.php) for all options.
 
 ### Content Index
 

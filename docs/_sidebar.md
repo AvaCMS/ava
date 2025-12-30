@@ -1,6 +1,7 @@
 - [Introduction](/ "Ava CMS | Flat-file PHP/Markdown CMS Documentation")
 - [Configuration](configuration.md "Configuration | Ava CMS")
 - [Content](content.md "Content | Ava CMS")
+- [Hosting](hosting.md "Hosting | Ava CMS")
 - [CLI](cli.md "CLI (Command Line Interface) | Ava CMS")
 - [Admin Dashboard](admin.md "Admin | Ava CMS")
 - [Themes](themes.md "Themes | Ava CMS")

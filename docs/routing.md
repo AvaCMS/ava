@@ -77,25 +77,26 @@ Non-canonical URLs redirect to canonical form.
 
 ## Route Caching
 
-Routes are compiled to `storage/cache/routes.php`:
+Routes are compiled to a binary cache file (`storage/cache/routes.bin`) for fast lookup. This happens automatically when the content index is rebuilt.
 
-```php
-return [
-    'redirects' => [
-        '/old-url' => ['to' => '/new-url', 'code' => 301],
-    ],
-    'exact' => [
-        '/' => ['type' => 'single', 'content_type' => 'page', 'slug' => 'index', ...],
-        '/about' => ['type' => 'single', 'content_type' => 'page', 'slug' => 'about', ...],
-        '/blog' => ['type' => 'archive', 'content_type' => 'post', ...],
-        '/blog/hello-world' => ['type' => 'single', 'content_type' => 'post', ...],
-    ],
-    'taxonomy' => [
-        'category' => ['base' => '/category', 'hierarchical' => true],
-        'tag' => ['base' => '/tag', 'hierarchical' => false],
-    ],
-];
-```
+The cache contains:
+
+| Section | Purpose |
+|---------|---------|
+| `redirects` | 301 redirects from `redirect_from` frontmatter |
+| `exact` | Direct URL → content mappings |
+| `taxonomy` | Taxonomy archive configurations |
+
+**How routing works:**
+1. First, check for trailing slash redirects
+2. Check `redirect_from` redirects
+3. Try exact route match
+4. Try taxonomy routes (`/category/tutorials`)
+5. 404 if nothing matches
+
+Routes are rebuilt automatically when content changes (with `content_index.mode = 'auto'`) or manually via `./ava rebuild`.
+
+For more on caching, see [Caching](caching.md).
 
 ## Preview Mode
 

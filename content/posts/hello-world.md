@@ -1,258 +1,52 @@
 ---
 id: 01JGMK0000POST0000000000001
-title: Welcome to Your New Blog! 🎉
+title: Hello World
 slug: hello-world
 status: published
 date: 2024-12-28
-excerpt: Your first post on Ava. Learn how to create content, customize themes, and make this site your own.
+excerpt: A sample blog post demonstrating Ava's content structure. Replace or delete it to get started.
 category:
   - getting-started
 tag:
   - welcome
-  - tutorial
-  - theming
+  - example
 ---
 
-Congratulations! You've just set up Ava, and this is your first blog post. You're looking at content that lives in a simple Markdown file at `content/posts/hello-world.md`.
+Welcome to your new Ava site!
 
-Note: The "blog" is completely optional — Ava doesn't force you into a single structure. "Posts" are a flexible content type you can configure for anything. Here are some ideas you could use posts for:
+This is a sample blog post to show you how content works. Each post is a Markdown file in `content/posts/` with YAML frontmatter at the top.
 
-- Recipes
-- Link lists / linkblog
-- Changelogs / release notes
-- Quick notes or microblogging
-- Documentation entries or how-tos
-- Portfolio items or case studies
-- Newsletters or announcements
-- Podcast show notes
-- Product updates
+## Writing Content
 
-Ava is freeform: create custom content types and templates to match your needs. Now, let's explore what you can do with it!
+Ava uses standard Markdown, so you can write **bold**, *italic*, and create [links](/) just like you'd expect.
 
-## Creating More Posts
+### Code Examples
 
-Want to write another post? It's as simple as creating a new `.md` file in the `content/posts/` directory. Here's the basic structure:
-
-```markdown
----
-title: My Awesome Post
-slug: my-awesome-post
-date: 2024-12-28
-status: published
-excerpt: A short description of what this post is about
-category:
-  - personal
-tag:
-  - life
-  - thoughts
----
-
-# Your content starts here!
-
-Write anything you want in **Markdown**.
-```
-
-That's it! Save the file, refresh your browser, and your post appears.
-
-### Frontmatter Fields You Can Use
-
-The YAML section at the top (between the `---` lines) is called "frontmatter." Here are the fields you can use:
-
-- `title` — The post title (shows up in `<h1>` and `<title>`)
-- `slug` — The URL-friendly version (e.g., `my-post` becomes `/posts/my-post`)
-- `date` — Publication date (format: `YYYY-MM-DD`)
-- `status` — Either `published` or `draft`
-- `excerpt` — Short description for archives and meta tags
-- `category` — Array of categories (e.g., `- tech`, `- personal`)
-- `tag` — Array of tags (e.g., `- tutorial`, `- guide`)
-- `template` — Override the default template (optional)
-
-You can also add **custom fields** for anything you need!
-
-## Theming Your Site
-
-This is where the magic happens. All your templates live in `themes/default/templates/`. Let's look at what's available:
-
-### The Main Templates
-
-- **`page.php`** — Used for pages like "About" or "Contact"
-- **`post.php`** — Used for individual blog posts (like this one!)
-- **`archive.php`** — Shows lists of posts (your blog homepage)
-- **`_header.php`** — Site header (logo, navigation, meta tags)
-- **`_footer.php`** — Site footer (copyright, links, scripts)
-
-### The `$ava` Object
-
-Inside your templates, you have access to the `$ava` object, which gives you everything you need about the current page:
+Syntax highlighting works automatically:
 
 ```php
-// Basic content
-<?= $ava->title() ?>          // Post title
-<?= $ava->content() ?>        // Rendered HTML from Markdown
-<?= $ava->excerpt() ?>        // Short description
-
-// Metadata
-<?= $ava->date('F j, Y') ?>   // Formatted date
-<?= $ava->url() ?>            // Full URL to this page
-<?= $ava->id() ?>             // Unique content ID
-
-// Taxonomies
-<?= $ava->category() ?>       // First category
-<?php foreach ($ava->categories() as $cat): ?>
-  <?= $cat ?>                 // Loop through all categories
-<?php endforeach; ?>
-
-// Custom fields
-<?= $ava->meta('author') ?>   // Get custom frontmatter field
+// Query recent posts in your templates
+$posts = $ava->query('post')->limit(5)->get();
 ```
 
-### Querying Content
+### Lists and Structure
 
-Want to show a list of posts? Use the `$ava->query()` helper:
+- Posts live in `content/posts/`
+- Pages live in `content/pages/`
+- Custom content types are configured in `app/config/content_types.php`
 
-```php
-// Get 5 most recent posts
-$posts = $ava->query('post')
-    ->where('status', 'published')
-    ->orderBy('date', 'desc')
-    ->limit(5)
-    ->get();
+## Built-in Shortcodes
 
-foreach ($posts as $post):
-?>
-  <article>
-    <h2><a href="<?= $post->url() ?>"><?= $post->title() ?></a></h2>
-    <p><?= $post->excerpt() ?></p>
-  </article>
-<?php endforeach; ?>
-```
+Insert dynamic content anywhere:
 
-**Full Query API:**
-- `->where($field, $value)` — Filter by field
-- `->orderBy($field, 'asc|desc')` — Sort results
-- `->limit($n)` — Limit number of results
-- `->offset($n)` — Skip first N results
-- `->get()` — Execute query and return results
-- `->first()` — Get just the first result
-- `->count()` — Count matching items
+- **Current year:** [year]
+- **Site name:** [site_name]
 
-Check out the [API documentation](https://ava.addy.zone/#/api) for more!
+## Next Steps
 
-## Using Shortcodes
+1. Edit this post or delete it
+2. Create your own content in `content/posts/`
+3. Customize your theme in `themes/default/`
+4. Read the [documentation](https://ava.addy.zone) for more
 
-Shortcodes are little snippets you can use in your Markdown to add dynamic content. Try these:
-
-**Current year:** [year]
-
-**Site name:** [site_name]
-
-**Site URL:** [site_url]
-
-### Creating Your Own Shortcodes
-
-Want to make your own? Open `app/shortcodes.php` and add them:
-
-```php
-$shortcodes->add('cta', function($args) {
-    $text = $args['text'] ?? 'Click me';
-    $url = $args['url'] ?? '#';
-    return "<a href='$url' class='cta-button'>$text</a>";
-});
-```
-
-Then use it in your content:
-
-```markdown
-[cta text="Read More" url="/about"]
-```
-
-## Helpful CLI Commands
-
-Ava includes a command-line tool to make your life easier. Open your terminal and try these:
-
-```bash
-# Check your site status
-php bin/ava status
-
-# Clear all caches
-php bin/ava cache:clear
-
-# See page cache statistics
-php bin/ava pages:stats
-
-# Clear just the page cache
-php bin/ava pages:clear
-
-# Validate your content (check for errors)
-php bin/ava lint
-
-# List all content
-php bin/ava content:list
-
-# Find content by query
-php bin/ava content:find "my search term"
-```
-
-These commands are your friends! Use them often.
-
-## Customizing Styles
-
-Want to change how things look? Edit the CSS in `themes/default/assets/style.css`. It's plain CSS—no preprocessors, no build steps.
-
-```css
-/* Make links a different color */
-a {
-  color: #0066cc;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-```
-
-Reload your browser and see the changes instantly.
-
-## Adding Custom Fields
-
-Need extra metadata for your posts? Just add it to the frontmatter:
-
-```markdown
----
-title: My Post
-author: Jane Doe
-reading_time: 5 minutes
-featured_image: /media/hero.jpg
----
-```
-
-Then access it in your template:
-
-```php
-<p>By <?= $ava->meta('author') ?></p>
-<p>Reading time: <?= $ava->meta('reading_time') ?></p>
-<img src="<?= $ava->meta('featured_image') ?>" alt="">
-```
-
-## What's Next?
-
-Here are some ideas to explore:
-
-1. **Customize the homepage** — Edit `content/pages/index.md`
-2. **Style your theme** — Edit `themes/default/assets/style.css`
-3. **Add navigation** — Update `themes/default/templates/_header.php`
-4. **Create custom content types** — Check out `app/config/content_types.php`
-5. **Add taxonomies** — Define new ones in `app/config/taxonomies.php`
-6. **Install plugins** — Explore `plugins/sitemap` and `plugins/feed`
-7. **Hook into events** — Use `app/hooks.php` to customize behavior
-
-## Need Help?
-
-- **Documentation**: [ava.addy.zone](https://ava.addy.zone/#/) has comprehensive guides
-- **Source Code**: [github.com/adamgreenough/ava](https://github.com/adamgreenough/ava) if you want to see how it works
-
----
-
-**Now it's your turn!** Delete this post, create your own content, and make this site yours. Ava is here to help you build exactly what you want—no more, no less.
-
-Happy creating! 🚀
+Happy publishing!

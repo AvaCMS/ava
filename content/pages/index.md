@@ -8,142 +8,72 @@ template: page.php
 
 # Welcome to Ava! 👋
 
-You did it! Ava is up and running. This is your homepage, and you're already looking at content rendered from a simple Markdown file.
+You did it! Ava is up and running. This is your homepage, rendered from a simple Markdown file at `content/pages/index.md`.
 
 ## What is Ava?
 
-Ava (Addy's Very Adaptable CMS) is a **flat-file CMS** built for people who love the web and want to create without the complexity of traditional CMSs. No databases. No build steps. Just files, Markdown, and PHP.
+Ava is a **flat-file CMS** for people who love the web. No databases, no build steps—just Markdown files, PHP templates, and fast caching.
 
-### Why You'll Love It
+**Why you'll love it:**
 
-- **Write in Markdown** — Your content lives in `content/` as plain `.md` files
-- **Blazingly Fast** — Two-layer caching (page + content) means sub-millisecond response times
-- **Developer-Friendly** — Clean PHP code, no framework magic, easy to understand
-- **Git-First** — Version control is built into your workflow, not bolted on
-- **Zero Complexity** — No npm, no build tools, no webpack configs to fight with
+- **📝 Write in Markdown** — Your content lives in `content/` as plain `.md` files
+- **🚀 Blazingly Fast** — Two-layer caching means sub-millisecond page loads
+- **🎨 Your HTML** — Templates are plain PHP, no templating language to learn
+- **📦 Portable** — Back up with a folder copy, sync to the cloud, or use version control
+- **🛠️ Zero Complexity** — No npm, no webpack, no build pipeline
 
-## Your First Steps
+## Quick Start
 
-Ready to make this site your own? Here's where to start:
+### Create a Page
 
-### 1. Create Your First Page
-
-Open your editor and create a new file in `content/pages/`:
+Add a new file at `content/pages/about.md`:
 
 ```markdown
 ---
-title: My New Page
-slug: my-page
+title: About Us
+slug: about
 status: published
 ---
 
-# Hello from my new page!
+# About Us
 
-This is **so easy**.
+Welcome to our site!
 ```
 
-Save it as `my-page.md`, then visit `/my-page` in your browser. That's it!
+Save it and visit `/about`. That's it!
 
-### 2. Start Blogging
+### Create a Blog Post
 
-Want to write a blog post? Just create a file in `content/posts/`:
+Add a file at `content/posts/my-post.md`:
 
 ```markdown
 ---
-title: My First Blog Post
+title: My First Post
 slug: my-first-post
 date: 2024-12-28
 status: published
-excerpt: A quick intro to my post
-category:
-  - personal
 ---
 
-# My awesome blog post
+# Hello World
 
-Content goes here!
+This is my first blog post.
 ```
 
-Posts automatically show up in your blog feed at `/posts`.
+Or use the CLI: `./ava make post "My First Post"`
 
-### 3. Customize Your Theme
+### Customize Your Theme
 
-This is where it gets fun! All your templates live in `themes/default/templates/`. Open `page.php` or `post.php` and you'll see clean, simple PHP:
+Templates live in `themes/default/templates/`. They're plain PHP with access to `$page` and the `$ava` helper:
 
 ```php
-<?php include '_header.php'; ?>
-
-<article>
-  <h1><?= $ava->title() ?></h1>
-  <?= $ava->content() ?>
-</article>
-
-<?php include '_footer.php'; ?>
+<h1><?= $ava->e($page->title()) ?></h1>
+<?= $ava->content($page) ?>
 ```
 
-The `$ava` object gives you access to everything:
-- `$ava->title()` — The page title
-- `$ava->content()` — Your rendered Markdown
-- `$ava->excerpt()` — Post excerpt
-- `$ava->date()` — Publication date
-- `$ava->url()` — Current page URL
+## Learn More
 
-**Pro tip:** Check out the [theming documentation](https://ava.addy.zone/#/themes) for the full list of template helpers!
+- 📚 **[Full Documentation](https://ava.addy.zone)** — Everything you need to know
+- 💻 **[GitHub](https://github.com/adamgreenough/ava)** — Source code and issues
+- 💬 **[Discord](https://discord.gg/Z7bF9YeK)** — Chat and support
 
-### 4. Use the CLI
-
-Ava includes a command-line tool that makes life easier:
-
-```bash
-# See your site status
-php bin/ava status
-
-# Clear all caches
-php bin/ava cache:clear
-
-# Get page cache stats
-php bin/ava pages:stats
-
-# Validate your content
-php bin/ava lint
-```
-
-### 5. Add Some Flair with Shortcodes
-
-Shortcodes let you add dynamic content anywhere in your Markdown:
-
-```markdown
-The current year is [year], and this site is called [site_name]!
-```
-
-You can create your own shortcodes in `app/shortcodes.php`. Want a "call to action" button? Add this:
-
-```php
-$shortcodes->add('cta', function($args) {
-    $text = $args['text'] ?? 'Click me';
-    $url = $args['url'] ?? '#';
-    return "<a href='$url' class='cta-button'>$text</a>";
-});
-```
-
-Then use it: `[cta text="Get Started" url="/about"]`
-
-## Need Help?
-
-- **Documentation**: [ava.addy.zone](https://ava.addy.zone)
-- **Code**: [github.com/adamgreenough/ava](https://github.com/adamgreenough/ava)
-- **Philosophy**: Read the [About](https://ava.addy.zone/#/?id=main) page to understand Ava's approach
-
-## What's Next?
-
-This is just the beginning! Here are some ideas:
-
-- Customize the CSS in `themes/default/assets/style.css`
-- Add new content types in `app/config/content_types.php`
-- Create custom taxonomies (tags, categories, series, etc.)
-- Install plugins from `plugins/` or create your own
-- Hook into events with `app/hooks.php`
-
-**Most importantly:** Have fun! Ava is designed to get out of your way so you can focus on creating great content and building the site you've always wanted.
-
-Happy building! 🚀
+**Now go build something awesome!** Edit this page, create new content, and make the site your own. 🚀

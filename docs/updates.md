@@ -6,7 +6,7 @@ Keeping Ava up to date is easy. We release updates regularly with new features a
 
 ## How to Update
 
-The easiest way is using the [CLI](https://ava-dev.addy.zone/docs/#/cli?id=updates):
+The easiest way is using the [CLI](cli.md):
 
 ```bash
 # 1. Check for updates
@@ -24,68 +24,108 @@ Ava will download the latest version from GitHub and update your core files.
 
 Because Ava is a flat-file CMS, backing up is incredibly simple. You don't need to dump databases or export complex configurations. You just need to copy files.
 
+<div class="beginner-box">
+
+## What Should I Back Up?
+
+The most important folders to back up are:
+
+- **`content/`** — All your pages, posts, and media
+- **`app/config/`** — Your site settings
+- **`themes/`** — Your customized themes
+
+Everything else (like `core/`, `vendor/`, `storage/cache/`) can be regenerated or re-downloaded.
+
 ### The 3-2-1 Rule
 
-For your website data, we recommend following the industry-standard [**3-2-1 Backup Rule**](https://www.backblaze.com/blog/the-3-2-1-backup-strategy/):
+For important data, consider the [**3-2-1 Backup Rule**](https://www.backblaze.com/blog/the-3-2-1-backup-strategy/):
 
-- **3 Copies of Data:** Keep your original live site plus at least two backups.
-- **2 Different Media:** Store them on different types of storage (e.g., cloud storage and your local computer).
-- **1 Off-Site:** Keep at least one copy in a different physical location (e.g., GitHub, S3, or Dropbox) to protect against server failure, computer data loss or data center issues.
+- **3 Copies:** Your live site plus at least two backups
+- **2 Different Places:** Store them on different types of storage (e.g., cloud + local)
+- **1 Off-Site:** Keep at least one copy somewhere other than your server
 
-Here are three recommended strategies, from simplest to most robust.
+</div>
 
-### 1. The "Zip It Up" (Simple)
+Here are some backup approaches, from simplest to most automated.
 
-The quickest way to backup your site is to create a zip archive of the entire folder. Many web hosting control panels let you create backup zips, or you can use the command line like so:
+### 1. Download a Copy (Simple)
 
-```bash
-# Create a backup with today's date
-zip -r backup-$(date +%Y-%m-%d).zip .
-```
+Just download your files and keep them safe somewhere.
 
-!> Ensure you download the zip, verify it is complete, and store in a safe place off your server.
+**How:**
+- Use SFTP to download your site folder
+- Or use your host's file manager to create and download a ZIP
+- Or via command line: `zip -r backup-$(date +%Y-%m-%d).zip .`
 
-**Pros:** Fast, easy, captures everything.
-**Cons:** Generated on the same server (not safe if the server fails). Requires manual effort.
+**Pros:** Quick, works anywhere, no setup required.
+**Cons:** Manual effort, easy to forget, stored on same server until you download it.
 
-### 2. Git Repository (Highly Recommended)
+### 2. Git Repository
 
-Since your content is just text files, Git is the perfect backup tool. It gives you a complete history of every change you've ever made.
+If you're already using Git, your remote repository (GitHub, GitLab, etc.) is a natural backup.
 
-1. Initialize a repository: `git init`
-2. Add your files: `git add .`
-3. Commit: `git commit -m "Backup before update"`
-4. **Crucial:** Push to a remote provider like GitHub, GitLab, or Bitbucket.
+**How:** Commit your changes and push to a remote repository.
 
 ```bash
+git add .
+git commit -m "Backup before update"
 git push origin main
 ```
 
-**Pros:** Version history, off-site storage, easy to collaborate.
-**Cons:** Requires basic Git knowledge.
+**Pros:** Automatic history of every change, off-site storage, easy to roll back.
+**Cons:** Requires Git knowledge, you need to remember to commit and push.
 
-### 3. Automated Off-Site Backups (Robust)
+### 3. Cloud Sync (Set and Forget)
 
-For production sites, you should automate backups to a separate storage service (like AWS S3, DigitalOcean Spaces, or Dropbox).
+For production sites, consider automated sync to cloud storage.
 
-You can use a simple script with `rclone` or `rsync` to copy your `content/` and `app/` folders nightly.
+**Options:**
+- Use tools like `rclone` or `rsync` to sync folders
+- Many hosts offer automated backups (check your control panel)
+- Cloud services like Dropbox, Google Drive, or S3 can sync automatically
 
+**Example with rclone:**
 ```bash
-# Example: Sync content to an S3 bucket
-aws s3 sync ./content s3://my-ava-backups/content
+rclone sync ./content remote:my-ava-backups/content
+rclone sync ./app remote:my-ava-backups/app
 ```
 
-**Pros:** Set and forget, protects against server failure.
-**Cons:** Requires setup and potentially small storage costs.
+**Pros:** Automatic, protects against server failure.
+**Cons:** Requires initial setup, may have small storage costs.
+
+### Which Should I Choose?
+
+| Approach | Best For |
+|----------|----------|
+| **Download a copy** | Occasional backups, before updates |
+| **Git repository** | Developers, version tracking, collaboration |
+| **Cloud sync** | Production sites, automated protection |
+
+Many people combine approaches—Git for development history, plus periodic manual downloads before big changes.
 
 ## What Gets Updated?
 
-The updater attempts to **only** updates the core system files.
+The updater updates the core system files only. It's designed to leave your content and configuration alone.
 
-**It should avoid:**
-- Your `content/` folder.
-- Your `app/config/` settings.
-- Your custom themes or plugins.
+**Updated:**
+- `core/` — The Ava engine
+- `bin/` — CLI tools
+- `docs/` — Documentation
+- `public/index.php` — Entry point
+- `public/assets/admin.css` — Admin styles
+- `bootstrap.php` — Bootstrap file
+- `composer.json` — Dependencies
+
+**Bundled plugins** (like `sitemap`, `feed`, `redirects`) are also updated, but new plugins aren't automatically activated.
+
+**Not touched:**
+- `content/` — Your pages, posts, and media
+- `app/config/` — Your settings
+- `themes/` — Your themes (including the default theme)
+- `plugins/` — Your custom plugins (non-bundled)
+- `storage/` — Cache, logs, temp files
+
+!> **Important:** While the updater is designed to preserve your files, things can go wrong—especially during early development. Always have a backup before updating. If an update fails midway, you can restore from backup and try again, or do a [manual update](#manual-updates).
 
 ## Version Numbers
 
@@ -116,11 +156,13 @@ If you prefer not to use the built-in updater:
 
 ### Update fails mid-way
 
-Your content and configuration are safe. The update only modifies core files. You can:
+If an update fails partway through:
 
-1. Try running the update again
-2. Manually download and extract the release
-3. Check file permissions on the `core/` directory
+1. Restore from your backup (this is why backups are essential!)
+2. Or try running the update again
+3. Or do a [manual update](#manual-updates)
+
+Your content and configuration are in separate directories from core files, so they're less likely to be affected—but with any file operations, there's always some risk.
 
 ### After updating, site shows errors
 

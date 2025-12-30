@@ -359,11 +359,9 @@ final class Updater
             }
         }
 
-        // Update default theme (but preserve custom themes)
-        $defaultThemeSource = $sourceDir . '/themes/default';
-        if (is_dir($defaultThemeSource)) {
-            $this->syncDirectory($defaultThemeSource, $rootDir . '/themes/default');
-        }
+        // Note: We deliberately do NOT update themes/default/
+        // Users may have customized the default theme, and we don't want to overwrite their changes.
+        // Theme updates should be done manually if needed.
 
         // Update bundled plugins (but don't activate new ones)
         $pluginsSource = $sourceDir . '/plugins';

@@ -1,32 +1,30 @@
-# Ava CMS — AI Reference Sheet
+# Ava CMS — AI Reference
 
-> Quick reference for AI assistants working with Ava CMS.
-> Use this to stay aligned with decisions and avoid re-deriving.
+> This document is a concise technical reference designed for AI language models. It helps AI assistants understand Ava's architecture, conventions, and coding patterns so they can provide accurate help when working with the codebase.
 
----
+## Using This Reference
 
-## Philosophy
+To give your AI assistant context about Ava, copy this file to your project as one of these:
 
-Ava sits in the sweet spot between a static site generator and a full-blown CMS:
+- **GitHub Copilot**: `.github/copilot-instructions.md`
+- **Claude**: `claude.md` or `CLAUDE.md` in project root
+- **Cursor**: `.cursorrules` in project root
+- **Other tools**: Check your AI tool's documentation for custom instructions
 
-- **📂 Your Files, Your Rules** — Content is Markdown. Config is PHP. Git is source of truth.
-- **✍️ Bring Your Own Editor** — VS Code, Obsidian, Notepad. No WYSIWYG.
-- **🚀 No Database** — Fast PHP arrays loaded from a binary content index.
-- **⚡ Edit Live** — Change a file, refresh, see it. No build steps.
-- **🎨 Bespoke by Design** — Any content type without plugins or hacks.
-- **🤖 AI Friendly** — Clean file structure makes it trivial for AI to help.
+You can also paste the contents into a conversation when asking for help with Ava development.
 
 ---
 
-## What Ava Is / Is NOT
+## Project Overview
 
-| IS | IS NOT |
-|----|--------|
-| Flat-file CMS for developers | Database-backed CMS |
-| PHP 8.3+, strict types, no frameworks | Static site generator |
-| Cache-first (indexes compiled to binary) | Visual builder / WYSIWYG |
-| Git is source of truth | Media manager |
-| For people who love the web | For non-developers |
+Ava is a flat-file CMS written in PHP 8.3+. Content lives in Markdown files with YAML frontmatter. There is no database — a binary content index provides fast lookups, and an optional HTML page cache handles high-traffic scenarios.
+
+**Core philosophy:**
+- Files are the source of truth (Markdown content, PHP config)
+- No build steps — edit a file, refresh, see changes
+- Minimal dependencies (League CommonMark, Symfony YAML)
+- Admin interface is optional and read-only
+- Designed for developers who want full control
 
 ---
 
@@ -34,298 +32,557 @@ Ava sits in the sweet spot between a static site generator and a full-blown CMS:
 
 | Requirement | Details |
 |-------------|---------|
-| **PHP** | 8.3 or later |
-| **Required Extensions** | `mbstring`, `json`, `ctype` |
-| **Optional Extensions** | `igbinary` (15× faster cache), `opcache`, `curl`, `gd` |
-
-igbinary fallback: If not available, uses PHP `serialize`. Index files have format markers (`IG:`/`SZ:`) for auto-detection.
+| PHP | 8.3 or later |
+| Required Extensions | `mbstring`, `json`, `ctype` |
+| Optional Extensions | `igbinary` (faster cache), `opcache`, `curl`, `gd` |
 
 ---
 
-## Core Architecture
+## Directory Structure
+
+```
+app/
+  config/
+    ava.php              # Main configuration
+    content_types.php    # Content type definitions
+    taxonomies.php       # Taxonomy definitions
+    users.php            # Admin users (auto-generated)
+  hooks.php              # Custom hooks
+  shortcodes.php         # Custom shortcodes
+
+content/
+  pages/*.md             # Page content
+  posts/*.md             # Post content
+  _taxonomies/*.yml      # Term registries
+
+core/                    # Framework code (don't modify)
+  Application.php        # Singleton container
+  Content/               # Parser, Indexer, Repository, Query, Item
+  Http/                  # Request, Response, PageCache
+  Routing/               # Router, RouteMatch
+  Rendering/             # Engine, TemplateHelpers
+  Shortcodes/            # Shortcode processing
+  Plugins/               # Hook system
+  Admin/                 # Admin panel
+
+themes/<name>/
+  theme.php              # Theme bootstrap
+  templates/             # PHP templates
+  partials/              # Reusable template parts
+  assets/                # CSS, JS, images
+
+plugins/<name>/
+  plugin.php             # Plugin entry point
+  views/                 # Plugin admin views
+
+storage/
+  cache/                 # Generated caches
+    content_index.bin    # Content metadata
+    tax_index.bin        # Taxonomy index
+    routes.bin           # Route cache
+    pages/*.html         # Cached HTML pages
+  logs/                  # Log files
+```
+
+---
+
+## Request Lifecycle
 
 ```
 Request → Router → RouteMatch → Renderer → Response
-             ↓
-        Repository ← Content Index ← Indexer ← Content Files
+              ↓
+         Repository ← Content Index ← Indexer ← Content Files
 ```
 
-**Two layers:**
-1. **Content Index** — Binary serialized metadata (routes, frontmatter, taxonomies)
-2. **Page Cache** — On-demand HTML caching for instant serving
+1. Router matches URL against cached routes
+2. Repository loads content item from binary index
+3. Renderer processes template with content
+4. Response sends HTML (optionally cached to page cache)
 
 ---
 
-## Storage Files (`storage/cache/`)
+## Caching System
 
-| File | Contents |
-|------|----------|
-| `content_index.bin` | All items by type, slug, ID, path |
-| `tax_index.bin` | Taxonomy terms with counts and item refs |
-| `routes.bin` | Compiled route map |
-| `fingerprint.json` | Change detection (mtime, count, hashes) |
-| `pages/*.html` | Cached HTML pages (page cache) |
+Ava uses two-layer caching for performance:
 
-**Content index modes (`content_index.mode`):**
-- `auto` — Rebuild when fingerprint changes (default)
-- `never` — Only via CLI (production)
+### Content Index Cache
+
+Binary serialized cache of all content metadata:
+- `storage/cache/content_index.bin` — Content items
+- `storage/cache/tax_index.bin` — Taxonomy terms
+- `storage/cache/routes.bin` — Route mappings
+- `storage/cache/fingerprint.json` — Change detection
+
+**Rebuild modes** (`content_index.mode`):
+- `auto` (default) — Rebuild when fingerprint detects changes
+- `never` — Only rebuild via CLI (production)
 - `always` — Rebuild every request (debugging)
 
-**Binary format:** Uses igbinary if available, otherwise serialize. Files prefixed with `IG:` or `SZ:` marker.
+**Binary format:** Uses igbinary if available (15× faster), falls back to PHP serialize. Files prefixed with `IG:` or `SZ:` marker for auto-detection.
+
+### Page Cache
+
+On-demand HTML file cache in `storage/cache/pages/`:
+- Enabled globally via config, per-item via frontmatter
+- Cache keys are MD5 hashes of URLs (secure against path traversal)
+- Query parameters bypass cache (except UTM tracking params)
+- Admin sessions bypass cache
+- Only GET requests are cached
+
+**Security:**
+- XSS via query strings: Bypassed entirely
+- Cache poisoning: Headers not in cache key
+- Session leakage: Admin users never see cached pages
+- Path traversal: Filenames are MD5 hashed
 
 ---
 
-## Page Cache Security
+## Routing System
 
-The page cache is secure by default:
+Routes are resolved in this order:
 
-| Attack Vector | Protection |
-|---------------|------------|
-| XSS via query strings | Query params bypass cache entirely |
-| Cache poisoning via headers | Headers not used in cache key |
-| Session data leakage | Admin sessions bypass cache |
-| POST data injection | Only GET requests cached |
-| Path traversal | Filenames are MD5 hashed |
+1. Trailing slash redirect (if enabled)
+2. `redirect_from` frontmatter redirects (301)
+3. System routes (runtime-registered by core/plugins)
+4. Exact routes (from content)
+5. Prefix routes (e.g., `/blog/*`)
+6. Taxonomy routes (e.g., `/tag/php`)
+7. 404 handler
 
-**Key rule:** Any URL with query parameters (except UTM) is NOT cached.
-
----
-
-## Routing Order
-
-1. Trailing slash redirect
-2. `redirect_from` redirects
-3. System routes (runtime-registered)
-4. Exact routes (from cache)
-5. Prefix routes
-6. Taxonomy routes
-7. 404
+**Route caching:** All routes are compiled and cached in `storage/cache/routes.bin`
 
 ---
 
 ## Content Model
 
+Content files are Markdown with YAML frontmatter:
+
 ```yaml
 ---
-id: 01JGMK...        # ULID (auto-generated)
+id: 01JGMK...        # ULID (auto-generated, immutable)
 title: Page Title     # Required
 slug: page-title      # Required, URL-safe
 status: published     # draft | published | private
-date: 2024-12-28      # For dated types
-excerpt: Summary      # Optional
+date: 2024-12-28      # Publication date
+excerpt: Summary      # Short description
 cache: true           # Override page cache setting
 categories:           # Taxonomy terms
   - tutorials
+tags:
+  - php
 redirect_from:        # Old URLs (301 redirect)
   - /old-path
+  - /legacy/old-path
+template: custom      # Override default template
+author: Jane Doe      # Custom fields supported
 ---
 
-Markdown content here.
+Markdown content here. **Bold**, *italic*, [links](/url).
+```
+
+**Core fields:**
+- `id` — Unique ULID identifier (auto-generated)
+- `title` — Content title
+- `slug` — URL-friendly identifier
+- `status` — `draft`, `published`, or `private`
+- `date` — Publication date (for dated content types)
+- `excerpt` — Short description
+- `cache` — Override page cache setting
+- `redirect_from` — Array of old URLs to 301 redirect
+- `template` — Override default template
+
+**Taxonomy fields:**
+- `category` / `categories` — Primary taxonomy (singular or array)
+- `tag` / `tags` — Additional taxonomy (singular or array)
+- Custom taxonomies defined in config
+
+**Custom fields:** Any YAML key not recognized as core field is stored as custom metadata
+
+---
+
+## Content Types
+
+Defined in `app/config/content_types.php`:
+
+```php
+return [
+    'post' => [
+        'label' => 'Posts',
+        'directory' => 'posts',
+        'url' => '/blog/{slug}',
+        'template' => 'post',
+        'archive_template' => 'archive',
+        'taxonomies' => ['categories', 'tags'],
+        'date_based' => true,
+        'sort' => ['date', 'desc'],
+    ],
+    'page' => [
+        'label' => 'Pages',
+        'directory' => 'pages',
+        'url' => 'hierarchical',
+        'template' => 'page',
+        'taxonomies' => [],
+        'date_based' => false,
+        'sort' => ['title', 'asc'],
+    ],
+];
+```
+
+**URL types:**
+- `hierarchical` — Nested paths from directory structure (`/about/team`)
+- Pattern — Template with tokens (`/blog/{slug}`, `/blog/{yyyy}/{mm}/{slug}`)
+- Tokens: `{slug}`, `{yyyy}`, `{mm}`, `{dd}`, `{id}`
+
+---
+
+## Taxonomies
+
+Defined in `app/config/taxonomies.php`:
+
+```php
+return [
+    'categories' => [
+        'label' => 'Categories',
+        'singular' => 'Category',
+        'hierarchical' => false,
+        'registry_path' => 'content/_taxonomies/category.yml',
+        'url' => '/category/{slug}',
+    ],
+];
+```
+
+**Term registries** (`content/_taxonomies/*.yml`):
+
+```yaml
+---
+getting-started:
+  label: Getting Started
+  description: Introductory guides
+tutorials:
+  label: Tutorials
+  description: Step-by-step guides
 ```
 
 ---
 
-## URL Types
-
-**Hierarchical** (pages):
-```
-content/pages/about.md        → /about
-content/pages/services/web.md → /services/web
-```
-
-**Pattern** (posts):
-```
-Pattern: /blog/{slug}      → /blog/hello-world
-Pattern: /blog/{yyyy}/{mm} → /blog/2024/12
-Tokens: {slug}, {yyyy}, {mm}, {dd}, {id}
-```
-
----
-
-## Key Classes
+## Core Classes
 
 | Class | Purpose |
 |-------|---------|
-| `Application` | Singleton container, boot, config, services |
-| `Content\Parser` | Markdown + YAML parsing |
-| `Content\Indexer` | Scans files, builds binary cache |
-| `Content\Repository` | Reads from cache, hydrates items |
-| `Content\Query` | Fluent query builder (works on raw arrays) |
+| `Application` | Singleton container, bootstrap, config access |
+| `Content\Parser` | Parse Markdown + YAML frontmatter |
+| `Content\Indexer` | Scan files, build binary cache |
+| `Content\Repository` | Load content from cache, hydrate items |
+| `Content\Query` | Fluent query builder for content |
 | `Content\Item` | Content value object |
-| `Http\PageCache` | On-demand HTML page caching |
 | `Http\Request` | HTTP request wrapper |
 | `Http\Response` | HTTP response wrapper |
-| `Routing\Router` | Request → RouteMatch |
-| `Rendering\Engine` | Templates + Markdown |
+| `Http\PageCache` | HTML page cache management |
+| `Routing\Router` | Match URLs to routes |
+| `Routing\RouteMatch` | Route match result |
+| `Rendering\Engine` | Template rendering |
+| `Rendering\TemplateHelpers` | Template helper methods (`$ava`) |
 | `Shortcodes\Engine` | Shortcode processing |
-| `Plugins\Hooks` | WP-style filters/actions |
+| `Plugins\Hooks` | Filter/action hook system |
 
 ---
 
 ## Query API
 
-```php
-$query = (new Query($app))
-    ->type('post')
-    ->published()
-    ->whereTax('categories', 'tutorials')
-    ->orderBy('date', 'desc')
-    ->perPage(10)
-    ->page(1)
-    ->get();
+The Query class provides a fluent interface for retrieving content:
 
-// Results
-$query->items();      // array of Item objects
-$query->total();      // total count
-$query->hasMore();    // pagination
+```php
+use Ava\Content\Query;
+
+$query = (new Query($app))
+    ->type('post')                        // Content type
+    ->published()                         // Only published items
+    ->whereTax('categories', 'tutorials') // Taxonomy filter
+    ->orderBy('date', 'desc')             // Sort by date
+    ->perPage(10)                         // Results per page
+    ->page(1)                             // Current page
+    ->get();                              // Execute
+
+// Access results
+$query->items();   // Array of Item objects
+$query->total();   // Total matching items
+$query->hasMore(); // Has more pages
 ```
 
-**Performance:** Query works on raw arrays from cache, only creates Item objects for final paginated results.
+**Query methods:**
+- `->type(string)` — Filter by content type
+- `->published()` — Only published items
+- `->where(string $field, mixed $value)` — Filter by field
+- `->whereTax(string $taxonomy, string|array $terms)` — Filter by taxonomy
+- `->orderBy(string $field, string $dir = 'asc')` — Sort results
+- `->perPage(int)` — Results per page
+- `->page(int)` — Current page number
+- `->limit(int)` — Limit results
+- `->offset(int)` — Skip results
+- `->get()` — Execute and return Query object
+
+**Performance:** Query operates on raw arrays from cache until the final `get()` call, then hydrates only the paginated results into Item objects.
 
 ---
 
-## Template Variables
+## Item API
+
+The Item class represents a single content item:
+
+```php
+// Core fields
+$item->id()         // ULID identifier
+$item->title()      // Content title
+$item->slug()       // URL slug
+$item->status()     // draft | published | private
+$item->type()       // Content type
+$item->url()        // Full URL
+
+// Dates
+$item->date($format = 'Y-m-d')     // Publication date
+$item->updated($format = 'Y-m-d')  // Last modified date
+
+// Content
+$item->content()    // Rendered HTML
+$item->excerpt()    // Short description
+$item->raw()        // Raw Markdown
+
+// Taxonomies
+$item->tax($taxonomy)              // Array of terms
+$item->hasTax($taxonomy, $term)    // Check if has term
+
+// Custom fields
+$item->get($key, $default = null)  // Get custom field
+
+// Template
+$item->template()   // Template name
+```
+
+---
+
+## Template System
+
+Templates are plain PHP files in `themes/<name>/templates/`:
+
+- `page.php` — Single page template
+- `post.php` — Single post template
+- `archive.php` — Archive/listing template
+- `taxonomy.php` — Taxonomy archive template
+- `404.php` — 404 error page
+
+**Partials** go in `themes/<name>/partials/`:
+- `_header.php`, `_footer.php`, `_sidebar.php`, etc.
+
+**Global variables available in templates:**
 
 | Variable | Type | Description |
 |----------|------|-------------|
-| `$site` | array | name, url, timezone |
-| `$page` | Item | Current content (singles) |
-| `$query` | Query | Query object (archives) |
-| `$tax` | array | Taxonomy info |
+| `$site` | array | Site config (`name`, `url`, `timezone`) |
+| `$page` | Item | Current content (single templates) |
+| `$query` | Query | Query object (archive templates) |
+| `$tax` | array | Taxonomy info (taxonomy templates) |
 | `$request` | Request | HTTP request |
 | `$ava` | TemplateHelpers | Helper methods |
 
 ---
 
-## $ava Helper Methods
+## Template Helpers ($ava)
 
+The `$ava` object provides helper methods in templates:
+
+**Content:**
 ```php
-// Content
-$ava->content($page)           // Render Markdown to HTML
-$ava->markdown('**bold**')     // Render Markdown string
-$ava->partial('header', [...]) // Include partial template
-
-// URLs
-$ava->url('post', 'slug')      // URL for item
-$ava->termUrl('tag', 'php')    // URL for taxonomy term
-$ava->asset('style.css')       // Theme asset with cache-busting
-
-// Utilities
-$ava->metaTags($page)          // SEO meta tags HTML
-$ava->pagination($query)       // Pagination HTML
-$ava->recent('post', 5)        // Recent items
-$ava->e($string)               // HTML escape
-$ava->date($date, 'F j, Y')    // Format date
-$ava->config('site.name')      // Config value
-$ava->expand('@media:img.jpg') // Expand path alias
+$ava->content($page)            // Render item content
+$ava->markdown($string)         // Render Markdown string
+$ava->partial($name, $vars)     // Include partial
 ```
 
----
+**URLs:**
+```php
+$ava->url($type, $slug)         // URL for content item
+$ava->termUrl($tax, $slug)      // URL for taxonomy term
+$ava->asset($path)              // Theme asset with cache-busting
+```
 
-## Path Aliases
+**Utilities:**
+```php
+$ava->metaTags($page)           // SEO meta tags HTML
+$ava->pagination($query)        // Pagination HTML
+$ava->recent($type, $limit)     // Recent items
+$ava->e($string)                // HTML escape
+$ava->date($date, $format)      // Format date
+$ava->config($key, $default)    // Config value
+$ava->expand($path)             // Expand path alias
+```
 
-| Alias | Expands To |
-|-------|------------|
-| `@media:` | `/media/` |
-| `@uploads:` | `/media/uploads/` |
-| `@assets:` | `/assets/` |
-
-Expanded during rendering via simple string replace.
-
----
-
-## CLI Commands
-
-| Command | Description |
-|---------|-------------|
-| `status` | Site overview, PHP version, extensions, index stats |
-| `rebuild` | Rebuild content index (clears page cache too) |
-| `lint` | Validate content files |
-| `make <type> "Title"` | Create content with scaffolding |
-| `prefix <add\|remove> [type]` | Toggle date prefixes on filenames |
-| `pages:stats` | Page cache statistics |
-| `pages:clear [pattern]` | Clear cached pages |
-| `user:add` | Create admin user |
-| `user:password` | Update user password |
-| `user:remove` | Remove admin user |
-| `user:list` | List all users |
-| `update:check` | Check for Ava updates |
-| `update:apply` | Apply available update |
-| `stress:generate <type> <n>` | Generate test content |
-| `stress:clean <type>` | Remove test content |
+**Path aliases:**
+- `@media:` → `/media/`
+- `@uploads:` → `/media/uploads/`
+- `@assets:` → `/assets/`
 
 ---
 
 ## Shortcodes
 
-Processed **after** Markdown.
+Shortcodes are processed **after** Markdown rendering. They allow dynamic content insertion:
 
+**Built-in shortcodes:**
 ```markdown
-[year]                              # Current year
-[snippet name="cta" heading="X"]    # Load PHP snippet
-[button url="/x"]Text[/button]      # Paired shortcode
+[year]                    # Current year
+[site_name]               # Site name
+[site_url]                # Site URL
 ```
 
-No nested shortcodes in v1.
-
----
-
-## Hooks (WP-style)
+**Custom shortcodes** in `app/shortcodes.php`:
 
 ```php
-// Filter (modify data)
-Hooks::addFilter('hook_name', fn($value) => $modified, priority: 10);
-$result = Hooks::apply('hook_name', $initialValue);
+// Self-closing shortcode
+$shortcodes->add('year', fn() => date('Y'));
 
-// Action (side effects)
-Hooks::addAction('hook_name', fn() => doSomething(), priority: 10);
-Hooks::do('hook_name');
+// With attributes
+$shortcodes->add('button', function($args) {
+    $url = $args['url'] ?? '#';
+    $text = $args['text'] ?? 'Click';
+    return "<a href='$url' class='btn'>$text</a>";
+});
+
+// Usage: [button url="/about" text="Learn More"]
+
+// Paired shortcode
+$shortcodes->add('highlight', function($args, $content) {
+    return "<mark>{$content}</mark>";
+});
+
+// Usage: [highlight]Important text[/highlight]
 ```
 
-**Key hooks:**
-- `content.before_parse` / `content.after_parse`
-- `render.before` / `render.after`
-- `shortcode.{name}` — Dynamic shortcode registration
-- `admin.register_pages` — Add custom admin pages
-- `admin.sidebar_items` — Add sidebar items
+**Snippet shortcodes:**
+```markdown
+[snippet name="cta" heading="Subscribe" url="/newsletter"]
+```
+
+Loads `snippets/cta.php` with variables `$heading`, `$url`, etc.
+
+**Limitations:**
+- Nested shortcodes are not supported in v1
+- Shortcodes in frontmatter are not processed
 
 ---
 
-## File Locations
+## Hook System
 
-| Path | Purpose |
-|------|---------|
-| `app/config/ava.php` | Main config |
-| `app/config/content_types.php` | Content type definitions |
-| `app/config/taxonomies.php` | Taxonomy definitions |
-| `app/config/users.php` | Admin users (auto-generated) |
-| `app/hooks.php` | Custom hooks |
-| `app/shortcodes.php` | Custom shortcodes |
-| `content/<type>/*.md` | Content files |
-| `content/_taxonomies/*.yml` | Term registries |
-| `themes/<name>/templates/` | Theme templates |
-| `themes/<name>/assets/` | Theme assets |
-| `snippets/*.php` | Shortcode snippets |
-| `plugins/<name>/plugin.php` | Plugin entry points |
-| `storage/cache/` | Generated caches |
-| `storage/logs/` | Log files |
-| `public/` | Web root |
+WordPress-style filters and actions via `Ava\Plugins\Hooks`:
+
+**Filters** (modify data):
+```php
+use Ava\Plugins\Hooks;
+
+// Register filter
+Hooks::addFilter('hook_name', function($value, ...$args) {
+    return $modifiedValue;
+}, priority: 10);
+
+// Apply filter
+$result = Hooks::apply('hook_name', $initialValue, $arg1, $arg2);
+```
+
+**Actions** (side effects):
+```php
+// Register action
+Hooks::addAction('hook_name', function(...$args) {
+    // Perform side effect
+}, priority: 10);
+
+// Trigger action
+Hooks::do('hook_name', $arg1, $arg2);
+```
+
+**Available hooks:**
+
+| Hook | Type | Description |
+|------|------|-------------|
+| `content.before_parse` | Filter | Before parsing Markdown |
+| `content.after_parse` | Filter | After parsing Markdown |
+| `render.before` | Action | Before rendering template |
+| `render.after` | Action | After rendering template |
+| `shortcode.{name}` | Filter | Dynamic shortcode registration |
+| `admin.register_pages` | Action | Register admin pages |
+| `admin.sidebar_items` | Filter | Modify admin sidebar |
+
+**Custom hooks** in `app/hooks.php`:
+
+```php
+use Ava\Plugins\Hooks;
+
+Hooks::addFilter('content.after_parse', function($html, $item) {
+    // Modify rendered HTML
+    return $html;
+});
+```
 
 ---
 
-## Admin (Optional)
+## CLI Commands
 
-- Disabled by default (`admin.enabled: false`)
-- Read-only dashboard (stats, diagnostics)
-- Safe actions only (rebuild, lint, flush pages)
-- **Not an editor** — web wrapper around CLI
+Ava includes a command-line tool at `bin/ava`:
 
-Dashboard shows:
-- Content stats (counts, drafts)
-- Cache status (content + page cache)
-- Recent content
-- System info (PHP, extensions checklist)
-- Taxonomy terms
+**Content management:**
+```bash
+php bin/ava status                   # Site overview and stats
+php bin/ava lint                     # Validate content files
+php bin/ava make post "Post Title"   # Create new content
+php bin/ava content:list             # List all content
+php bin/ava content:find "search"    # Search content
+```
+
+**Cache management:**
+```bash
+php bin/ava rebuild                  # Rebuild content index
+php bin/ava cache:clear              # Clear all caches
+php bin/ava pages:stats              # Page cache statistics
+php bin/ava pages:clear [pattern]    # Clear page cache
+```
+
+**User management:**
+```bash
+php bin/ava user:add                 # Create admin user
+php bin/ava user:password            # Update user password
+php bin/ava user:remove              # Remove admin user
+php bin/ava user:list                # List all users
+```
+
+**Updates:**
+```bash
+php bin/ava update:check             # Check for updates
+php bin/ava update:apply             # Apply available update
+```
+
+**Testing:**
+```bash
+php bin/ava stress:generate post 100  # Generate test content
+php bin/ava stress:clean post         # Remove test content
+```
+
+---
+
+## Admin Panel
+
+Optional read-only dashboard (disabled by default):
+
+- Enable via `admin.enabled: true` in config
+- Access at `/admin` (customizable)
+- Bcrypt-hashed passwords in `app/config/users.php`
+- Session-based authentication
+
+**Features:**
+- Content statistics and recent items
+- Cache status and management
+- Content validation (lint)
+- System diagnostics
+- Taxonomy term browser
+- Log viewer
+
+**Not an editor:** Admin is a web wrapper around CLI commands. Content editing happens in your preferred text editor.
 
 ---
 
@@ -345,16 +602,53 @@ Tested with 10,000 content items:
 
 ---
 
-## Non-Goals (Do Not Add)
+## Coding Conventions
+
+- **PHP 8.3+** with strict types (`declare(strict_types=1)`)
+- **PSR-12** code style
+- **No frameworks** — vanilla PHP
+- **Dependency injection** via Application container
+- **Immutable value objects** (Item, RouteMatch)
+- **Early returns** over nested conditionals
+- **Explicit over implicit** — no magic methods
+- **Type hints everywhere** — parameters, returns, properties
+
+**Example:**
+
+```php
+declare(strict_types=1);
+
+namespace Ava\Content;
+
+final class Item
+{
+    public function __construct(
+        private readonly array $data,
+        private readonly Application $app
+    ) {}
+
+    public function title(): string
+    {
+        return $this->data['title'] ?? '';
+    }
+}
+```
+
+---
+
+## Non-Goals
+
+These are explicitly out of scope:
 
 - Database support
 - WYSIWYG / visual editor
 - Media upload UI
 - File browser in admin
-- Content editing in admin
+- Content editing in admin (use a text editor)
 - Complex build pipelines
-- Over-engineered abstractions
-- Heavy frameworks or dependencies
+- Heavy frameworks or abstractions
+- Multi-user collaborative editing
+- Built-in version control
 
 ---
 
@@ -370,6 +664,6 @@ Tested with 10,000 content items:
 }
 ```
 
-Optional: `igbinary` extension for faster caching.
+Optional: `igbinary` extension for 15× faster cache serialization.
 
-That's it. No frameworks. No magic. Just files.
+That's it. No frameworks, minimal dependencies, maximum control.

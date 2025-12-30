@@ -17,6 +17,15 @@ We use date-based versioning: `YY.MM.Patch`.
 
 That's it! The update system will see the new tag and offer it to users.
 
+## Changelog Format
+
+Include a changelog in the release notes following this format:
+
+```markdown
+## What's New
+
+- ✨ New feature description
+- 🔧 Improvement description
 - 🐛 Fixed issue description
 
 ## Breaking Changes
@@ -48,19 +57,20 @@ GitHub's zipball automatically includes everything in the repo. The updater only
 - `core/`
 - `docs/`
 - `bin/`
-- `themes/default/`
-- `plugins/{bundled}/`
+- `plugins/{bundled}/` (sitemap, feed, redirects)
 - `bootstrap.php`
 - `composer.json`
 - `public/index.php`
 - `public/assets/admin.css`
 
-**Never included/updated:**
-- `content/` (should be in `.gitignore` anyway for demo content)
-- `app/config/users.php` (gitignored)
-- `storage/` (gitignored except structure)
-- `vendor/` (gitignored)
-- `.env` (gitignored)
+**Never updated:**
+- `content/` — User content
+- `themes/` — All themes, including default (user may have customized)
+- `app/config/` — User configuration
+- `app/config/users.php` — Admin users (gitignored)
+- `storage/` — Cache and logs (gitignored except structure)
+- `vendor/` — Dependencies (gitignored)
+- `.env` — Environment config (gitignored)
 
 ## Testing the Update Flow
 

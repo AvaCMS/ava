@@ -2,7 +2,7 @@
 
 Content in Ava is just text. You write in [Markdown](https://www.markdownguide.org/basic-syntax/), which is a simple way to format text, and save it as a file. There's no database to manage—your files are your content. 
 
-Ava can handle any combination of Markdown and standard HTML, even within the same file. You can also embed safe and reusable PHP snippets using [Shortcodes](https://ava-dev.addy.zone/docs/#/shortcodes) for absolute flexibility.
+Ava can handle any combination of Markdown and standard HTML, even within the same file. You can also embed safe and reusable PHP snippets using [Shortcodes](shortcodes.md) for absolute flexibility.
 
 <div class="beginner-box">
 
@@ -44,9 +44,9 @@ You can write Ava content in almost anything:
 
 - **Code editors:** VS Code, Sublime Text, PhpStorm
 - **Markdown-focused apps:** Obsidian, Typora, MarkText, iA Writer, Zettlr
-- **In the browser:** GitHub’s built-in editor (edit a `.md` file on GitHub), or tools like StackEdit
+- **In the browser:** StackEdit, your web host's file manager, or GitHub's editor if you're using Git
 
-There’s no “correct” editor. If you like writing in a notes app and then committing to Git, that works. If you like editing on the server over SSH, that works too.
+There's no "correct" editor. If you like writing in a notes app and uploading later, that works. If you like editing on the server over SSH, that works too.
 
 ### Frontmatter vs Markdown (two different things)
 
@@ -162,40 +162,63 @@ content/
 
 **Tip:** For pages, folder structure usually maps nicely to URLs. For example `content/pages/services/web.md` becomes `/services/web`.
 
-## Frontmatter Guide
+## Frontmatter Reference
 
-Frontmatter is just a list of settings for your page. It goes between two lines of `---`.
+Frontmatter is metadata about your content, written in [YAML](https://yaml.org/) between two `---` lines at the top of your file. Think of it as the "settings" for each page.
 
-### Essential Fields
+### Full Example
 
-| Field | What it does | Example |
-|-------|-------------|---------|
-| `title` | The name of your page or post. | `"My Post Title"` |
-| `slug` | The URL-friendly name. If you leave this out, Ava makes one for you! | `"my-post-title"` |
-| `status` | Controls visibility. Use `draft` while writing. | `draft`, `published` |
+Here's a complete example showing all the common fields:
 
-### Useful Extras
+```yaml
+---
+id: 01JGMK0000POST0000000000001
+title: My Blog Post
+slug: my-blog-post
+status: published
+date: 2024-12-28
+excerpt: A short summary for listings and search results.
+template: custom-post.php
+category:
+  - tutorials
+  - php
+tag:
+  - beginner
+meta_title: SEO-Optimized Title
+meta_description: Description for search engines.
+og_image: "@uploads:2024/social-card.jpg"
+noindex: false
+cache: true
+redirect_from:
+  - /old-url
+  - /another-old-url
+assets:
+  css:
+    - "@uploads:custom.css"
+  js:
+    - "@assets:interactive.js"
+---
 
-| Field | What it does | Example |
-|-------|-------------|---------|
-| `date` | When this was published. | `2024-12-28` |
-| `excerpt` | A short summary for lists and search results. | `"A brief intro..."` |
-| `template` | Use a specific layout for this page. | `"custom-post"` |
+Your Markdown content goes here...
+```
 
-### SEO Superpowers
+### Core Fields
 
-Ava handles the technical SEO stuff for you, but you can override it:
+These fields are used by Ava to manage and display your content.
 
-| Field | Description |
-|-------|-------------|
-| `meta_title` | Custom title for search engines (defaults to your Title). |
-| `meta_description` | Description for search results. |
-| `noindex` | Set to `true` to hide this page from search engines. |
-| `og_image` | Image to show when shared on social media. |
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Auto | Unique identifier (auto-generated when using `./ava make`). Don't edit this. |
+| `title` | Yes | The title of your page or post. |
+| `slug` | Yes | URL-friendly name. If omitted, Ava generates one from the title. |
+| `status` | Yes | Visibility: `draft`, `published`, or `private`. |
+| `date` | For posts | Publication date in `YYYY-MM-DD` format. |
+| `excerpt` | No | Short summary for listings, search results, and feeds. |
+| `template` | No | Use a specific template (e.g., `landing.php`). Overrides the default. |
 
-### Organizing with Taxonomies
+### Taxonomy Fields
 
-You can tag and categorize your content easily:
+Assign content to categories, tags, or any taxonomy defined in [taxonomies.php](configuration.md?id=taxonomies-taxonomiesphp).
 
 ```yaml
 category:
@@ -203,7 +226,69 @@ category:
   - php
 tag:
   - getting-started
+  - beginner
 ```
+
+You can use a single value or a list. Terms are created automatically if they don't exist.
+
+### SEO Fields
+
+Control how your content appears in search engines and social media.
+
+| Field | Description |
+|-------|-------------|
+| `meta_title` | Custom title for search engines. Defaults to `title`. |
+| `meta_description` | Description shown in search results. |
+| `noindex` | Set to `true` to hide from search engines. |
+| `og_image` | Image URL for social media sharing. |
+
+### Behaviour Fields
+
+Fine-tune how Ava handles this specific piece of content.
+
+| Field | Description |
+|-------|-------------|
+| `cache` | Set to `false` to disable page caching for this URL. |
+| `redirect_from` | Array of old URLs that should 301 redirect here. |
+
+### Per-Item Assets
+
+Load CSS or JS only on specific pages:
+
+```yaml
+assets:
+  css:
+    - "@uploads:2024/custom.css"
+  js:
+    - "@assets:interactive.js"
+```
+
+### Custom Fields
+
+You can add **any custom fields** you like! They're accessible in your templates via `$page->get('field_name')`.
+
+```yaml
+---
+title: Team Member
+slug: jane-doe
+status: published
+# Custom fields:
+role: Lead Developer
+website: "https://janedoe.com"
+featured: true
+---
+```
+
+In your template:
+```php
+<h1><?= $ava->e($page->title()) ?></h1>
+<p>Role: <?= $ava->e($page->get('role')) ?></p>
+<?php if ($page->get('featured')): ?>
+    <span class="badge">Featured</span>
+<?php endif; ?>
+```
+
+You can also define expected fields for a content type in [content_types.php](configuration.md?id=content-types-content_typesphp) using the `fields` option—useful for documentation and validation.
 
 ## Redirects
 
@@ -273,9 +358,70 @@ See [Shortcodes](shortcodes.md) for the full reference.
 | `published` | Visible to everyone. |
 | `private` | Hidden from listings. Accessible via direct URL with preview token. |
 
-## Previewing Your Site Locally
+## Previewing Your Site
 
-If you’re working on your own machine, the simplest preview is PHP’s built-in dev server:
+Ava is flexible—you can edit directly on a live server, work locally and deploy, or any combination that suits your workflow.
+
+<div class="beginner-box">
+
+## Choosing Your Workflow
+
+There's no single "right" way to work with Ava. Here are some common approaches:
+
+### Option 1: Edit Directly on Your Server
+
+The simplest approach—just edit files on your web server.
+
+**How:** Use SFTP (FileZilla, Cyberduck, WinSCP), your host's file manager, or SSH.
+
+**Pros:**
+- No extra setup—changes are live immediately
+- Great for quick fixes and content updates
+- Works from any computer
+
+**Cons:**
+- No undo if you break something (make backups!)
+- Slower if you're making lots of changes
+
+### Option 2: Work Locally, Then Upload
+
+Edit on your own computer, preview locally, then upload when ready.
+
+**How:** Run PHP's built-in server (see below), edit in your favourite editor, upload via SFTP when happy.
+
+**Pros:**
+- Fast feedback loop—save, refresh, repeat
+- Can work offline
+- Safer—test changes before they go live
+
+**Cons:**
+- Need PHP installed on your computer
+- Extra step to upload changes
+
+### Option 3: Use Git + Remote Repository
+
+Track all changes with version control and sync via GitHub, GitLab, or similar.
+
+**How:** Commit changes locally, push to a remote repository, pull or deploy on your server.
+
+**Pros:**
+- Full history of every change (easy to undo mistakes)
+- Great for collaboration
+- Can automate deployments
+
+**Cons:**
+- Steeper learning curve if you're new to Git
+- More setup involved
+
+### Mix and Match
+
+Many people combine approaches: quick content fixes directly on the server, bigger design changes locally with Git. Do what works for you!
+
+</div>
+
+### Local Preview
+
+If you're working on your own machine, PHP's built-in server is the quickest way to preview:
 
 ```bash
 php -S localhost:8000 -t public
@@ -283,7 +429,11 @@ php -S localhost:8000 -t public
 
 Then open `http://localhost:8000` in your browser.
 
-> **Tip:** This is a development server only — for real hosting you’ll use Apache/Nginx (or your host’s PHP setup).
+> **Tip:** This is a development server, not for public use. See the [Hosting Guide](hosting.md) for production options.
+
+### Live Editing
+
+Editing files directly on your server works great too! Ava's auto-rebuild mode (the default) means changes appear immediately—just save and refresh.
 
 ## Validation
 
