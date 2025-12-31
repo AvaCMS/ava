@@ -193,22 +193,55 @@ If you see the Array backend using a significant portion of your available RAM, 
 
 ## Configuration
 
-Configure your backend in `app/config/ava.php`:
+Configure your index and caching in `app/config/ava.php`:
+
+### Content Index Options
 
 ```php
 'content_index' => [
-    // 'auto'   - Rebuild when content changes (recommended)
-    // 'never'  - Only rebuild via CLI (production)
+    // Index rebuild mode
+    // 'auto'   - Rebuild automatically when content changes (default, recommended for most sites)
+    // 'never'  - Only rebuild when you explicitly run ./ava rebuild (best for high-traffic production)
+    // 'always' - Rebuild on every request (slow! only for debugging)
     'mode' => 'auto',
 
-    // 'array'  - Default, fastest for most sites
-    // 'sqlite' - For large sites / low memory
+    // Index storage backend
+    // 'array'  - Serialized PHP arrays (default, fastest for typical sites)
+    // 'sqlite' - SQLite database (recommended for 10k+ items or memory-constrained servers)
     'backend' => 'array',
 
-    // Enable igbinary optimization (highly recommended)
+    // Compression for array backend
+    // true  - Use igbinary for ~5x faster, ~9x smaller cache files (recommended)
+    // false - Use standard PHP serialize() (for compatibility/testing)
     'use_igbinary' => true,
 ],
 ```
+
+#### Mode Comparison
+
+| Mode | Use Case | Behavior |
+|------|----------|----------|
+| `auto` | Most sites | Automatically rebuilds index when files change. Slight latency on first request after changes. |
+| `never` | Production / High traffic | Manual rebuild via CLI only. Fastest requests. Best for scheduled deployments. |
+| `always` | Development / Debugging | Rebuilds on every request. Slowest. Use only for testing. |
+
+#### Backend Comparison
+
+| Backend | Best For | Speed | Memory | Cache Size |
+|---------|----------|-------|--------|-----------|
+| `array` (default) | Most sites, 1-5k posts | Fastest | ~50-100MB | Compact |
+| `sqlite` | Large sites, 10k+ posts | Good | ~2MB constant | Moderate |
+
+#### igbinary Option
+
+- **Recommended:** `true` (enabled by default)
+  - Requires `igbinary` PHP extension (standard on quality hosting)
+  - ~5x faster serialization, ~9x smaller cache files
+  
+- **Fallback:** `false`
+  - Uses standard `serialize()` function
+  - Works everywhere but slower and larger cache files
+  - Use if `igbinary` isn't available on your server
 
 ---
 

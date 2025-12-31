@@ -118,6 +118,7 @@ ASCII;
         $this->commands['user:password'] = [$this, 'cmdUserPassword'];
         $this->commands['user:remove'] = [$this, 'cmdUserRemove'];
         $this->commands['user:list'] = [$this, 'cmdUserList'];
+        $this->commands['update'] = [$this, 'cmdUpdateCheck']; // Alias for update:check
         $this->commands['update:check'] = [$this, 'cmdUpdateCheck'];
         $this->commands['update:apply'] = [$this, 'cmdUpdateApply'];
     }
@@ -1971,6 +1972,7 @@ ASCII;
         $this->commandItem('user:list', 'List all users');
 
         $this->sectionHeader('Updates');
+        $this->commandItem('update', 'Check for updates');
         $this->commandItem('update:check', 'Check for updates');
         $this->commandItem('update:apply', 'Apply available update');
 

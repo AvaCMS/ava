@@ -71,7 +71,7 @@ If you’re used to FTP, think of **SFTP** as the safer modern version. Popular 
 | `user:password` | Update user password |
 | `user:remove` | Remove admin user |
 | `user:list` | List all users |
-| `update:check` | Check for updates |
+| `update` | Check for updates |
 | `update:apply` | Apply available update |
 | `pages:stats` | Page cache statistics |
 | `pages:clear` | Clear page cache |
@@ -350,12 +350,18 @@ List all configured users:
 
 ## Updates
 
-### update:check
+### update
 
-Check for available Ava updates:
+Check for available updates (alias for `update:check`):
 
 ```bash
-./ava update:check
+./ava update
+```
+
+Results are cached for 1 hour. Force a fresh check:
+
+```bash
+./ava update --force
 ```
 
 <pre><samp>  🔍 Checking for updates...
