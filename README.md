@@ -94,19 +94,14 @@ Main docs: https://ava.addy.zone/
 
 ## Performance
 
-Fast by default. Most sites have under 1,000 posts—here's what you can expect:
+Ava is designed to be fast by default, whether you have 10 posts or 100,000.
 
-| Posts | Cached Page | Archive Page | Single Post |
-|-------|-------------|--------------|-------------|
-| 100 | <1ms | 3ms | 5ms |
-| 1,000 | <1ms | 3ms | 8ms |
-| 10,000 | <1ms | 3ms | 15ms |
+- **Instant Publishing:** No build step. Edit a file, hit refresh, and it's live.
+- **Smart Caching:** A tiered caching system ensures your most popular pages load instantly.
+- **Scalable Backends:** Start with the default Array backend for raw speed, or switch to SQLite for constant memory usage at scale.
+- **Static Speed:** Enable full page caching to serve static HTML files, bypassing the application entirely for most visitors.
 
-**Cached pages serve in under 1 millisecond**—faster than most static site generators. Archive pages stay fast at any scale thanks to tiered caching.
-
-Need to scale further? Ava's optional SQLite backend handles 100,000+ posts with constant memory—just change one config setting.
-
-[Full benchmarks and scaling guide →](https://ava.addy.zone/#/performance)
+[See full benchmarks and scaling guide →](https://ava.addy.zone/#/performance)
 
 ## Contributing
 

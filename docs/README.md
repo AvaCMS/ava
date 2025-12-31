@@ -33,19 +33,14 @@ Ava is designed for people who love the web. It sits in the sweet spot between a
 
 ## Performance
 
-Ava is built for speed. Most sites load in under 10ms, and cached pages serve in under 1ms.
+Ava is designed to be fast by default, whether you have 10 posts or 100,000.
 
-| Posts | Archive Page | Single Post | Cached Page |
-|-------|--------------|-------------|-------------|
-| 100 | 3ms | 5ms | <1ms |
-| 1,000 | 3ms | 8ms | <1ms |
-| 10,000 | 3ms | 15ms | <1ms |
+- **Instant Publishing:** No build step. Edit a file, hit refresh, and it's live.
+- **Smart Caching:** A tiered caching system ensures your most popular pages load instantly.
+- **Scalable Backends:** Start with the default Array backend for raw speed, or switch to SQLite for constant memory usage at scale.
+- **Static Speed:** Enable full page caching to serve static HTML files, bypassing the application entirely for most visitors.
 
-Archive pages stay fast at any scale thanks to tiered caching. **Cached pages serve in under 1 millisecond**—faster than most static site generators.
-
-**Need to scale beyond 10,000 posts?** Ava offers an optional SQLite backend that uses constant memory and handles 100k+ posts without breaking a sweat. It's a single config change—your theme code stays the same.
-
-[Full benchmarks, configuration, and scaling guide →](performance.md)
+[See full benchmarks and scaling guide →](performance.md)
 
 
 ## Requirements

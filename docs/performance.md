@@ -58,7 +58,7 @@ Stores the index in a local SQLite database file. Instead of loading the whole i
 
 ## Benchmark Comparison
 
-We tested all three backends with real content on a standard server.
+We tested all three backends with realistic content on a standard server.
 
 ### 1,000 Posts
 
