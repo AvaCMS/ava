@@ -52,7 +52,6 @@ Run tests with minimal output (header + summary only):
 
 <pre><samp>  <span class="t-bold">Ava CMS Test Suite</span>
   <span class="t-dim">──────────────────────────────────────────────────</span>
-  <span class="t-dim">──────────────────────────────────────────────────</span>
   <span class="t-bold">Tests:</span> <span class="t-green">355 passed</span> <span class="t-dim">(60ms)</span></samp></pre>
 
 Useful for CI/CD pipelines or when you just want to know if tests pass.

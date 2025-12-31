@@ -573,7 +573,6 @@ Run tests with minimal output (useful for CI/CD):
 
 <pre><samp>  <span class="t-bold">Ava CMS Test Suite</span>
   <span class="t-dim">──────────────────────────────────────────────────</span>
-  <span class="t-dim">──────────────────────────────────────────────────</span>
   <span class="t-bold">Tests:</span> <span class="t-green">355 passed</span> <span class="t-dim">(60ms)</span></samp></pre>
 
 See [Testing](testing.md) for details on writing tests and available assertions.
