@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <?php if (isset($page)): ?>
-        <?= $ava->metaTags($page) ?>
-        <?= $ava->itemAssets($page) ?>
+    <?php if (isset($item)): ?>
+        <?= $ava->metaTags($item) ?>
+        <?= $ava->itemAssets($item) ?>
     <?php else: ?>
         <title><?= $ava->e($pageTitle ?? $site['name']) ?></title>
         <meta name="description" content="<?= $ava->e($pageDescription ?? '') ?>">

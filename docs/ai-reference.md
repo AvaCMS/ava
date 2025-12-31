@@ -47,8 +47,6 @@ app/
     content_types.php    # Content type definitions
     taxonomies.php       # Taxonomy definitions
     users.php            # Admin users (auto-generated)
-  hooks.php              # Custom hooks
-  shortcodes.php         # Custom shortcodes
 
 content/
   pages/*.md             # Page content
@@ -179,6 +177,11 @@ Debug configuration in `app/config/ava.php`:
 - `storage/logs/admin.log` — Admin login attempts and actions
 - `storage/logs/indexer.log` — Content indexing errors
 
+**Log rotation** (automatic via `logs` config):
+- `max_size` — Rotate when log exceeds this size (default: 10MB)
+- `max_files` — Keep N rotated copies (default: 3)
+- CLI: `logs:stats`, `logs:tail`, `logs:clear`
+
 **Debug features when enabled:**
 - Custom error/exception handlers with enhanced logging
 - Request timing and memory usage tracking
@@ -211,7 +214,7 @@ Content files are Markdown with YAML frontmatter:
 id: 01JGMK...        # ULID (auto-generated, immutable)
 title: Page Title     # Required
 slug: page-title      # Required, URL-safe
-status: published     # draft | published | private
+status: published     # draft | published | unlisted
 date: 2024-12-28      # Publication date
 excerpt: Summary      # Short description
 cache: true           # Override page cache setting
@@ -233,7 +236,7 @@ Markdown content here. **Bold**, *italic*, [links](/url).
 - `id` — Unique ULID identifier (auto-generated)
 - `title` — Content title
 - `slug` — URL-friendly identifier
-- `status` — `draft`, `published`, or `private`
+- `status` — `draft`, `published`, or `unlisted`
 - `date` — Publication date (for dated content types)
 - `excerpt` — Short description
 - `cache` — Override page cache setting
@@ -351,28 +354,33 @@ $query = (new Query($app))
     ->whereTax('categories', 'tutorials') // Taxonomy filter
     ->orderBy('date', 'desc')             // Sort by date
     ->perPage(10)                         // Results per page
-    ->page(1)                             // Current page
-    ->get();                              // Execute
+    ->page(1);                            // Current page
 
-// Access results
-$query->items();   // Array of Item objects
-$query->total();   // Total matching items
-$query->hasMore(); // Has more pages
+// Execute and get results
+$items = $query->get();      // Array of Item objects
+$count = $query->count();    // Total matching items (before pagination)
+$hasMore = $query->hasMore(); // Has more pages?
 ```
 
 **Query methods:**
 - `->type(string)` — Filter by content type (auto-loads search config)
 - `->published()` — Only published items
+- `->status(string)` — Filter by status
 - `->where(string $field, mixed $value)` — Filter by field
 - `->whereTax(string $taxonomy, string|array $terms)` — Filter by taxonomy
 - `->search(string $query)` — Full-text search with relevance scoring
 - `->searchWeights(array $weights)` — Override search weights (see below)
 - `->orderBy(string $field, string $dir = 'asc')` — Sort results
-- `->perPage(int)` — Results per page
+- `->perPage(int)` — Results per page (max 100)
 - `->page(int)` — Current page number
-- `->limit(int)` — Limit results
-- `->offset(int)` — Skip results
-- `->get()` — Execute and return Query object
+- `->get()` — Execute and return array of Items
+- `->first()` — Get first matching item or null
+- `->count()` — Total count before pagination
+- `->totalPages()` — Number of pages
+- `->hasMore()` — More pages available?
+- `->hasPrevious()` — Previous pages available?
+- `->isEmpty()` — No results?
+- `->pagination()` — Full pagination info array
 
 **Search Weights:**
 Content types can define search scoring in `content_types.php`:
@@ -401,31 +409,53 @@ The Item class represents a single content item:
 
 ```php
 // Core fields
-$item->id()         // ULID identifier
-$item->title()      // Content title
-$item->slug()       // URL slug
-$item->status()     // draft | published | private
-$item->type()       // Content type
-$item->url()        // Full URL
+$item->id()           // ULID identifier (or null)
+$item->title()        // Content title
+$item->slug()         // URL slug
+$item->status()       // draft | published | unlisted
+$item->type()         // Content type
+$item->filePath()     // Path to source file
 
-// Dates
-$item->date($format = 'Y-m-d')     // Publication date
-$item->updated($format = 'Y-m-d')  // Last modified date
+// Status helpers
+$item->isPublished()  // Is status "published"?
+$item->isDraft()      // Is status "draft"?
+$item->isUnlisted()   // Is status "unlisted"?
+
+// Dates (returns DateTimeImmutable or null)
+$item->date()         // Publication date
+$item->updated()      // Last modified (falls back to date)
 
 // Content
-$item->content()    // Rendered HTML
-$item->excerpt()    // Short description
-$item->raw()        // Raw Markdown
+$item->rawContent()   // Raw Markdown body
+$item->html()         // Rendered HTML (after processing)
+$item->excerpt()      // Short description
 
 // Taxonomies
-$item->tax($taxonomy)              // Array of terms
-$item->hasTax($taxonomy, $term)    // Check if has term
+$item->terms('category')  // Array of terms for taxonomy
+$item->terms()            // All terms (if using 'tax' format)
+
+// SEO
+$item->metaTitle()        // Custom meta title
+$item->metaDescription()  // Meta description
+$item->noindex()          // Should be noindexed?
+$item->canonical()        // Canonical URL
+$item->ogImage()          // Open Graph image
+
+// Assets
+$item->css()          // Per-item CSS files array
+$item->js()           // Per-item JS files array
+
+// Hierarchy
+$item->parent()       // Parent slug (for pages)
+$item->order()        // Sort order
 
 // Custom fields
-$item->get($key, $default = null)  // Get custom field
+$item->get($key, $default = null)  // Get any frontmatter field
+$item->has($key)                   // Check if field exists
+$item->frontmatter()               // All frontmatter as array
 
 // Template
-$item->template()   // Template name
+$item->template()     // Custom template name (or null)
 ```
 
 ---
@@ -448,7 +478,7 @@ Templates are plain PHP files in `themes/<name>/templates/`:
 | Variable | Type | Description |
 |----------|------|-------------|
 | `$site` | array | Site config (`name`, `url`, `timezone`) |
-| `$page` | Item | Current content (single templates) |
+| `$item` | Item | Current content (single templates) |
 | `$query` | Query | Query object (archive templates) |
 | `$tax` | array | Taxonomy info (taxonomy templates) |
 | `$request` | Request | HTTP request |
@@ -462,7 +492,7 @@ The `$ava` object provides helper methods in templates:
 
 **Content:**
 ```php
-$ava->content($page)            // Render item content
+$ava->content($item)            // Render item content
 $ava->markdown($string)         // Render Markdown string
 $ava->partial($name, $vars)     // Include partial
 ```
@@ -476,7 +506,7 @@ $ava->asset($path)              // Theme asset with cache-busting
 
 **Utilities:**
 ```php
-$ava->metaTags($page)           // SEO meta tags HTML
+$ava->metaTags($item)           // SEO meta tags HTML
 $ava->pagination($query)        // Pagination HTML
 $ava->recent($type, $limit)     // Recent items
 $ava->e($string)                // HTML escape
@@ -486,9 +516,7 @@ $ava->expand($path)             // Expand path alias
 ```
 
 **Path aliases:**
-- `@media:` → `/media/`
-- `@uploads:` → `/media/uploads/`
-- `@assets:` → `/assets/`
+- `@media:` → `/media/` (for images, downloads, user uploads)
 
 ---
 
@@ -503,25 +531,18 @@ Shortcodes are processed **after** Markdown rendering. They allow dynamic conten
 [site_url]                # Site URL
 ```
 
-**Custom shortcodes** in `app/shortcodes.php`:
+**Custom shortcodes** in `theme.php`:
 
 ```php
+use Ava\Application;
+
+$shortcodes = Application::getInstance()->shortcodes();
+
 // Self-closing shortcode
-$shortcodes->add('year', fn() => date('Y'));
-
-// With attributes
-$shortcodes->add('button', function($args) {
-    $url = $args['url'] ?? '#';
-    $text = $args['text'] ?? 'Click';
-    return "<a href='$url' class='btn'>$text</a>";
-});
-
-// Usage: [button url="/about" text="Learn More"]
+$shortcodes->register('year', fn() => date('Y'));
 
 // Paired shortcode
-$shortcodes->add('highlight', function($args, $content) {
-    return "<mark>{$content}</mark>";
-});
+$shortcodes->register('highlight', fn($attrs, $content) => "<mark>{$content}</mark>");
 
 // Usage: [highlight]Important text[/highlight]
 ```
@@ -579,7 +600,7 @@ Hooks::do('hook_name', $arg1, $arg2);
 | `admin.register_pages` | Action | Register admin pages |
 | `admin.sidebar_items` | Filter | Modify admin sidebar |
 
-**Custom hooks** in `app/hooks.php`:
+**Custom hooks** in `theme.php` or a plugin:
 
 ```php
 use Ava\Plugins\Hooks;
@@ -651,17 +672,17 @@ Ava includes a lightweight, zero-dependency test framework:
 **Test structure:**
 ```
 tests/
+  Admin/
+    DebugTest.php          # Debug configuration and logging
   Config/
     ConfigTest.php         # Configuration access patterns
-  Support/
-    StrTest.php            # String utilities
-    ArrTest.php            # Array utilities
-    UlidTest.php           # ULID generator
-    PathTest.php           # Path utilities
   Content/
-    ParserTest.php         # Content parser
-    ItemTest.php           # Content item
+    ItemTest.php           # Content item value object
+    ParserTest.php         # Markdown/YAML parser
+  Core/
+    UpdaterTest.php        # Update system
   Http/
+    HttpsEnforcementTest.php  # HTTPS/localhost detection
     RequestTest.php        # HTTP request
     ResponseTest.php       # HTTP response
   Plugins/
@@ -672,6 +693,11 @@ tests/
     RouteMatchTest.php     # Route match value object
   Shortcodes/
     EngineTest.php         # Shortcode engine
+  Support/
+    ArrTest.php            # Array utilities
+    PathTest.php           # Path utilities
+    StrTest.php            # String utilities
+    UlidTest.php           # ULID generator
 ```
 
 **Writing tests:**

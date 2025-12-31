@@ -139,6 +139,24 @@ final class AdminRouter
      */
     private function handle(string $action, Request $request, bool $requireAuth = true): ?RouteMatch
     {
+        // Enforce HTTPS for admin access (except on localhost)
+        if (!$request->isSecure() && !$request->isLocalhost()) {
+            $response = new Response(
+                '<h1>HTTPS Required</h1>' .
+                '<p>The admin dashboard requires HTTPS for security. Your password and session cookies ' .
+                'would be transmitted in plain text over HTTP.</p>' .
+                '<p>Please access the admin via <strong>https://' . htmlspecialchars($request->host()) . 
+                htmlspecialchars($request->path()) . '</strong></p>',
+                403,
+                ['Content-Type' => 'text/html; charset=utf-8']
+            );
+            return new RouteMatch(
+                type: 'admin',
+                template: '__raw__',
+                params: ['response' => $response]
+            );
+        }
+
         $auth = $this->controller->auth();
 
         // Check authentication for protected routes
@@ -181,6 +199,24 @@ final class AdminRouter
      */
     private function handleContent(Request $request, string $type): ?RouteMatch
     {
+        // Enforce HTTPS for admin access (except on localhost)
+        if (!$request->isSecure() && !$request->isLocalhost()) {
+            $response = new Response(
+                '<h1>HTTPS Required</h1>' .
+                '<p>The admin dashboard requires HTTPS for security. Your password and session cookies ' .
+                'would be transmitted in plain text over HTTP.</p>' .
+                '<p>Please access the admin via <strong>https://' . htmlspecialchars($request->host()) . 
+                htmlspecialchars($request->path()) . '</strong></p>',
+                403,
+                ['Content-Type' => 'text/html; charset=utf-8']
+            );
+            return new RouteMatch(
+                type: 'admin',
+                template: '__raw__',
+                params: ['response' => $response]
+            );
+        }
+
         $auth = $this->controller->auth();
 
         if (!$auth->check()) {
@@ -211,6 +247,24 @@ final class AdminRouter
      */
     private function handleTaxonomy(Request $request, string $taxonomy): ?RouteMatch
     {
+        // Enforce HTTPS for admin access (except on localhost)
+        if (!$request->isSecure() && !$request->isLocalhost()) {
+            $response = new Response(
+                '<h1>HTTPS Required</h1>' .
+                '<p>The admin dashboard requires HTTPS for security. Your password and session cookies ' .
+                'would be transmitted in plain text over HTTP.</p>' .
+                '<p>Please access the admin via <strong>https://' . htmlspecialchars($request->host()) . 
+                htmlspecialchars($request->path()) . '</strong></p>',
+                403,
+                ['Content-Type' => 'text/html; charset=utf-8']
+            );
+            return new RouteMatch(
+                type: 'admin',
+                template: '__raw__',
+                params: ['response' => $response]
+            );
+        }
+
         $auth = $this->controller->auth();
 
         if (!$auth->check()) {
@@ -241,6 +295,24 @@ final class AdminRouter
      */
     private function handleCustomPage(Request $request, string $slug): ?RouteMatch
     {
+        // Enforce HTTPS for admin access (except on localhost)
+        if (!$request->isSecure() && !$request->isLocalhost()) {
+            $response = new Response(
+                '<h1>HTTPS Required</h1>' .
+                '<p>The admin dashboard requires HTTPS for security. Your password and session cookies ' .
+                'would be transmitted in plain text over HTTP.</p>' .
+                '<p>Please access the admin via <strong>https://' . htmlspecialchars($request->host()) . 
+                htmlspecialchars($request->path()) . '</strong></p>',
+                403,
+                ['Content-Type' => 'text/html; charset=utf-8']
+            );
+            return new RouteMatch(
+                type: 'admin',
+                template: '__raw__',
+                params: ['response' => $response]
+            );
+        }
+
         $auth = $this->controller->auth();
 
         if (!$auth->check()) {

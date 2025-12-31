@@ -223,14 +223,102 @@ return [
                         $totalItems += $indexable;
                     }
 
+                    // Render content-only view
                     ob_start();
-                    include __DIR__ . '/views/admin.php';
-                    $html = ob_get_clean();
+                    include __DIR__ . '/views/content.php';
+                    $content = ob_get_clean();
 
-                    return Response::html($html);
+                    // Use the admin layout wrapper
+                    return $controller->renderPluginPage([
+                        'title' => 'RSS Feeds',
+                        'icon' => 'rss_feed',
+                        'activePage' => 'feeds',
+                        'headerActions' => '<a href="' . htmlspecialchars($baseUrl) . '/feed.xml" target="_blank" class="btn btn-primary btn-sm">
+                            <span class="material-symbols-rounded">open_in_new</span>
+                            View Main Feed
+                        </a>',
+                    ], $content);
                 },
             ];
             return $pages;
         });
     },
+
+    'commands' => [
+        [
+            'name' => 'feed:stats',
+            'description' => 'Show RSS feed statistics',
+            'handler' => function (array $args, $cli) {
+                $app = \Ava\Application::getInstance();
+                $repository = $app->repository();
+                $types = $repository->types();
+                $baseUrl = rtrim($app->config('site.base_url', ''), '/');
+
+                // Get feed config
+                $config = array_merge([
+                    'items_per_feed' => 20,
+                    'full_content' => false,
+                    'types' => null,
+                ], $app->config('feed', []));
+
+                $cli->header('RSS Feed Statistics');
+                
+                $tableData = [];
+                $totalItems = 0;
+                $combinedCount = 0;
+
+                foreach ($types as $type) {
+                    // Skip if types filter is set and this type isn't included
+                    if ($config['types'] !== null && !in_array($type, $config['types'])) {
+                        continue;
+                    }
+
+                    $items = $repository->published($type);
+                    $count = 0;
+                    
+                    foreach ($items as $item) {
+                        if (!$item->noindex()) {
+                            $count++;
+                        }
+                    }
+
+                    if ($count > 0) {
+                        $inFeed = min($count, $config['items_per_feed']);
+                        $tableData[] = [
+                            'type' => $type,
+                            'total' => $count,
+                            'in_feed' => $inFeed,
+                            'file' => "/feed/{$type}.xml",
+                        ];
+                        $totalItems += $count;
+                        $combinedCount += $inFeed;
+                    }
+                }
+
+                if (empty($tableData)) {
+                    $cli->warning('No content available for feeds.');
+                    return 0;
+                }
+
+                // Display table with colors
+                $cli->writeln('');
+                $headers = ['Content Type', 'Total Items', 'In Feed', 'Feed URL'];
+                $rows = array_map(fn($d) => [
+                    $cli->primary($d['type']),
+                    (string)$d['total'],
+                    $cli->green((string)$d['in_feed']),
+                    $cli->cyan($d['file']),
+                ], $tableData);
+                $cli->table($headers, $rows);
+
+                $cli->writeln('');
+                $cli->info("Items per feed: " . $cli->bold((string)$config['items_per_feed']));
+                $cli->info("Content mode: " . ($config['full_content'] ? $cli->green('Full HTML') : $cli->yellow('Excerpt only')));
+                $cli->info("Main feed: " . $cli->primary("{$baseUrl}/feed.xml"));
+                $cli->writeln('');
+
+                return 0;
+            },
+        ],
+    ],
 ];

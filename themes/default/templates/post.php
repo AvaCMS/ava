@@ -3,16 +3,16 @@
         <div class="container">
             <article class="entry">
                 <header class="entry-header">
-                    <h1><?= $ava->e($page->title()) ?></h1>
+                    <h1><?= $ava->e($item->title()) ?></h1>
                     
                     <div class="entry-meta">
-                        <?php if ($page->date()): ?>
-                            <time datetime="<?= $page->date()->format('c') ?>">
-                                <?= $ava->date($page->date()) ?>
+                        <?php if ($item->date()): ?>
+                            <time datetime="<?= $item->date()->format('c') ?>">
+                                <?= $ava->date($item->date()) ?>
                             </time>
                         <?php endif; ?>
 
-                        <?php $categories = $page->terms('category'); ?>
+                        <?php $categories = $item->terms('category'); ?>
                         <?php if (!empty($categories)): ?>
                             <span>
                                 in
@@ -25,10 +25,10 @@
                 </header>
 
                 <div class="entry-content">
-                    <?= $ava->content($page) ?>
+                    <?= $ava->content($item) ?>
                 </div>
 
-                <?php $tags = $page->terms('tag'); ?>
+                <?php $tags = $item->terms('tag'); ?>
                 <?php if (!empty($tags)): ?>
                     <footer class="entry-footer">
                         <div class="entry-tags">

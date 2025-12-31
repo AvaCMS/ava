@@ -1,6 +1,11 @@
 # Bundled Plugins
 
-Ava comes with a few essential plugins to handle the boring stuff for you. They are installed by default but you can turn them on or off in your config.
+Ava comes with a few helpful plugins to handle common tasks. They're installed by default but you can enable or disable them in your config.
+
+These plugins also serve as good examples and code references if you want to build your own — see [Creating Plugins](creating-plugins.md).
+
+---
+
 
 ## Sitemap
 
@@ -13,6 +18,30 @@ Automatically generates an XML sitemap for search engines like Google.
 - **What it does:** Creates `sitemap.xml` so search engines can find all your pages.
 - **How to use:** Just enable it in `app/config/ava.php`.
 - **Customization:** You can exclude pages by adding `noindex: true` to their frontmatter.
+
+### CLI Commands
+
+#### `sitemap:stats`
+
+Show sitemap statistics including URL counts per content type.
+
+```bash
+./ava sitemap:stats
+```
+
+<pre><samp>  <span class="t-dim">───</span> <span class="t-bold">Sitemap Statistics</span> <span class="t-dim">──────────────────────────────</span>
+
+  <span class="t-dim">Content Type</span>  <span class="t-dim">Indexable</span>  <span class="t-dim">Noindex</span>  <span class="t-dim">Sitemap File</span>       
+  <span class="t-dim">─────────────────────────────────────────────────────</span>
+  <span class="t-cyan">page</span>          <span class="t-white">5</span>          <span class="t-yellow">1</span>        <span class="t-dim">/sitemap-page.xml</span>  
+  <span class="t-cyan">post</span>          <span class="t-white">12</span>         <span class="t-dim">0</span>        <span class="t-dim">/sitemap-post.xml</span>  
+
+  <span class="t-cyan">ℹ</span> Total URLs in sitemap: <span class="t-white">17</span>
+  <span class="t-cyan">ℹ</span> Main sitemap: <span class="t-cyan">https://example.com/sitemap.xml</span></samp></pre>
+
+
+
+---
 
 ## RSS Feed
 
@@ -44,6 +73,28 @@ Add the feed link to your theme's `<head>`:
       title="My Site" 
       href="/feed.xml">
 ```
+
+
+### CLI Commands
+
+#### `feed:stats`
+
+Show RSS feed statistics and configuration.
+
+```bash
+./ava feed:stats
+```
+
+<pre><samp>  <span class="t-dim">───</span> <span class="t-bold">RSS Feed Statistics</span> <span class="t-dim">─────────────────────────────</span>
+
+  <span class="t-dim">Content Type</span>  <span class="t-dim">Total Items</span>  <span class="t-dim">In Feed</span>  <span class="t-dim">Feed URL</span>        
+  <span class="t-dim">────────────────────────────────────────────────────</span>
+  <span class="t-cyan">page</span>          <span class="t-white">5</span>            <span class="t-white">5</span>        <span class="t-dim">/feed/page.xml</span>  
+  <span class="t-cyan">post</span>          <span class="t-white">12</span>           <span class="t-white">12</span>       <span class="t-dim">/feed/post.xml</span>  
+
+  <span class="t-cyan">ℹ</span> Items per feed: <span class="t-white">20</span>
+  <span class="t-cyan">ℹ</span> Content mode: <span class="t-white">Excerpt only</span>
+  <span class="t-cyan">ℹ</span> Main feed: <span class="t-cyan">https://example.com/feed.xml</span></samp></pre>
 
 ### Output Example
 
@@ -131,6 +182,95 @@ redirect_from:
 ---
 ```
 
+
+### CLI Commands
+
+#### `redirects:list`
+
+List all configured redirects.
+
+```bash
+./ava redirects:list
+```
+
+**With redirects configured:**
+
+<pre><samp>  <span class="t-dim">───</span> <span class="t-bold">Configured Redirects</span> <span class="t-dim">────────────────────────────</span>
+
+  <span class="t-dim">From</span>          <span class="t-dim">To</span>             <span class="t-dim">Code</span>  <span class="t-dim">Type</span>              
+  <span class="t-dim">────────────────────────────────────────────────────</span>
+  <span class="t-cyan">/old-page</span>     <span class="t-white">/new-page</span>      <span class="t-green">301</span>   <span class="t-dim">Moved Permanently</span> 
+  <span class="t-cyan">/legacy</span>       <span class="t-white">/modern</span>        <span class="t-yellow">302</span>   <span class="t-dim">Found (Temporary)</span> 
+
+  <span class="t-cyan">ℹ</span> Total: <span class="t-white">2</span> redirects</samp></pre>
+
+**No redirects configured:**
+
+<pre><samp>  <span class="t-dim">───</span> <span class="t-bold">Configured Redirects</span> <span class="t-dim">────────────────────────────</span>
+
+  <span class="t-dim">ℹ No redirects configured.</span></samp></pre>
+
+#### `redirects:add`
+
+Add a new redirect from the command line.
+
+```bash
+./ava redirects:add <from> <to> [code]
+```
+
+**Arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `from` | Source path (e.g., `/old-page`) |
+| `to` | Destination URL (e.g., `/new-page` or `https://...`) |
+| `code` | HTTP status code (default: `301`) |
+
+**Supported Status Codes:**
+
+| Code | Type | Description |
+|------|------|-------------|
+| `301` | Redirect | Moved Permanently (SEO-friendly) |
+| `302` | Redirect | Found (Temporary) |
+| `307` | Redirect | Temporary Redirect (preserves method) |
+| `308` | Redirect | Permanent Redirect (preserves method) |
+| `410` | Status | Gone (content deleted) |
+| `418` | Status | I'm a Teapot ☕ |
+| `451` | Status | Unavailable For Legal Reasons |
+| `503` | Status | Service Unavailable |
+
+**Examples:**
+
+```bash
+# Permanent redirect (301)
+./ava redirects:add /old-page /new-page
+
+# Temporary redirect (302)
+./ava redirects:add /temp-redirect /target 302
+
+# Mark page as permanently gone (410)
+./ava redirects:add /deleted-page "" 410
+
+# External redirect
+./ava redirects:add /external https://example.com/page
+```
+
+#### `redirects:remove`
+
+Remove a redirect.
+
+```bash
+./ava redirects:remove <from>
+```
+
+**Example:**
+
+```bash
+./ava redirects:remove /old-page
+```
+
+<pre><samp>  <span class="t-green">✓</span> Removed redirect: <span class="t-cyan">/old-page</span></samp></pre>
+
 ### Storage Format
 
 Redirects are stored in `storage/redirects.json`:
@@ -147,6 +287,7 @@ Redirects are stored in `storage/redirects.json`:
 ```
 
 ---
+
 
 ## Enabling All Bundled Plugins
 

@@ -36,19 +36,6 @@ return [
 ```
 
 Now, visiting `/api/posts` will give you a clean JSON list of your blog posts.
-    "success": false,
-    "error": "Error message"
-}
-```
-
-### Available Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/posts` | List all published posts |
-| GET | `/api/posts/{slug}` | Get single post by slug |
-| GET | `/api/pages` | List all published pages |
-| GET | `/api/pages/{slug}` | Get single page by slug |
 
 ## Building Custom Endpoints
 
@@ -234,23 +221,23 @@ $router->addRoute('/api/search', function($request) {
     $app = \Ava\Application::getInstance();
     
     // Search posts with built-in relevance scoring
-    $results = $app->query()
+    $searchQuery = $app->query()
         ->type('post')
         ->published()
         ->search($query)
-        ->limit(20)
-        ->get();
+        ->perPage(20);
+    
+    $results = $searchQuery->get();
     
     return jsonResponse([
         'query' => $query,
-        'count' => $results->total(),
+        'count' => $searchQuery->count(),
         'results' => array_map(fn($item) => [
             'type' => $item->type(),
             'title' => $item->title(),
             'slug' => $item->slug(),
-            'url' => $item->url(),
             'excerpt' => $item->excerpt(),
-        ], $results->items()),
+        ], $results),
     ]);
 });
 ```

@@ -8,9 +8,9 @@
 [![Code size](https://img.shields.io/github/languages/code-size/adamgreenough/ava)](https://github.com/adamgreenough/ava)
 [![Discord](https://img.shields.io/discord/1028357262189801563)](https://discord.gg/Z7bF9YeK)
 
-Ava is a friendly, flexible, flat-file, PHP-based CMS for bespoke personal websites, blogs and more. Content is Markdown files (with YAML frontmatter), and Ava builds a fast cache so pages render quickly—no database required. 
+Ava is a friendly, flexible, flat-file, PHP-based CMS for bespoke personal websites, blogs and more. Content is Markdown files (with YAML frontmatter), and Ava builds a fast cache so pages render quickly. No database required. 
 
-Thoroughly [documented](https://ava.addy.zone/#/) with beginners in mind and easy to customize, Ava gives you full control over your content and design without complexity.
+Thoughtfully [documented](https://ava.addy.zone/#/) with beginners in mind and easy to customise, Ava gives you full control over your content and design without complexity.
 
 **Perfect for:** personal sites, blogs, portfolios, documentation, and any project where you want simplicity without sacrificing power.
 
@@ -94,7 +94,7 @@ Main docs: https://ava.addy.zone/
 
 ## Performance
 
-Ava is designed to be fast by default, whether you have 10 posts or 100,000.
+Ava is designed to be fast by default, whether you have 100 posts or 100,000.
 
 - **Instant Publishing:** No build step. Edit a file, hit refresh, and it's live.
 - **Smart Caching:** A tiered caching system ensures your most popular pages load instantly.

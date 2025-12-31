@@ -63,11 +63,11 @@ Or use the CLI: `./ava make post "My First Post"`
 
 ### Customize Your Theme
 
-Templates live in `themes/default/templates/`. They're plain PHP with access to `$page` and the `$ava` helper:
+Templates live in `themes/default/templates/`. They're plain PHP with access to `$item` and the `$ava` helper:
 
 ```php
-<h1><?= $ava->e($page->title()) ?></h1>
-<?= $ava->content($page) ?>
+<h1><?= $ava->e($item->title()) ?></h1>
+<?= $ava->content($item) ?>
 ```
 
 ## Learn More

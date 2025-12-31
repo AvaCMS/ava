@@ -1,21 +1,21 @@
 <?= $ava->partial('header', ['request' => $request, 'pageTitle' => $site['name'], 'pageDescription' => 'Welcome to ' . $site['name']]) ?>
 
         <div class="container">
-            <?php if (isset($page)): ?>
+            <?php if (isset($item)): ?>
                 <article class="entry">
                     <header class="entry-header">
-                        <h1><?= $ava->e($page->title()) ?></h1>
-                        <?php if ($page->date()): ?>
+                        <h1><?= $ava->e($item->title()) ?></h1>
+                        <?php if ($item->date()): ?>
                             <div class="entry-meta">
-                                <time datetime="<?= $page->date()->format('c') ?>">
-                                    <?= $ava->date($page->date()) ?>
+                                <time datetime="<?= $item->date()->format('c') ?>">
+                                    <?= $ava->date($item->date()) ?>
                                 </time>
                             </div>
                         <?php endif; ?>
                     </header>
 
                     <div class="entry-content">
-                        <?= $ava->content($page) ?>
+                        <?= $ava->content($item) ?>
                     </div>
                 </article>
             <?php elseif (isset($query)): ?>

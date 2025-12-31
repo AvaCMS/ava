@@ -811,6 +811,10 @@ final class Indexer
         }
 
         $logFile = $logPath . '/indexer.log';
+
+        // Check if rotation is needed
+        $this->rotateLogIfNeeded($logFile);
+
         $content = "[" . date('c') . "] Indexer errors:\n";
         foreach ($errors as $error) {
             $content .= "  - {$error}\n";
@@ -818,5 +822,40 @@ final class Indexer
         $content .= "\n";
 
         file_put_contents($logFile, $content, FILE_APPEND | LOCK_EX);
+    }
+
+    /**
+     * Rotate log file if it exceeds the configured max size.
+     */
+    private function rotateLogIfNeeded(string $logFile): void
+    {
+        if (!file_exists($logFile)) {
+            return;
+        }
+
+        $maxSize = $this->app->config('logs.max_size', 10 * 1024 * 1024);
+        $maxFiles = $this->app->config('logs.max_files', 3);
+
+        if (filesize($logFile) < $maxSize) {
+            return;
+        }
+
+        // Delete oldest log if at max
+        $oldest = $logFile . '.' . $maxFiles;
+        if (file_exists($oldest)) {
+            unlink($oldest);
+        }
+
+        // Rotate existing logs (.2 → .3, .1 → .2, etc.)
+        for ($i = $maxFiles - 1; $i >= 1; $i--) {
+            $old = $logFile . '.' . $i;
+            $new = $logFile . '.' . ($i + 1);
+            if (file_exists($old)) {
+                rename($old, $new);
+            }
+        }
+
+        // Rotate current log to .1
+        rename($logFile, $logFile . '.1');
     }
 }

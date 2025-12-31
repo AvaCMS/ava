@@ -41,24 +41,35 @@ return [
 | `site.name` | Your site's display name (used in templates, feeds, etc.) |
 | `site.base_url` | Full URL where your site lives (no trailing slash). Used for sitemaps and absolute links. |
 | `site.timezone` | Timezone for dates. Use a [PHP timezone identifier](https://www.php.net/manual/en/timezones.php). |
-| `site.locale` | Locale for formatting (e.g., `en_GB`, `en_US`, `de_DE`). |
-| `paths` | Where Ava finds content, themes, plugins. Usually no need to change. |
+| `site.locale` | Locale for date/number formatting. See [list of locale codes](https://www.php.net/manual/en/function.setlocale.php#refsect1-function-setlocale-notes). |
+| `paths` | Where Ava finds content, themes, plugins. Usually no need to change. || `paths.aliases` | Path aliases for use in content. See [Path Aliases](#path-aliases) below. |
 
-#### Timezone Examples
+### Path Aliases
 
-| Region | Timezone Identifier |
-|--------|---------------------|
-| UTC (default) | `UTC` |
-| London | `Europe/London` |
-| New York | `America/New_York` |
-| Los Angeles | `America/Los_Angeles` |
-| Tokyo | `Asia/Tokyo` |
-| Sydney | `Australia/Sydney` |
-| Paris | `Europe/Paris` |
-| Berlin | `Europe/Berlin` |
+Path aliases let you reference files without hard-coding URLs. Define them in `paths.aliases`:
 
-See the [full list of PHP timezones](https://www.php.net/manual/en/timezones.php) for all options.
+```php
+'paths' => [
+    'content' => 'content',
+    'themes' => 'themes',
+    // ...
+    'aliases' => [
+        '@media:' => '/media/',
+        '@cdn:' => 'https://cdn.example.com/',
+    ],
+],
+```
 
+Then use them in your content Markdown:
+
+```markdown
+![Photo](@media:images/photo.jpg)
+[Download](@media:files/guide.pdf)
+```
+
+At render time, `@media:` expands to `/media/`. This makes it easy to reorganize assets or switch to a CDN later without updating every content file.
+
+**See:** [Writing Content - Path Aliases](content.md#path-aliases) for usage examples.
 ### Content Index
 
 The content index is a binary snapshot of all your content metadata—used to avoid parsing Markdown on every request.
@@ -90,19 +101,35 @@ The content index is a binary snapshot of all your content metadata—used to av
 | `array` | Binary serialized PHP arrays. Works everywhere. **This is the default.** |
 | `sqlite` | SQLite database file. Opt-in for large sites (10k+ items). Requires `pdo_sqlite`. |
 
+The `array` backend automatically uses the best available serialization method:
+
+- **igbinary** (default when available): ~5x faster serialization, ~9x smaller cache files
+- **PHP serialize** (fallback): Used when igbinary extension isn't installed
+
+Control this with `use_igbinary` (defaults to `true`):
+
+```php
+'content_index' => [
+    'backend' => 'array',
+    'use_igbinary' => true,  // Use igbinary if available
+],
+```
+
+Ava detects which format each cache file uses via prefix markers (`IG:` or `SZ:`), so you can switch between them safely without rebuilding.
+
 <div class="beginner-box">
 
 **Which backend should I use?**
 
-Stick with `array` — it works great for most sites. Only switch to `sqlite` if you have 10,000+ posts and notice slow queries or memory issues.
+Stick with `array` — it works great for most sites. Only switch to `sqlite` if you have 10,000+ posts, notice slow queries or have server memory issues.
 
-See [Performance - Scaling](performance.md#scaling-to-10000-posts) for detailed benchmarks.
+See [Performance](performance.md) for detailed benchmarks.
 
 </div>
 
 ### Page Cache
 
-The page cache stores rendered HTML for instant serving.
+The page cache stores fully-rendered HTML web pages for instant serving. This applies to all URLs on your site (not just the "Page" content type) including posts, archive listings, taxonomy pages, and any custom content types you define.
 
 ```php
 'page_cache' => [
@@ -174,9 +201,9 @@ For details, see [Performance](performance.md).
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `frontmatter.format` | string | `'yaml'` | Frontmatter parser (only YAML supported) |
+| `frontmatter.format` | string | `'yaml'` | Frontmatter parser (only YAML supported currently) |
 | `markdown.allow_html` | bool | `true` | Allow raw HTML in markdown content |
-| `id.type` | string | `'ulid'` | ID format for new content: `'ulid'` (sortable) or `'uuid7'` |
+| `id.type` | string | `'ulid'` | ID format for new content: `'ulid'` (easily sortable) or `'uuid7'` |
 
 ### Security
 
@@ -262,13 +289,59 @@ Control error visibility and logging for development and troubleshooting.
 
 The admin System page shows debug status, performance metrics, and recent error log entries when enabled.
 
+### Logs
+
+Control log file size and automatic rotation to prevent disk space issues.
+
+```php
+'logs' => [
+    'max_size' => 10 * 1024 * 1024,   // 10 MB
+    'max_files' => 3,
+],
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `max_size` | int | `10485760` | Maximum log file size in bytes before rotation (10 MB) |
+| `max_files` | int | `3` | Number of rotated log files to keep |
+
+**How rotation works:**
+
+When a log file (e.g., `indexer.log`) exceeds `max_size`:
+
+1. Old rotated logs shift: `.2` → `.3`, `.1` → `.2`
+2. Current log becomes `.1`
+3. A fresh log file starts
+4. If there are more than `max_files` rotations, the oldest is deleted
+
+**Example with defaults (10 MB, 3 files):**
+
+```
+indexer.log       ← current, up to 10 MB
+indexer.log.1     ← previous rotation
+indexer.log.2     ← older rotation
+indexer.log.3     ← oldest (deleted when .4 would be created)
+```
+
+**CLI commands:**
+
+```bash
+./ava logs:stats              # View log file sizes and settings
+./ava logs:tail indexer       # Show last 20 lines
+./ava logs:tail indexer -n 50 # Show last 50 lines
+./ava logs:clear              # Clear all logs (with confirmation)
+./ava logs:clear indexer.log  # Clear specific log
+```
+
+See [CLI - Logs](cli.md?id=logs) for more details.
+
 ### Plugins
 
 ```php
 'plugins' => [
     'sitemap',
     'feed',
-    'reading-time',
+    'redirects',
 ],
 ```
 
@@ -365,7 +438,7 @@ Control how content types are searched:
     'search' => [
         'enabled' => true,
         'fields' => ['title', 'excerpt', 'body', 'author'],  // Fields to search
-        'weights' => [                    // Optional: customize scoring
+        'weights' => [                    // Optional: customise scoring
             'title_phrase' => 80,         // Exact phrase in title
             'title_all_tokens' => 40,     // All search words in title
             'title_token' => 10,          // Per-word match in title (max 30)
@@ -480,14 +553,16 @@ return $config;
 
 ## Complete Example
 
+A comprehensive production-ready configuration:
+
 ```php
 <?php
 // app/config/ava.php
 
 return [
     'site' => [
-        'name' => 'Acme Corp',
-        'base_url' => 'https://acme.com',
+        'name' => 'Example Site',
+        'base_url' => 'https://example.com',
         'timezone' => 'America/New_York',
         'locale' => 'en_US',
     ],
@@ -500,14 +575,25 @@ return [
         'storage' => 'storage',
         'aliases' => [
             '@media:' => '/media/',
-            '@cdn:' => 'https://cdn.acme.com/',
+            '@cdn:' => 'https://cdn.example.com/',
         ],
     ],
 
-    'theme' => 'acme-theme',
+    'theme' => 'default',
 
-    'cache' => [
-        'mode' => 'never',  // Production
+    'content_index' => [
+        'mode' => 'never',              // Production: rebuild manually
+        'backend' => 'array',           // Use 'sqlite' for 10k+ items
+        'use_igbinary' => true,
+    ],
+
+    'page_cache' => [
+        'enabled' => true,
+        'ttl' => null,
+        'exclude' => [
+            '/api/*',
+            '/preview/*',
+        ],
     ],
 
     'routing' => [
@@ -515,6 +601,9 @@ return [
     ],
 
     'content' => [
+        'frontmatter' => [
+            'format' => 'yaml',
+        ],
         'markdown' => [
             'allow_html' => true,
         ],
@@ -532,13 +621,29 @@ return [
 
     'admin' => [
         'enabled' => true,
-        'path' => '/_admin',
+        'path' => '/admin',
     ],
 
     'plugins' => [
         'sitemap',
         'feed',
-        'seo',
+        'redirects',
+    ],
+
+    'cli' => [
+        'colors' => true,
+    ],
+
+    'logs' => [
+        'max_size' => 10 * 1024 * 1024,
+        'max_files' => 3,
+    ],
+
+    'debug' => [
+        'enabled' => false,
+        'display_errors' => false,
+        'log_errors' => true,
+        'level' => 'errors',
     ],
 ];
 ```

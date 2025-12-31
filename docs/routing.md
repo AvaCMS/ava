@@ -116,7 +116,7 @@ Configure token in `ava.php`:
 
 ## Adding Custom Routes
 
-In plugins or `app/hooks.php`:
+In `theme.php` or a plugin:
 
 ```php
 use Ava\Application;

@@ -231,7 +231,8 @@ final class Router
             }
 
             // Check preview access for non-published content
-            if (!$item->isPublished() && !$this->hasPreviewAccess($request)) {
+            // Unlisted items are accessible via direct URL without token
+            if (!$item->isPublished() && !$item->isUnlisted() && !$this->hasPreviewAccess($request)) {
                 return null;
             }
 

@@ -64,9 +64,9 @@ final class Item
         return $this->status() === 'draft';
     }
 
-    public function isPrivate(): bool
+    public function isUnlisted(): bool
     {
-        return $this->status() === 'private';
+        return $this->status() === 'unlisted';
     }
 
     // -------------------------------------------------------------------------

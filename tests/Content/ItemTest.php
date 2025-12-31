@@ -67,7 +67,7 @@ final class ItemTest extends TestCase
         $item = $this->createItem(['status' => 'published']);
         $this->assertTrue($item->isPublished());
         $this->assertFalse($item->isDraft());
-        $this->assertFalse($item->isPrivate());
+        $this->assertFalse($item->isUnlisted());
     }
 
     public function testIsDraftReturnsTrueForDraft(): void
@@ -75,13 +75,13 @@ final class ItemTest extends TestCase
         $item = $this->createItem(['status' => 'draft']);
         $this->assertTrue($item->isDraft());
         $this->assertFalse($item->isPublished());
-        $this->assertFalse($item->isPrivate());
+        $this->assertFalse($item->isUnlisted());
     }
 
-    public function testIsPrivateReturnsTrueForPrivate(): void
+    public function testIsUnlistedReturnsTrueForUnlisted(): void
     {
-        $item = $this->createItem(['status' => 'private']);
-        $this->assertTrue($item->isPrivate());
+        $item = $this->createItem(['status' => 'unlisted']);
+        $this->assertTrue($item->isUnlisted());
         $this->assertFalse($item->isPublished());
         $this->assertFalse($item->isDraft());
     }

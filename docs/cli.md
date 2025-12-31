@@ -11,7 +11,7 @@ Ava includes a friendly command-line interface for managing your site. Run comma
 ```
 
 
-The CLI uses colors and visual formatting for a delightful experience. Most output includes helpful tips and next steps.
+The CLI has been thoughtfully designed for a simple and delightful experience. Most output includes helpful tips and next steps.
 
 <div class="beginner-box">
 
@@ -22,19 +22,19 @@ The CLI uses colors and visual formatting for a delightful experience. Most outp
 ### What is “the project root”?
 It’s the folder that contains your Ava project — where you can see `composer.json`, `content/`, `themes/`, and the `ava` script.
 
-**Tip:** If you type `./ava status` and it works, you’re in the right folder.
+?> **Tip:** If you type `./ava status` and it works, you’re in the right folder.
 
 ### A tiny CLI cheat-sheet (you’ll use these a lot)
 
 | Command | What it does |
 | :--- | :--- |
-| `pwd` | Show your current folder (Linux/macOS). |
-| `ls` | List files in the current folder (Linux/macOS). |
-| `cd folder-name` | Move into a folder. |
+| `pwd` | Show your current folder (Linux/macOS). Short for "print working directory". |
+| `ls` | List files in the current folder (Linux/macOS). Short for "list". |
+| `cd folder-name` | Move into a folder. Short for "change directory". |
 | `cd ..` | Go up one folder. |
 | `php -v` | Show your PHP version. |
 
-**Windows note:** In PowerShell, the equivalents are `Get-Location` (like `pwd`) and `dir` (like `ls`). `cd` works everywhere.
+?> **Windows note:** In PowerShell, the equivalents are `Get-Location` (like `pwd`) and `dir` (like `ls`). `cd` works everywhere.
 
 ### Running Commands on a Server (SSH)
 
@@ -48,10 +48,13 @@ cd /path/to/your/site
 ./ava status
 ```
 
-**SSH clients people like**
-- **Built-in (recommended):** macOS Terminal, Linux Terminal, Windows Terminal / PowerShell
+**SSH clients people like:**
+- **Built-in:** macOS Terminal, Linux Terminal, Windows Terminal / PowerShell
+- **Code Editors/IDEs:** [Visual Studio Code (with Remote - SSH)](https://code.visualstudio.com/docs/remote/ssh)
 - **GUI options:** Termius, PuTTY
+
 For a deeper dive into SSH, hosting options, and getting Ava live on the internet, see the [Hosting Guide](hosting.md).
+
 ### Uploading files (SFTP)
 If you’re used to FTP, think of **SFTP** as the safer modern version. Popular clients include FileZilla, WinSCP, Cyberduck, and Transmit.
 
@@ -70,11 +73,14 @@ If you’re used to FTP, think of **SFTP** as the safer modern version. Popular 
 | `user:add` | Create admin user |
 | `user:password` | Update user password |
 | `user:remove` | Remove admin user |
-| `user:list` | List all users |
-| `update` | Check for updates |
+| `user:list` (or `user`) | List all users |
+| `update:check` (or `update`) | Check for updates |
 | `update:apply` | Apply available update |
-| `pages:stats` | Page cache statistics |
+| `pages:stats` (or `pages`) | Page cache statistics |
 | `pages:clear` | Clear page cache |
+| `logs:stats` (or `logs`) | Log file statistics |
+| `logs:tail` | Show last lines of a log |
+| `logs:clear` | Clear log files |
 | `stress:generate` | Generate test content |
 | `stress:clean` | Remove test content |
 | `test [filter] [-q]` | Run the [test suite](testing.md) |
@@ -88,6 +94,12 @@ Run `./ava` or `./ava --help` to see all available commands:
 ```bash
 ./ava --help
 ```
+
+**Shortcuts:** Several commands have convenient aliases:
+- `./ava pages` → `pages:stats`
+- `./ava logs` → `logs:stats`
+- `./ava user` → `user:list`
+- `./ava update` → `update:check`
 
 <pre><samp><span class="t-magenta">   ▄▄▄  ▄▄ ▄▄  ▄▄▄     ▄▄▄▄ ▄▄   ▄▄  ▄▄▄▄
   ██▀██ ██▄██ ██▀██   ██▀▀▀ ██▀▄▀██ ███▄▄
@@ -439,7 +451,7 @@ See [Updates](updates.md) for details on what gets updated and preserved.
 
 ## Page Cache
 
-Commands for managing the on-demand HTML page cache.
+Commands for managing the on-demand HTML page cache. This cache stores rendered web pages for all URLs on your site—not just the "Page" content type—including posts, archives, taxonomy pages, and custom content types.
 
 ### pages:stats
 
@@ -486,6 +498,94 @@ The page cache is also automatically cleared when:
 - Content changes (in `content_index.mode = 'auto'`)
 
 See [Performance](performance.md#page-cache-details) for details.
+
+---
+
+## Logs
+
+Commands for managing log files in `storage/logs/`. Ava automatically rotates log files when they exceed the configured size limit to prevent disk space issues.
+
+### logs:stats
+
+View log file statistics:
+
+```bash
+./ava logs:stats
+```
+
+<pre><samp>  <span class="t-dim">───</span> <span class="t-bold">Logs</span> <span class="t-dim">───────────────────────────────────────────────</span>
+
+  <span class="t-dim">indexer.log:</span>  <span class="t-white">245.3 KB</span> <span class="t-dim">(2 files) · 1,847 lines</span>
+  <span class="t-dim">admin.log:</span>    <span class="t-white">12.1 KB</span> <span class="t-dim">· 89 lines</span>
+
+  <span class="t-dim">Total:</span>        <span class="t-white">257.4 KB (3 files)</span>
+
+  <span class="t-dim">Max Size:</span>     <span class="t-white">10 MB per log</span>
+  <span class="t-dim">Max Files:</span>    <span class="t-white">3 rotated copies</span></samp></pre>
+
+### logs:tail
+
+Show the last lines of a log file:
+
+```bash
+# Show last 20 lines of indexer.log (default)
+./ava logs:tail
+
+# Show last 20 lines of a specific log
+./ava logs:tail indexer.log
+
+# Show last 50 lines
+./ava logs:tail indexer -n 50
+```
+
+<pre><samp>  <span class="t-dim">───</span> <span class="t-bold">indexer.log (last 20 lines)</span> <span class="t-dim">─────────────────────</span>
+
+  <span class="t-dim">[2024-12-28T14:30:00+00:00]</span> Indexer errors:
+    - Missing required field "slug" in posts/draft-post.md
+    - Invalid date format in posts/old-post.md
+
+  <span class="t-dim">[2024-12-28T15:45:00+00:00]</span> Indexer errors:
+    - Duplicate ID found: posts/copy-of-post.md</samp></pre>
+
+### logs:clear
+
+Clear log files:
+
+```bash
+# Clear all logs (with confirmation)
+./ava logs:clear
+```
+
+<pre><samp>  Found <span class="t-white">3</span> log file(s) <span class="t-dim">(257.4 KB)</span>.
+
+  Clear all log files? <span class="t-dim">[y/N]:</span> <span class="t-green">y</span>
+
+  <span class="t-green">✓</span> Cleared <span class="t-white">3</span> log file(s) <span class="t-dim">(257.4 KB)</span></samp></pre>
+
+```bash
+# Clear a specific log (and its rotated copies)
+./ava logs:clear indexer.log
+```
+
+<pre><samp>  <span class="t-green">✓</span> Cleared <span class="t-white">2</span> log file(s) <span class="t-dim">(245.3 KB)</span></samp></pre>
+
+### Log Rotation
+
+Ava automatically rotates log files to prevent them from growing too large. Configure rotation in `app/config/ava.php`:
+
+```php
+'logs' => [
+    'max_size' => 10 * 1024 * 1024,  // 10 MB (default)
+    'max_files' => 3,                 // Keep 3 rotated copies
+],
+```
+
+When a log exceeds `max_size`, it's rotated:
+- `indexer.log` → `indexer.log.1`
+- `indexer.log.1` → `indexer.log.2` (etc.)
+- Oldest files beyond `max_files` are deleted
+
+See [Configuration - Logs](configuration.md?id=logs) for details.
 
 ---
 
@@ -711,7 +811,7 @@ php -S localhost:8000 -t public
 ./ava stress:generate post 1000
 
 # Check status (should be fast!)
-./ava status
+./ava benchmark
 
 # Clean up when done
 ./ava stress:clean post

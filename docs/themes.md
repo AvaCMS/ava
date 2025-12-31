@@ -1,14 +1,48 @@
 # Themes
 
-Themes control how your site looks. In Ava, a theme is just a collection of standard HTML files with a sprinkle of PHP to pull in your content.
+Ava themes are HTML-first templates with PHP available when you need it. Start with normal HTML, then sprinkle in `<?= ?>` to output data or call helpers. There’s no custom templating language, no build step, and no new syntax to learn.
 
-## Why Plain PHP?
+```php
+<!-- Output a title -->
+<h1><?= $ava->e($item->title()) ?></h1>
 
-We believe you shouldn't have to learn a complex template language just to display a title.
+<!-- Render the Markdown content as HTML -->
+<div class="content">
+    <?= $ava->content($item) ?>
+</div>
 
-- **🧱 It's just HTML.** If you know HTML, you're 90% of the way there.
-- **🛠️ Simple Helpers.** We provide an easy `$ava` helper to get what you need.
-- **⚡ Zero Compilation.** Edit a file, refresh your browser, and see the change instantly.
+<!-- Link to a stylesheet in your theme's assets folder -->
+<link rel="stylesheet" href="<?= $ava->asset('style.css') ?>">
+
+<!-- Loop through recent posts -->
+<?php foreach ($ava->recent('post', 5) as $post): ?>
+    <article>
+        <h2><a href="<?= $ava->url('post', $post->slug()) ?>"><?= $ava->e($post->title()) ?></a></h2>
+        <time><?= $ava->date($post->date()) ?></time>
+    </article>
+<?php endforeach; ?>
+```
+
+You decide how much custom PHP to use: none for simple pages, or more for dynamic layouts. The helpers are there when you want them, but HTML remains the core.
+
+## Why HTML + PHP (and not a custom templating language)?
+
+**What you gain**
+- **Familiar building blocks** — If you know HTML, you can start immediately. Output is just `<?= $variable ?>` and the `$ava` helper.
+- **No build pipeline** — Save the file, refresh the browser. No compilers, watchers, or caches to clear.
+- **Full power available** — Need a loop, conditional, or a custom helper? Use plain PHP—no special template language or custom syntax.
+- **Easy to debug** — Standard PHP errors, standard stack traces. Nothing is hidden behind a template engine.
+
+**What you trade off**
+- Syntax is a bit noisier than `{{ }}`-style engines
+- You should know (or be willing to learn) a few PHP basics: `<?= ?>`, `if`, `foreach`
+- Very complex view logic should live in helpers or `theme.php` to keep templates readable
+
+**Who this suits**
+- Designers comfortable with HTML/CSS who want minimal new concepts
+- Developers who want flexibility without adopting a custom template language or dealing with additional tooling
+- Beginners who want to learn web fundamentals instead of framework-specific magic
+- Teams that prefer transparency and portability 
 
 ## Theme Structure
 
@@ -30,7 +64,7 @@ themes/
 
 ## Using Assets
 
-Ava makes it easy to include your CSS and JS files. It even handles cache-busting automatically, so your visitors always see the latest version.
+Ava makes it easy to include your CSS and JS files. It even handles cache-busting automatically, so your visitors always see the latest version based on the files modified time.
 
 ```php
 <!-- Just ask $ava for the asset URL -->
@@ -38,7 +72,7 @@ Ava makes it easy to include your CSS and JS files. It even handles cache-bustin
 <script src="<?= $ava->asset('script.js') ?>"></script>
 ```
 
-This outputs a URL like `/theme/style.css?v=123456`, ensuring instant updates when you change the file.
+?> This outputs a URL like `/theme/style.css?v=123456`, ensuring instant updates when you change the file without worrying about browser or CDN caching.
 
 ## Template Basics
 
@@ -46,34 +80,41 @@ In your template files (like `page.php`), you have access to your content variab
 
 ```php
 <!-- templates/post.php -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title><?= $page->title() ?></title>
-</head>
-<body>
-    <h1><?= $page->title() ?></h1>
+<?= $ava->partial('header', ['title' => $item->title()]) ?>
+
+<article>
+    <h1><?= $ava->e($item->title()) ?></h1>
     
     <div class="content">
-        <?= $page->content() ?>
+        <?= $ava->content($item) ?>
     </div>
     
-    <p>Published on <?= $page->date()->format('F j, Y') ?></p>
-</body>
-</html>
+    <?php if ($item->date()): ?>
+        <time><?= $ava->date($item->date(), 'F j, Y') ?></time>
+    <?php endif; ?>
+</article>
+
+<?= $ava->partial('footer') ?>
 ```
 
-See? It's just HTML with simple tags to show your data.
+It's just HTML with simple tags to show your data.
 
 ## Available Variables
 
-| Variable | What it is |
-|----------|-------------|
-| `$site` | Global site info (name, URL). |
-| `$page` | The current page or post being viewed. |
-| `$theme` | Info about the current theme. |
-| `$request` | Details about the current URL. |
-| `$ava` | TemplateHelpers instance |
+These variables are available in your templates:
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `$item` | `Item` | The current content item (for single post/page templates). |
+| `$query` | `Query` | Query object for archive/listing templates. |
+| `$tax` | `array` | Taxonomy info for taxonomy templates (`name`, `term`, `items`). |
+| `$site` | `array` | Site configuration (`name`, `url`, `timezone`). |
+| `$theme` | `array` | Current theme info (`name`, `path`, `url`). |
+| `$request` | `Request` | Current HTTP request (path, query params, etc.). |
+| `$route` | `RouteMatch` | Matched route information. |
+| `$ava` | `TemplateHelpers` | Helper methods for rendering, URLs, queries, and more. |
+
+?> Not all variables are present in every template. For example, `$item` only exists on single content pages, while `$query` is for archives.
 
 ## The `$ava` Helper
 
@@ -83,17 +124,38 @@ Templates have access to `$ava` with these methods:
 
 ```php
 // Render item's Markdown body
-<?= $ava->content($page) ?>
+<?= $ava->content($item) ?>
 
 // Render Markdown string
 <?= $ava->markdown('**bold**') ?>
 
-// Render a partial
-<?= $ava->partial('header', ['title' => 'Custom']) ?>
-
 // Expand path aliases
-<?= $ava->expand('@uploads:image.jpg') ?>
+<?= $ava->expand('@media:image.jpg') ?>
 ```
+
+### Partials
+
+Partials are reusable template fragments stored in `themes/{theme}/partials/`. Use them to avoid repeating common elements like headers, footers, or sidebars.
+
+```php
+// Render a partial
+<?= $ava->partial('header') ?>
+
+// Pass data to a partial
+<?= $ava->partial('card', ['title' => 'Hello', 'link' => '/about']) ?>
+```
+
+Inside a partial, passed data becomes local variables:
+
+```php
+<!-- partials/card.php -->
+<div class="card">
+    <h3><?= $ava->e($title) ?></h3>
+    <a href="<?= $link ?>">Read more</a>
+</div>
+```
+
+Partials inherit the same helper methods (`$ava`, `$site`, `$theme`) as templates.
 
 ### URLs
 
@@ -176,9 +238,9 @@ $about = $ava->get('page', 'about');
 $categories = $ava->terms('category');
 ```
 
-### The `$page` (Item) Object
+### The `$item` Object
 
-Every content item gives you access to its data through the `$page` variable (or `$item` in loops).
+Every content item gives you access to its data through the `$item` variable.
 
 #### Core Properties
 
@@ -187,7 +249,7 @@ Every content item gives you access to its data through the `$page` variable (or
 | `id()` | `string\|null` | Unique identifier (ULID) |
 | `title()` | `string` | Title from frontmatter |
 | `slug()` | `string` | URL-friendly slug |
-| `status()` | `string` | `draft`, `published`, or `private` |
+| `status()` | `string` | `draft`, `published`, or `unlisted` |
 | `type()` | `string` | Content type (`page`, `post`, etc.) |
 
 #### Status Helpers
@@ -196,7 +258,7 @@ Every content item gives you access to its data through the `$page` variable (or
 |--------|---------|-------------|
 | `isPublished()` | `bool` | Is status "published"? |
 | `isDraft()` | `bool` | Is status "draft"? |
-| `isPrivate()` | `bool` | Is status "private"? |
+| `isUnlisted()` | `bool` | Is status "unlisted"? |
 
 #### Dates
 
@@ -206,9 +268,9 @@ Every content item gives you access to its data through the `$page` variable (or
 | `updated()` | `DateTimeImmutable\|null` | Last updated (falls back to date) |
 
 ```php
-<?php if ($page->date()): ?>
-    <time datetime="<?= $page->date()->format('c') ?>">
-        <?= $ava->date($page->date(), 'F j, Y') ?>
+<?php if ($item->date()): ?>
+    <time datetime="<?= $item->date()->format('c') ?>">
+        <?= $ava->date($item->date(), 'F j, Y') ?>
     </time>
 <?php endif; ?>
 ```
@@ -223,10 +285,10 @@ Every content item gives you access to its data through the `$page` variable (or
 
 ```php
 // Render the Markdown body to HTML
-<?= $ava->content($page) ?>
+<?= $ava->content($item) ?>
 
 // Or access excerpt
-<p><?= $ava->e($page->excerpt()) ?></p>
+<p><?= $ava->e($item->excerpt()) ?></p>
 ```
 
 #### Custom Fields
@@ -235,12 +297,12 @@ Access any frontmatter field using `get()`:
 
 ```php
 // Get a custom field with optional default
-$role = $page->get('role', 'Unknown');
-$featured = $page->get('featured', false);
+$role = $item->get('role', 'Unknown');
+$featured = $item->get('featured', false);
 
 // Check if a field exists
-if ($page->has('website')) {
-    echo '<a href="' . $ava->e($page->get('website')) . '">Visit Website</a>';
+if ($item->has('website')) {
+    echo '<a href="' . $ava->e($item->get('website')) . '">Visit Website</a>';
 }
 ```
 
@@ -252,7 +314,7 @@ if ($page->has('website')) {
 | `terms('category')` | `array` | Terms for specific taxonomy |
 
 ```php
-<?php foreach ($page->terms('category') as $term): ?>
+<?php foreach ($item->terms('category') as $term): ?>
     <a href="<?= $ava->termUrl('category', $term) ?>"><?= $ava->e($term) ?></a>
 <?php endforeach; ?>
 ```
@@ -315,14 +377,14 @@ $alphabetical = $ava->query()
     ->get();
 ```
 
-### SEO
+### Head
 
 ```php
 // Meta tags for item
-<?= $ava->metaTags($page) ?>
+<?= $ava->metaTags($item) ?>
 
 // Per-item CSS/JS
-<?= $ava->itemAssets($page) ?>
+<?= $ava->itemAssets($item) ?>
 ```
 
 ### Pagination
@@ -338,11 +400,14 @@ $alphabetical = $ava->query()
 // Escape HTML
 <?= $ava->e($value) ?>
 
-// Format date
-<?= $ava->date($page->date(), 'F j, Y') ?>
+// Format date (see PHP date() format codes)
+<?= $ava->date($item->date(), 'F j, Y') ?>    // December 31, 2025
+<?= $ava->date($item->date(), 'Y-m-d') ?>     // 2025-12-31
+<?= $ava->date($item->date(), 'M j') ?>       // Dec 31
+<?= $ava->date($item->date(), 'l, F jS') ?>   // Wednesday, December 31st
 
 // Relative time
-<?= $ava->ago($page->date()) ?>
+<?= $ava->ago($item->date()) ?>  // "2 hours ago", "3 days ago"
 
 // Truncate to words
 <?= $ava->excerpt($text, 55) ?>
@@ -351,71 +416,223 @@ $alphabetical = $ava->query()
 <?= $ava->config('site.name') ?>
 ```
 
-## Example Template
+?> Date formats use [PHP's date() format codes](https://www.php.net/manual/en/datetime.format.php). Common: `Y` (year), `m` (month), `d` (day), `F` (full month name), `M` (short month), `j` (day without zero).
+
+## Template Resolution
+
+When a content item is requested, Ava looks for a template in this order:
+
+1. **Frontmatter `template` field** — If the item specifies `template: landing`, use `templates/landing.php`
+2. **Content type's template** — From `content_types.php`, e.g., posts use `post.php`
+3. **`single.php` fallback** — A generic single-item template
+4. **`index.php` fallback** — The ultimate default
+
+For archives and taxonomy pages, Ava uses:
+- `archive.php` for content type listings
+- `taxonomy.php` for taxonomy term pages
+- Falls back to `index.php` if not found
+
+## Partials
+
+Partials are reusable template fragments stored in `themes/{theme}/partials/`. Use them for headers, footers, sidebars, and other repeated elements:
 
 ```php
+<!-- Render a partial -->
+<?= $ava->partial('header') ?>
+
+<!-- Pass data to a partial -->
+<?= $ava->partial('header', ['title' => $item->title(), 'showNav' => true]) ?>
+```
+
+In the partial file, passed data becomes local variables:
+
+```php
+<!-- partials/header.php -->
+<header>
+    <h1><?= $ava->e($title ?? $site['name']) ?></h1>
+    <?php if ($showNav ?? true): ?>
+        <nav>...</nav>
+    <?php endif; ?>
+</header>
+```
+
+Partials automatically inherit `$site`, `$theme`, `$request`, and `$ava`.
+
+## Example Templates
+
+Here's a complete example showing how partials, templates, and layouts work together.
+
+### Header Partial
+
+```php
+<!-- partials/header.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <?= $ava->metaTags($page) ?>
-    <?= $ava->itemAssets($page) ?>
+    <title><?= $ava->e($title ?? $site['name']) ?></title>
+    <?php if (isset($item)): ?>
+        <?= $ava->metaTags($item) ?>
+        <?= $ava->itemAssets($item) ?>
+    <?php endif; ?>
     <link rel="stylesheet" href="<?= $ava->asset('style.css') ?>">
 </head>
 <body>
-    <header>
-        <a href="/"><?= $ava->e($site['name']) ?></a>
+    <header class="site-header">
+        <a href="/" class="logo"><?= $ava->e($site['name']) ?></a>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/blog">Blog</a>
+        </nav>
     </header>
-
     <main>
-        <article>
-            <h1><?= $ava->e($page->title()) ?></h1>
-            
-            <?php if ($page->date()): ?>
-                <time datetime="<?= $page->date()->format('c') ?>">
-                    <?= $ava->date($page->date()) ?>
-                </time>
-            <?php endif; ?>
+```
 
-            <div class="content">
-                <?= $ava->content($page) ?>
-            </div>
-        </article>
+### Footer Partial
+
+```php
+<!-- partials/footer.php -->
     </main>
-
-    <footer>
-        &copy; <?= date('Y') ?> <?= $ava->e($site['name']) ?>
+    <footer class="site-footer">
+        <p>&copy; <?= date('Y') ?> <?= $ava->e($site['name']) ?></p>
     </footer>
+    <script src="<?= $ava->asset('script.js') ?>"></script>
 </body>
 </html>
 ```
 
-## Template Resolution
+### Page Template
 
-Templates are resolved in order:
+```php
+<!-- templates/page.php -->
+<?= $ava->partial('header', ['title' => $item->title(), 'item' => $item]) ?>
 
-1. Frontmatter `template` field
-2. Content type's configured template
-3. `single.php` fallback
-4. `index.php` fallback
+<article class="page">
+    <h1><?= $ava->e($item->title()) ?></h1>
+    
+    <div class="content">
+        <?= $ava->content($item) ?>
+    </div>
+</article>
+
+<?= $ava->partial('footer') ?>
+```
+
+### Post Template
+
+```php
+<!-- templates/post.php -->
+<?= $ava->partial('header', ['title' => $item->title(), 'item' => $item]) ?>
+
+<article class="post">
+    <header class="post-header">
+        <h1><?= $ava->e($item->title()) ?></h1>
+        
+        <?php if ($item->date()): ?>
+            <time datetime="<?= $item->date()->format('c') ?>">
+                <?= $ava->date($item->date(), 'F j, Y') ?>
+            </time>
+        <?php endif; ?>
+        
+        <?php if ($categories = $item->terms('category')): ?>
+            <div class="categories">
+                <?php foreach ($categories as $term): ?>
+                    <a href="<?= $ava->termUrl('category', $term) ?>"><?= $ava->e($term) ?></a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </header>
+    
+    <div class="content">
+        <?= $ava->content($item) ?>
+    </div>
+</article>
+
+<?= $ava->partial('footer') ?>
+```
+
+### Archive Template
+
+```php
+<!-- templates/archive.php -->
+<?= $ava->partial('header', ['title' => 'Blog']) ?>
+
+<h1>Blog</h1>
+
+<?php foreach ($query->get() as $post): ?>
+    <article class="post-summary">
+        <h2><a href="<?= $ava->url('post', $post->slug()) ?>"><?= $ava->e($post->title()) ?></a></h2>
+        <time><?= $ava->date($post->date(), 'M j, Y') ?></time>
+        <?php if ($post->excerpt()): ?>
+            <p><?= $ava->e($post->excerpt()) ?></p>
+        <?php endif; ?>
+    </article>
+<?php endforeach; ?>
+
+<?= $ava->pagination($query, $request->path()) ?>
+
+<?= $ava->partial('footer') ?>
+```
 
 ## Theme Bootstrap
 
-`theme.php` can register hooks and shortcodes:
+`theme.php` runs when your theme loads. Use it for hooks, shortcodes, and custom routes:
 
 ```php
 <?php
+// themes/yourtheme/theme.php
 
-use Ava\Plugins\Hooks;
 use Ava\Application;
+use Ava\Plugins\Hooks;
 
-// Add theme shortcode
-Application::getInstance()->shortcodes()->register('theme_version', fn() => '1.0.0');
+$app = Application::getInstance();
 
-// Modify template context
+// Register shortcodes
+$app->shortcodes()->register('theme_version', fn() => '1.0.0');
+
+// Add data to all templates
 Hooks::addFilter('render.context', function (array $context) {
-    $context['theme_setting'] = 'value';
+    $context['social_links'] = [
+        'twitter' => 'https://twitter.com/yoursite',
+        'github' => 'https://github.com/yoursite',
+    ];
     return $context;
 });
+
+// Custom route
+$app->router()->addRoute('/search', function ($request) use ($app) {
+    // Handle search...
+});
 ```
+
+### Organizing Larger Themes
+
+If your `theme.php` grows unwieldy, split it into multiple files:
+
+```php
+<?php
+// themes/yourtheme/theme.php
+
+require __DIR__ . '/inc/shortcodes.php';
+require __DIR__ . '/inc/hooks.php';
+require __DIR__ . '/inc/routes.php';
+```
+
+```php
+<?php
+// themes/yourtheme/inc/shortcodes.php
+
+use Ava\Application;
+
+$shortcodes = Application::getInstance()->shortcodes();
+
+$shortcodes->register('button', function (array $attrs, ?string $content) {
+    $url = $attrs['url'] ?? '#';
+    $class = $attrs['class'] ?? 'btn';
+    return '<a href="' . htmlspecialchars($url) . '" class="' . htmlspecialchars($class) . '">' . htmlspecialchars($content ?? 'Click') . '</a>';
+});
+```
+
+This keeps your theme organized while maintaining portability—everything travels with your theme folder.

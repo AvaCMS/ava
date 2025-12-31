@@ -32,7 +32,7 @@ The most important folders to back up are:
 
 - **`content/`** — All your pages, posts, and media
 - **`app/config/`** — Your site settings
-- **`themes/`** — Your customized themes
+- **`themes/`** — Your customised themes
 
 Everything else (like `core/`, `vendor/`, `storage/cache/`) can be regenerated or re-downloaded.
 
@@ -169,6 +169,13 @@ Your content and configuration are in separate directories from core files, so t
 1. Run `composer install` to update dependencies
 2. Run `php bin/ava rebuild` to rebuild the content index
 3. Check the changelog for breaking changes
+
+
+### After updating, custom files are missing
+
+1. If you modified core files (not recommended), your changes may have been overwritten. Restore from backup.
+2. Custom themes, plugins and custom files in the public folder should be unaffected, but always double-check. Set-ups can be inconsistent across different sites and servers and the updater may not cover every edge case.
+3. Restore from backup if necessary.
 
 ---
 

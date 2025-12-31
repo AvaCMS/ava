@@ -68,7 +68,6 @@
                                 'email' => ['syntax' => '[email]you@example.com[/email]', 'desc' => 'Obfuscated email'],
                                 'snippet' => ['syntax' => '[snippet name="..."]', 'desc' => 'Include snippet'],
                                 'include' => ['syntax' => '[include file="..."]', 'desc' => 'Include file'],
-                                'button' => ['syntax' => '[button url="..." text="..."]', 'desc' => 'Styled button'],
                             ];
                             foreach ($shortcodes as $tag): 
                                 $info = $shortcodeInfo[$tag] ?? ['syntax' => "[{$tag}]", 'desc' => 'Custom shortcode'];

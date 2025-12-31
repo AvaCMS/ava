@@ -375,9 +375,9 @@ final class Application
             'route' => $match,
         ];
 
-        // Add page context for single routes
+        // Add item context for single routes
         if ($match->getContentItem() !== null) {
-            $context['page'] = $match->getContentItem();
+            $context['item'] = $match->getContentItem();
         }
 
         // Add query context for archives

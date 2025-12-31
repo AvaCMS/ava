@@ -79,7 +79,7 @@ date: 2024-12-28
 This is my first post. I can use **bold**, *italics*, and [links](https://example.com).
 ```
 
-**Tip:** You can keep drafts forever. Set `status: draft` while writing, then switch to `published` when you’re happy.
+You can keep drafts forever. Set `status: draft` while writing, then switch to `published` when you’re happy.
 
 ## Creating Content
 
@@ -131,7 +131,7 @@ This creates a properly formatted file with:
 - Date (for dated types)
 - Draft status
 
-**Beginner's need not worry**: the CLI isn’t “advanced mode” — it’s just a helper that saves you from remembering boilerplate and file naming.
+?> **Beginner's need not worry**: the CLI isn’t “advanced mode”, it’s just a helper that saves you from remembering boilerplate and file naming. It's a great way to dip your toes in to command-line tools without getting overwhelmed.
 
 ### Manually
 
@@ -161,7 +161,7 @@ content/
     └── tag.yml
 ```
 
-**Tip:** For pages, folder structure usually maps nicely to URLs. For example `content/pages/services/web.md` becomes `/services/web`.
+For pages, folder structure usually maps nicely to URLs. For example `content/pages/services/web.md` becomes `/services/web`.
 
 ## Frontmatter Reference
 
@@ -187,7 +187,7 @@ tag:
   - beginner
 meta_title: SEO-Optimized Title
 meta_description: Description for search engines.
-og_image: "@uploads:2024/social-card.jpg"
+og_image: "@media:2024/social-card.jpg"
 noindex: false
 cache: true
 redirect_from:
@@ -195,9 +195,9 @@ redirect_from:
   - /another-old-url
 assets:
   css:
-    - "@uploads:custom.css"
+    - "@media:css/custom-post.css"
   js:
-    - "@assets:interactive.js"
+    - "@media:js/interactive.js"
 ---
 
 Your Markdown content goes here...
@@ -212,7 +212,7 @@ These fields are used by Ava to manage and display your content.
 | `id` | Auto | Unique identifier (auto-generated when using `./ava make`). Don't edit this. |
 | `title` | Yes | The title of your page or post. |
 | `slug` | Yes | URL-friendly name. If omitted, Ava generates one from the title. |
-| `status` | Yes | Visibility: `draft`, `published`, or `private`. |
+| `status` | Yes | Visibility: `draft`, `published`, or `unlisted`. |
 | `date` | For posts | Publication date in `YYYY-MM-DD` format. |
 | `excerpt` | No | Short summary for listings, search results, and feeds. |
 | `template` | No | Use a specific template (e.g., `landing.php`). Overrides the default. |
@@ -259,14 +259,14 @@ Load CSS or JS only on specific pages:
 ```yaml
 assets:
   css:
-    - "@uploads:2024/custom.css"
+    - "@media:css/custom-post.css"
   js:
-    - "@assets:interactive.js"
+    - "@media:js/interactive.js"
 ```
 
 ### Custom Fields
 
-You can add **any custom fields** you like! They're accessible in your templates via `$page->get('field_name')`.
+You can add **any custom fields** you like! They're accessible in your templates via `$item->get('field_name')`.
 
 ```yaml
 ---
@@ -282,9 +282,9 @@ featured: true
 
 In your template:
 ```php
-<h1><?= $ava->e($page->title()) ?></h1>
-<p>Role: <?= $ava->e($page->get('role')) ?></p>
-<?php if ($page->get('featured')): ?>
+<h1><?= $ava->e($item->title()) ?></h1>
+<p>Role: <?= $ava->e($item->get('role')) ?></p>
+<?php if ($item->get('featured')): ?>
     <span class="badge">Featured</span>
 <?php endif; ?>
 ```
@@ -303,32 +303,61 @@ redirect_from:
 
 Requests to the old URLs will 301 redirect to the new location.
 
-## Per-Item Assets
+## Per-Item Assets (Art-Directed Posts)
 
-Load CSS or JS only on specific pages:
+For art-directed blogging, you can load custom CSS or JS on specific pages. Put your files in `public/media/` and reference them:
 
 ```yaml
 assets:
   css:
-    - "@uploads:2024/custom-post.css"
+    - "@media:css/my-styled-post.css"
   js:
-    - "@assets:interactive-chart.js"
+    - "@media:js/interactive-chart.js"
 ```
+
+Your theme must include `<?= $ava->itemAssets($item) ?>` in the `<head>` for these to load (the default theme already does this).
+
+## Where to Put Images and Media
+
+<div class="beginner-box">
+<strong>Start here</strong>
+
+- Put user-facing images and files in <code>public/media/</code> (use the <code>@media:</code> alias).
+- Theme assets are handled by your theme’s asset pipeline/helpers; don’t drop theme CSS/JS here.
+- Keep content (Markdown) in <code>content/</code>; reference media via aliases so paths stay clean.
+
+Project snapshot:
+
+```text
+public/
+  media/         # your images, PDFs, downloads
+  index.php
+content/         # your Markdown pages/posts
+```
+
+Example Markdown:
+
+```markdown
+![Team photo](@media:team/group.jpg)
+
+[Download PDF](@media:docs/guide.pdf)
+```
+</div>
 
 ## Path Aliases
 
-Use aliases instead of hard-coded URLs. These are configured in `ava.php` and expanded at render time:
+Use aliases instead of hard-coded URLs. These are configured in [`ava.php`](configuration.md#path-aliases) and expanded at render time:
 
-| Alias | Default Expansion |
-|-------|-------------------|
-| `@media:` | `/media/` |
-| `@uploads:` | `/media/uploads/` |
-| `@assets:` | `/assets/` |
+| Alias | Default Expansion | Use For |
+|-------|-------------------|--------|
+| `@media:` | `/media/` | Images, downloads, per-post CSS/JS |
+
+You can add custom aliases in your config (e.g., `@cdn:` for a CDN URL).
 
 Use in your Markdown:
 
 ```markdown
-![Hero image](@uploads:2024/hero.jpg)
+![Hero image](@media:images/hero.jpg)
 
 [Download PDF](@media:docs/guide.pdf)
 ```
@@ -344,9 +373,7 @@ Current year: [year]
 
 Site name: [site_name]
 
-[button url="/contact"]Contact Us[/button]
-
-[snippet name="cta" heading="Join Us"]
+Include snippet: [snippet name="cta" heading="Join Us"]
 ```
 
 See [Shortcodes](shortcodes.md) for the full reference.
@@ -356,8 +383,8 @@ See [Shortcodes](shortcodes.md) for the full reference.
 | Status | Visibility |
 |--------|------------|
 | `draft` | Hidden from site. Viewable with preview token. |
-| `published` | Visible to everyone. |
-| `private` | Hidden from listings. Accessible via direct URL with preview token. |
+| `published` | Visible to everyone. Appears in listings and archives. |
+| `unlisted` | Not in listings/archives. Accessible via direct URL (no token needed). |
 
 ## Previewing Your Site
 
@@ -430,7 +457,7 @@ php -S localhost:8000 -t public
 
 Then open `http://localhost:8000` in your browser.
 
-> **Tip:** This is a development server, not for public use. See the [Hosting Guide](hosting.md) for production options.
+!> This is a development server, not for public use. See the [Hosting Guide](hosting.md) for production options.
 
 ### Live Editing
 

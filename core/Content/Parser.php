@@ -130,8 +130,8 @@ final class Parser
             $errors[] = "Missing required field: slug — see https://ava.addy.zone/#/content?id=frontmatter-guide";
         }
 
-        if (!in_array($item->status(), ['draft', 'published', 'private'], true)) {
-            $errors[] = "Invalid status: {$item->status()} (must be draft, published, or private) — see https://ava.addy.zone/#/content?id=status";
+        if (!in_array($item->status(), ['draft', 'published', 'unlisted'], true)) {
+            $errors[] = "Invalid status: {$item->status()} (must be draft, published, or unlisted) — see https://ava.addy.zone/#/content?id=status";
         }
 
         // Validate slug is URL-safe

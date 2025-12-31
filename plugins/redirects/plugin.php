@@ -196,15 +196,235 @@ return [
                     }
 
                     $csrf = $controller->auth()->csrfToken();
+                    $admin_url = $app->config('admin.path', '/admin');
 
+                    // Render content-only view
                     ob_start();
-                    include __DIR__ . '/views/admin.php';
-                    $html = ob_get_clean();
+                    include __DIR__ . '/views/content.php';
+                    $content = ob_get_clean();
 
-                    return Response::html($html);
+                    // Use the admin layout wrapper
+                    return $controller->renderPluginPage([
+                        'title' => 'Redirects',
+                        'heading' => 'Redirects & Status Responses',
+                        'icon' => 'swap_horiz',
+                        'activePage' => 'redirects',
+                        'alertSuccess' => $message,
+                        'alertError' => $error,
+                        'headerActions' => '<span class="badge badge-muted">' . count($redirects) . ' entr' . (count($redirects) !== 1 ? 'ies' : 'y') . '</span>',
+                    ], $content);
                 },
             ];
             return $pages;
         });
     },
+
+    'commands' => [
+        [
+            'name' => 'redirects:list',
+            'description' => 'List all redirects',
+            'handler' => function (array $args, $cli) {
+                $app = \Ava\Application::getInstance();
+                $storagePath = $app->configPath('storage');
+                $redirectsFile = $storagePath . '/redirects.json';
+
+                $cli->header('Configured Redirects');
+
+                if (!file_exists($redirectsFile)) {
+                    $cli->info('No redirects configured yet.');
+                    $cli->writeln('');
+                    return 0;
+                }
+
+                $contents = file_get_contents($redirectsFile);
+                $redirects = json_decode($contents, true);
+
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $cli->error('JSON parse error: ' . json_last_error_msg());
+                    return 1;
+                }
+
+                if (empty($redirects)) {
+                    $cli->info('No redirects configured.');
+                    $cli->writeln('');
+                    return 0;
+                }
+
+                // Build table
+                $cli->writeln('');
+                $headers = ['From', 'To', 'Code', 'Type'];
+                $rows = [];
+
+                foreach ($redirects as $redirect) {
+                    $code = (int) ($redirect['code'] ?? 301);
+                    $codeInfo = REDIRECT_STATUS_CODES[$code] ?? ['label' => 'Unknown', 'redirect' => true];
+                    
+                    $rows[] = [
+                        $cli->primary($redirect['from'] ?? ''),
+                        $redirect['to'] ?? ($codeInfo['redirect'] ? '' : $cli->dim('-')),
+                        $cli->cyan((string) $code),
+                        $codeInfo['label'],
+                    ];
+                }
+
+                $cli->table($headers, $rows);
+                $cli->writeln('');
+                $cli->info('Total: ' . count($redirects) . ' redirect' . (count($redirects) !== 1 ? 's' : ''));
+                $cli->writeln('');
+
+                return 0;
+            },
+        ],
+        [
+            'name' => 'redirects:add',
+            'description' => 'Add a redirect',
+            'handler' => function (array $args, $cli) {
+                $app = \Ava\Application::getInstance();
+                $storagePath = $app->configPath('storage');
+                $redirectsFile = $storagePath . '/redirects.json';
+
+                // Parse arguments: redirects:add <from> <to> [code]
+                $from = $args[0] ?? null;
+                $to = $args[1] ?? null;
+                $code = isset($args[2]) ? (int) $args[2] : 301;
+
+                if (!$from) {
+                    $cli->header('Add Redirect');
+                    $cli->writeln('');
+                    $cli->writeln('  ' . $cli->bold('Usage:') . ' ./ava redirects:add <from> <to> [code]');
+                    $cli->writeln('');
+                    $cli->writeln('  ' . $cli->bold('Arguments:'));
+                    $cli->writeln('    ' . $cli->primary('from') . '    Source path (e.g., /old-page)');
+                    $cli->writeln('    ' . $cli->primary('to') . '      Destination URL (e.g., /new-page or https://...)');
+                    $cli->writeln('    ' . $cli->primary('code') . '    HTTP status code (default: 301)');
+                    $cli->writeln('');
+                    $cli->writeln('  ' . $cli->bold('Supported codes:'));
+                    foreach (REDIRECT_STATUS_CODES as $statusCode => $info) {
+                        $codeStr = $cli->cyan((string) $statusCode);
+                        $label = $info['label'];
+                        $type = $info['redirect'] ? $cli->green('redirect') : $cli->yellow('status');
+                        $cli->writeln("    {$codeStr}  {$label} [{$type}]");
+                    }
+                    $cli->writeln('');
+                    $cli->writeln('  ' . $cli->bold('Examples:'));
+                    $cli->writeln('    ' . $cli->dim('./ava redirects:add /old-page /new-page'));
+                    $cli->writeln('    ' . $cli->dim('./ava redirects:add /legacy https://example.com 302'));
+                    $cli->writeln('    ' . $cli->dim('./ava redirects:add /deleted "" 410'));
+                    $cli->writeln('');
+                    return 0;
+                }
+
+                // Validate code
+                if (!isset(REDIRECT_STATUS_CODES[$code])) {
+                    $cli->error("Invalid status code: {$code}");
+                    $cli->info('Supported codes: ' . implode(', ', array_keys(REDIRECT_STATUS_CODES)));
+                    return 1;
+                }
+
+                $codeInfo = REDIRECT_STATUS_CODES[$code];
+
+                // For redirect codes, destination is required
+                if ($codeInfo['redirect'] && empty($to)) {
+                    $cli->error("Destination URL required for {$code} redirects.");
+                    return 1;
+                }
+
+                // Normalize from path
+                $from = '/' . ltrim($from, '/');
+
+                // Load existing redirects
+                $redirects = [];
+                if (file_exists($redirectsFile)) {
+                    $contents = file_get_contents($redirectsFile);
+                    $redirects = json_decode($contents, true) ?? [];
+                }
+
+                // Check for duplicate
+                foreach ($redirects as $r) {
+                    if (($r['from'] ?? '') === $from) {
+                        $cli->error("Redirect already exists for: {$from}");
+                        $cli->info('Use ' . $cli->primary('redirects:remove') . ' first to replace it.');
+                        return 1;
+                    }
+                }
+
+                // Add new redirect
+                $redirects[] = [
+                    'from' => $from,
+                    'to' => $to ?: '',
+                    'code' => $code,
+                    'created' => date('Y-m-d H:i:s'),
+                ];
+
+                // Save
+                file_put_contents($redirectsFile, json_encode($redirects, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+                $cli->success("Added redirect: {$from} → " . ($to ?: "[{$code} {$codeInfo['label']}]"));
+                return 0;
+            },
+        ],
+        [
+            'name' => 'redirects:remove',
+            'description' => 'Remove a redirect',
+            'handler' => function (array $args, $cli) {
+                $app = \Ava\Application::getInstance();
+                $storagePath = $app->configPath('storage');
+                $redirectsFile = $storagePath . '/redirects.json';
+
+                $from = $args[0] ?? null;
+
+                if (!$from) {
+                    $cli->header('Remove Redirect');
+                    $cli->writeln('');
+                    $cli->writeln('  ' . $cli->bold('Usage:') . ' ./ava redirects:remove <from>');
+                    $cli->writeln('');
+                    $cli->writeln('  ' . $cli->bold('Arguments:'));
+                    $cli->writeln('    ' . $cli->primary('from') . '    Source path to remove (e.g., /old-page)');
+                    $cli->writeln('');
+                    $cli->writeln('  ' . $cli->bold('Example:'));
+                    $cli->writeln('    ' . $cli->dim('./ava redirects:remove /old-page'));
+                    $cli->writeln('');
+                    return 0;
+                }
+
+                if (!file_exists($redirectsFile)) {
+                    $cli->error('No redirects configured.');
+                    return 1;
+                }
+
+                $contents = file_get_contents($redirectsFile);
+                $redirects = json_decode($contents, true);
+
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $cli->error('JSON parse error: ' . json_last_error_msg());
+                    return 1;
+                }
+
+                // Normalize from path
+                $from = '/' . ltrim($from, '/');
+
+                // Find and remove
+                $found = false;
+                $filtered = [];
+                foreach ($redirects as $r) {
+                    if (($r['from'] ?? '') === $from) {
+                        $found = true;
+                    } else {
+                        $filtered[] = $r;
+                    }
+                }
+
+                if (!$found) {
+                    $cli->error("No redirect found for: {$from}");
+                    return 1;
+                }
+
+                // Save
+                file_put_contents($redirectsFile, json_encode($filtered, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+                $cli->success("Removed redirect: {$from}");
+                return 0;
+            },
+        ],
+    ],
 ];

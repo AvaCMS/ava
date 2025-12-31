@@ -326,18 +326,16 @@ final class Controller
         $data = [
             'errors' => $errors,
             'valid' => empty($errors),
-            'content' => $this->getContentStats(),
-            'taxonomies' => $this->getTaxonomyStats(),
-            'taxonomyConfig' => $this->getTaxonomyConfig(),
-            'site' => [
-                'name' => $this->app->config('site.name'),
-                'url' => $this->app->config('site.base_url'),
-                'timezone' => $this->app->config('site.timezone', 'UTC'),
-            ],
-            'user' => $this->auth->user(),
         ];
 
-        return Response::html($this->render('lint', $data));
+        $layout = [
+            'title' => 'Lint Content',
+            'icon' => 'check_circle',
+            'activePage' => 'lint',
+            'headerActions' => $this->defaultHeaderActions(),
+        ];
+
+        return Response::html($this->render('content/lint', $data, $layout));
     }
 
     /**
@@ -388,19 +386,35 @@ final class Controller
         $data = [
             'shortcodes' => $shortcodeTags,
             'snippets' => $snippets,
-            'content' => $this->getContentStats(),
-            'taxonomies' => $this->getTaxonomyStats(),
-            'taxonomyConfig' => $this->getTaxonomyConfig(),
-            'site' => [
-                'name' => $this->app->config('site.name'),
-                'url' => $this->app->config('site.base_url'),
-                'timezone' => $this->app->config('site.timezone', 'UTC'),
-            ],
-            'csrf' => $this->auth->csrfToken(),
-            'user' => $this->auth->user(),
         ];
 
-        return Response::html($this->render('shortcodes', $data));
+        $scripts = <<<'JS'
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const text = this.dataset.copy;
+        navigator.clipboard.writeText(text).then(() => {
+            const icon = this.querySelector('.material-symbols-rounded');
+            icon.textContent = 'check';
+            this.classList.add('copied');
+            setTimeout(() => {
+                icon.textContent = 'content_copy';
+                this.classList.remove('copied');
+            }, 1500);
+        });
+    });
+});
+JS;
+
+        $layout = [
+            'title' => 'Shortcodes',
+            'heading' => 'Shortcodes Reference',
+            'icon' => 'code',
+            'activePage' => 'shortcodes',
+            'headerActions' => $this->defaultHeaderActions(),
+            'scripts' => $scripts,
+        ];
+
+        return Response::html($this->render('content/shortcodes', $data, $layout));
     }
 
     /**
@@ -1241,7 +1255,14 @@ final class Controller
         ];
     }
 
-    private function render(string $view, array $data): string
+    /**
+     * Render a core admin page using the layout.
+     * 
+     * @param string $view View name (without .php) in views/ directory
+     * @param array $data Data to pass to the view
+     * @param array $layout Layout options (title, icon, headerActions, etc.)
+     */
+    private function render(string $view, array $data, array $layout = []): string
     {
         $data['admin_url'] = $this->adminUrl();
         $data['ava'] = $this->app;
@@ -1250,11 +1271,115 @@ final class Controller
         $sidebarData = $this->getSidebarData();
         $data = array_merge($sidebarData, $data);
 
-        extract($data);
+        // If layout options provided, use the layout system
+        if (!empty($layout)) {
+            // Render content view
+            extract($data);
+            ob_start();
+            include __DIR__ . '/views/' . $view . '.php';
+            $pageContent = ob_get_clean();
 
+            // Build layout data
+            $layoutData = array_merge($sidebarData, [
+                'admin_url' => $this->adminUrl(),
+                'ava' => $this->app,
+                'pageTitle' => $layout['title'] ?? 'Admin',
+                'pageHeading' => $layout['heading'] ?? $layout['title'] ?? 'Admin',
+                'pageIcon' => $layout['icon'] ?? 'dashboard',
+                'activePage' => $layout['activePage'] ?? '',
+                'headerActions' => $layout['headerActions'] ?? '',
+                'alertSuccess' => $layout['alertSuccess'] ?? null,
+                'alertError' => $layout['alertError'] ?? null,
+                'alertWarning' => $layout['alertWarning'] ?? null,
+                'pageContent' => $pageContent,
+                'pageScripts' => $layout['scripts'] ?? null,
+            ]);
+
+            extract($layoutData);
+            ob_start();
+            include __DIR__ . '/views/_layout.php';
+            return ob_get_clean();
+        }
+
+        // Legacy: render full view (for dashboard which has complex structure)
+        extract($data);
         ob_start();
         include __DIR__ . '/views/' . $view . '.php';
         return ob_get_clean();
+    }
+
+    /**
+     * Render a plugin admin page using the admin layout.
+     * 
+     * This method allows plugins to define only their main content,
+     * while the admin layout (header, sidebar, footer, scripts) is
+     * automatically wrapped around it.
+     * 
+     * @param array $options Page options:
+     *   - 'title' (string): Page title for browser tab
+     *   - 'heading' (string): Main heading (defaults to title)
+     *   - 'icon' (string): Material icon name
+     *   - 'activePage' (string): Sidebar highlight identifier
+     *   - 'headerActions' (string): HTML for header action buttons
+     *   - 'alertSuccess' (string): Success message to display
+     *   - 'alertError' (string): Error message to display
+     *   - 'alertWarning' (string): Warning message to display
+     *   - 'scripts' (string): Additional JavaScript code
+     * @param string $content The main page content HTML
+     * @return Response
+     */
+    public function renderPluginPage(array $options, string $content): Response
+    {
+        $sidebarData = $this->getSidebarData();
+        
+        $data = array_merge($sidebarData, [
+            'admin_url' => $this->adminUrl(),
+            'ava' => $this->app,
+            'pageTitle' => $options['title'] ?? 'Plugin',
+            'pageHeading' => $options['heading'] ?? $options['title'] ?? 'Plugin',
+            'pageIcon' => $options['icon'] ?? 'extension',
+            'activePage' => $options['activePage'] ?? '',
+            'headerActions' => $options['headerActions'] ?? '',
+            'alertSuccess' => $options['alertSuccess'] ?? null,
+            'alertError' => $options['alertError'] ?? null,
+            'alertWarning' => $options['alertWarning'] ?? null,
+            'pageContent' => $content,
+            'pageScripts' => $options['scripts'] ?? null,
+        ]);
+
+        extract($data);
+
+        ob_start();
+        include __DIR__ . '/views/_layout.php';
+        $html = ob_get_clean();
+
+        return Response::html($html);
+    }
+
+    /**
+     * Get the Application instance for plugins.
+     */
+    public function app(): Application
+    {
+        return $this->app;
+    }
+
+    /**
+     * Get default header actions HTML (Docs + View Site buttons).
+     */
+    private function defaultHeaderActions(): string
+    {
+        $siteUrl = htmlspecialchars($this->app->config('site.base_url', ''));
+        return <<<HTML
+<a href="https://adamgreenough.github.io/ava/" target="_blank" class="btn btn-secondary btn-sm">
+    <span class="material-symbols-rounded">menu_book</span>
+    <span class="hide-mobile">Docs</span>
+</a>
+<a href="{$siteUrl}" target="_blank" class="btn btn-secondary btn-sm">
+    <span class="material-symbols-rounded">open_in_new</span>
+    <span class="hide-mobile">View Site</span>
+</a>
+HTML;
     }
 
     private function adminUrl(): string

@@ -65,7 +65,7 @@ GitHub's zipball automatically includes everything in the repo. The updater only
 
 **Never updated:**
 - `content/` — User content
-- `themes/` — All themes, including default (user may have customized)
+- `themes/` — All themes, including default (user may have customised)
 - `app/config/` — User configuration
 - `app/config/users.php` — Admin users (gitignored)
 - `storage/` — Cache and logs (gitignored except structure)

@@ -1,16 +1,23 @@
 # Creating Plugins
 
-Want to add a new feature to Ava? Plugins are the way to do it.
+Plugins let you extend Ava with reusable, shareable functionality that lives outside your theme.
 
-## What is a Plugin?
+## Plugins vs theme.php
 
-A plugin is just a folder with a PHP file in it. It lets you add code to your site without touching core files.
+You might wonder: *"Can't I just put everything in theme.php?"*
 
-You can use plugins to:
-- Add new [shortcodes](shortcodes.md)
-- Create custom routes (like a JSON API)
-- Hook into Ava's lifecycle (modify content, add template variables, etc.)
-- Add pages to the admin dashboard
+Yes! For many sites, `theme.php` is all you need. But plugins are better when:
+
+| Use theme.php | Use a Plugin |
+|---------------|--------------|
+| Theme-specific features | Features that work with any theme |
+| Site customizations | Code you want to share with others |
+| Simple hooks and shortcodes | Admin dashboard pages |
+| Quick, one-off additions | CLI commands |
+
+**Think of it this way:** If you switch themes, anything in `theme.php` disappears. Plugins survive theme changes because they live in a separate folder.
+
+The bundled plugins (sitemap, feed, redirects) are good examples — they work regardless of which theme you use.
 
 ## Your First Plugin
 
@@ -192,10 +199,13 @@ use Ava\Http\Response;
 
 ## Adding Admin Pages
 
+Plugins can add custom pages to the admin dashboard. The recommended approach uses `renderPluginPage()` which automatically wraps your content in the admin layout (sidebar, header, footer). This ensures your plugin stays compatible with future admin updates.
+
+### Basic Example
+
 ```php
 use Ava\Plugins\Hooks;
 use Ava\Http\Request;
-use Ava\Http\Response;
 use Ava\Application;
 
 'boot' => function($app) {
@@ -205,9 +215,22 @@ use Ava\Application;
             'icon' => 'extension',            // Material icon name
             'section' => 'Plugins',           // Sidebar section
             'handler' => function(Request $request, Application $app, $controller) {
-                ob_start();
-                include __DIR__ . '/views/admin.php';
-                return Response::html(ob_get_clean());
+                // Your page content (just the main content, no layout)
+                $content = '<div class="card">
+                    <div class="card-header">
+                        <span class="card-title">My Plugin Settings</span>
+                    </div>
+                    <div class="card-body">
+                        <p>Your plugin content goes here.</p>
+                    </div>
+                </div>';
+
+                // Use renderPluginPage() to wrap in admin layout
+                return $controller->renderPluginPage([
+                    'title' => 'My Plugin',      // Browser tab title
+                    'icon' => 'extension',       // Header icon
+                    'activePage' => 'my-plugin', // Highlights in sidebar
+                ], $content);
             },
         ];
         return $pages;
@@ -215,23 +238,147 @@ use Ava\Application;
 }
 ```
 
-## Registering Shortcodes
+### Using a View File
 
+For more complex pages, create a content-only view file:
+
+**plugins/my-plugin/views/content.php:**
 ```php
-'boot' => function($app) {
-    $shortcodes = $app->shortcodes();
-    
-    $shortcodes->register('button', function($attrs, $content) {
-        $href = htmlspecialchars($attrs['href'] ?? '#');
-        $class = htmlspecialchars($attrs['class'] ?? 'btn');
-        return "<a href=\"{$href}\" class=\"{$class}\">{$content}</a>";
-    });
-}
+<?php
+// Only the main content - no <html>, <head>, sidebar, etc.
+?>
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-label">
+            <span class="material-symbols-rounded">check</span>
+            Status
+        </div>
+        <div class="stat-value"><?= $isActive ? 'Active' : 'Inactive' ?></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">
+            <span class="material-symbols-rounded">settings</span>
+            Configuration
+        </span>
+    </div>
+    <div class="card-body">
+        <p><?= htmlspecialchars($message) ?></p>
+    </div>
+</div>
 ```
 
-Usage: `[button href="/contact" class="btn-primary"]Get in Touch[/button]`
+**plugins/my-plugin/plugin.php:**
+```php
+'handler' => function(Request $request, Application $app, $controller) {
+    // Prepare your data
+    $isActive = true;
+    $message = 'Plugin is working!';
 
-See [Shortcodes](shortcodes.md) for more details.
+    // Render your content-only view
+    ob_start();
+    include __DIR__ . '/views/content.php';
+    $content = ob_get_clean();
+
+    // Wrap in admin layout
+    return $controller->renderPluginPage([
+        'title' => 'My Plugin',
+        'icon' => 'extension',
+        'activePage' => 'my-plugin',
+    ], $content);
+},
+```
+
+### renderPluginPage() Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `title` | string | Page title (shown in browser tab) |
+| `heading` | string | Main heading (defaults to title) |
+| `icon` | string | Material icon name for header |
+| `activePage` | string | Page slug for sidebar highlighting |
+| `headerActions` | string | HTML for header action buttons |
+| `alertSuccess` | string | Success message to display |
+| `alertError` | string | Error message to display |
+| `alertWarning` | string | Warning message to display |
+
+### Header Actions Example
+
+```php
+return $controller->renderPluginPage([
+    'title' => 'My Plugin',
+    'icon' => 'extension',
+    'activePage' => 'my-plugin',
+    'headerActions' => '<a href="/my-plugin/export" class="btn btn-primary btn-sm">
+        <span class="material-symbols-rounded">download</span>
+        Export
+    </a>',
+], $content);
+```
+
+### Handling Forms with Alerts
+
+```php
+'handler' => function(Request $request, Application $app, $controller) {
+    $message = null;
+    $error = null;
+
+    if ($request->isMethod('POST')) {
+        $csrf = $request->post('_csrf', '');
+        if (!$controller->auth()->verifyCsrf($csrf)) {
+            $error = 'Invalid request. Please try again.';
+        } else {
+            // Process form...
+            $message = 'Settings saved!';
+            $controller->auth()->regenerateCsrf();
+        }
+    }
+
+    $csrf = $controller->auth()->csrfToken();
+
+    ob_start();
+    include __DIR__ . '/views/content.php';
+    $content = ob_get_clean();
+
+    return $controller->renderPluginPage([
+        'title' => 'My Plugin',
+        'icon' => 'extension',
+        'activePage' => 'my-plugin',
+        'alertSuccess' => $message,
+        'alertError' => $error,
+    ], $content);
+},
+```
+
+### Available CSS Classes
+
+Your content can use these admin CSS classes:
+
+| Class | Description |
+|-------|-------------|
+| `.card`, `.card-header`, `.card-body` | Card containers |
+| `.stat-grid`, `.stat-card` | Statistics display |
+| `.grid`, `.grid-2`, `.grid-3` | Grid layouts |
+| `.list-item`, `.list-label`, `.list-value` | List displays |
+| `.btn`, `.btn-primary`, `.btn-secondary` | Buttons |
+| `.badge`, `.badge-success`, `.badge-muted` | Badges |
+| `.alert`, `.alert-success`, `.alert-danger` | Alerts |
+| `.table`, `.table-wrap` | Tables |
+| `.text-sm`, `.text-tertiary` | Text styles |
+| `.mt-4`, `.mt-5` | Margin utilities |
+
+### Why Content-Only Views?
+
+**Don't include the full admin layout in plugin views.** This includes:
+- No `<!DOCTYPE html>`, `<html>`, `<head>`, `<body>` tags
+- No sidebar markup
+- No CSS/JS includes
+- No mobile header
+- No footer scripts
+
+The admin layout is maintained by Ava core. When the layout is updated (new features, design changes, bug fixes), your plugin will automatically benefit without changes.
 
 ## Enabling Plugins
 
@@ -310,3 +457,136 @@ Then in your theme's `<head>`:
     <?php endif; ?>
 <?php endforeach; ?>
 ```
+
+## CLI Commands
+
+Plugins can register custom CLI commands that appear in `./ava help` and can be invoked from the command line.
+
+### Registering Commands
+
+Add a `commands` key to your plugin's return array:
+
+```php
+return [
+    'name' => 'My Plugin',
+    'version' => '1.0.0',
+    'description' => 'Does something useful',
+    'author' => 'Your Name',
+
+    'boot' => function($app) {
+        // Your boot logic...
+    },
+
+    'commands' => [
+        [
+            'name' => 'myplugin:status',
+            'description' => 'Show plugin status',
+            'handler' => function (array $args, $cli) {
+                $cli->header('My Plugin Status');
+                $cli->info('Everything is working!');
+                $cli->writeln('');
+                return 0;
+            },
+        ],
+    ],
+];
+```
+
+### Command Handler
+
+The handler receives two parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$args` | array | Command line arguments after the command name |
+| `$cli` | Application | The CLI application instance with output helpers |
+
+### Available CLI Methods
+
+Your handler can use these methods on the `$cli` object:
+
+```php
+// Headers and sections
+$cli->header('Section Title');      // Bold section header with underline
+
+// Messages
+$cli->info('Informational note');   // ℹ prefixed cyan message
+$cli->success('It worked!');        // ✓ prefixed green message
+$cli->warning('Be careful');        // ⚠ prefixed yellow message
+$cli->error('Something failed');    // ✗ prefixed red message
+
+// Output
+$cli->writeln('Plain text');        // Write a line
+$cli->writeln('');                  // Blank line
+
+// Tables
+$cli->table(
+    ['Name', 'Value', 'Status'],    // Headers
+    [
+        ['item-1', '100', 'active'],
+        ['item-2', '200', 'pending'],
+    ]
+);
+```
+
+### Command Naming Convention
+
+Use a prefix based on your plugin name to avoid conflicts:
+
+```php
+'commands' => [
+    ['name' => 'analytics:report', ...],
+    ['name' => 'analytics:reset', ...],
+],
+```
+
+### Multiple Commands Example
+
+```php
+'commands' => [
+    [
+        'name' => 'backup:create',
+        'description' => 'Create a backup',
+        'handler' => function (array $args, $cli) {
+            $name = $args[0] ?? 'backup-' . date('Y-m-d');
+            $cli->header('Creating Backup');
+            // ... backup logic ...
+            $cli->success("Backup created: {$name}");
+            return 0;
+        },
+    ],
+    [
+        'name' => 'backup:list',
+        'description' => 'List available backups',
+        'handler' => function (array $args, $cli) {
+            $cli->header('Available Backups');
+            // ... list logic ...
+            return 0;
+        },
+    ],
+],
+```
+
+### Accessing the Application
+
+Your command handler can access the main application:
+
+```php
+'handler' => function (array $args, $cli) {
+    $app = \Ava\Application::getInstance();
+    $repository = $app->repository();
+    
+    $posts = $repository->published('post');
+    $cli->info('Found ' . count($posts) . ' posts');
+    
+    return 0;
+},
+```
+
+### Return Values
+
+Commands should return an integer exit code:
+
+- `0` — Success
+- `1` — Error
+- Other non-zero values indicate specific error conditions

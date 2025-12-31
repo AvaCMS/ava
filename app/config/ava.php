@@ -13,74 +13,41 @@ declare(strict_types=1);
 return [
     // Site settings
     'site' => [
-        // Your site's display name (used in templates, feeds, etc.)
-        'name' => 'My Ava Site',
-
-        // Full URL where your site is hosted (no trailing slash)
-        // Used for sitemaps, feeds, and absolute URL generation
-        'base_url' => 'http://localhost:8000',
-
-        // Timezone for dates and times
-        // Use a standard timezone identifier from: https://www.php.net/manual/en/timezones.php
-        // Examples: 'UTC', 'America/New_York', 'Europe/London', 'Asia/Tokyo', 'Australia/Sydney'
-        'timezone' => 'UTC',
-
-        // Locale for number/date formatting (uses PHP's setlocale)
-        // Examples: 'en_GB', 'en_US', 'de_DE', 'fr_FR', 'ja_JP'
-        'locale' => 'en_GB',
+        'name' => 'My Ava Site',                    // Display name for templates/feeds
+        'base_url' => 'http://localhost:8000',      // Full URL (no trailing slash)
+        'timezone' => 'UTC',                        // See: https://www.php.net/timezones
+        'locale' => 'en_GB',                        // See: https://www.php.net/setlocale
     ],
 
-    // Paths (relative to AVA_ROOT) - you usually won't need to change these
+    // Paths (rarely need to change these)
     'paths' => [
-        'content' => 'content',      // Where your Markdown files live
-        'themes' => 'themes',        // Available themes
-        'plugins' => 'plugins',      // Plugin directory
-        'snippets' => 'snippets',    // PHP snippets for [snippet] shortcode
-        'storage' => 'storage',      // Cache, logs, temp files
+        'content' => 'content',
+        'themes' => 'themes',
+        'plugins' => 'plugins',
+        'snippets' => 'snippets',
+        'storage' => 'storage',
 
-        // Path aliases for use in your Markdown content
-        // Write @media:image.jpg instead of /media/image.jpg
-        // Makes it easy to reorganize assets later without updating every file
+        // Path aliases - use @media:file.jpg in content instead of /media/file.jpg
         'aliases' => [
             '@media:' => '/media/',
-            '@uploads:' => '/media/uploads/',
-            '@assets:' => '/assets/',
         ],
     ],
 
     // Active theme
     'theme' => 'default',
 
-    // Content Index
-    // Ava builds an efficient binary index of your content for fast lookups.
-    // This avoids re-parsing Markdown files on every request.
+    // Content Index - builds binary cache for fast lookups
     'content_index' => [
-        // 'auto'   - Rebuilds automatically when content changes (recommended for most sites)
-        // 'never'  - Only rebuilds when you run ./ava rebuild (best for high-traffic production)
-        // 'always' - Rebuilds on every request (slow! only for debugging)
-        'mode' => 'auto',
-
-        // Backend for storing the content index
-        // 'array'  - Binary serialized arrays (default, works great for most sites)
-        // 'sqlite' - SQLite database (opt-in for large sites with 10k+ items)
-        'backend' => 'array',
-
-        // Use igbinary for array backend serialization (if available)
-        // When true (default): Uses igbinary for ~5x faster, ~9x smaller cache files
-        // When false: Uses PHP serialize (for testing/compatibility)
-        'use_igbinary' => true,
+        'mode' => 'auto',           // auto/never/always
+        'backend' => 'array',       // array/sqlite (sqlite for 10k+ items)
+        'use_igbinary' => true,     // ~5x faster cache serialization
     ],
 
-    // Page Cache
-    // Stores fully-rendered HTML pages for instant serving (~0.1ms vs ~30ms).
-    // Pages are cached on first visit and cleared automatically on rebuild.
+    // Page Cache - stores rendered HTML (~0.1ms vs ~30ms)
     'page_cache' => [
-        'enabled' => true,             // Set to false to disable caching entirely
-
-        'ttl' => null,                 // Cache lifetime in seconds (null = until next rebuild)
-
-        // URL patterns that should never be cached (glob-style wildcards)
-        'exclude' => [
+        'enabled' => true,
+        'ttl' => null,              // Seconds (null = until rebuild)
+        'exclude' => [              // Never cache these URL patterns
             '/api/*',
             '/preview/*',
         ],
@@ -108,58 +75,37 @@ return [
     // Security
     'security' => [
         'shortcodes' => [
-            // Allow the [snippet] shortcode to execute PHP files from snippets/
-            // Set to false if you don't use snippets or want to restrict this
-            'allow_php_snippets' => true,
+            'allow_php_snippets' => true,   // Allow [snippet] to execute PHP
         ],
-
-        // Secret token for previewing draft content
-        // Access drafts via: /your-draft-url?preview=1&token=your-token-here
-        // Use a long random string in production!
-        'preview_token' => 'ava-preview-secret',
+        'preview_token' => 'ava-preview-secret',    // For /page?preview=1&token=...
     ],
 
-    // Admin Dashboard
-    // A simple web UI for site health, content overview, and quick actions.
-    // Not an editor—your files remain the source of truth.
-    // Create users first with: ./ava user:add
+    // Admin Dashboard - web UI for site overview (create users: ./ava user:add)
     'admin' => [
-        'enabled' => true,             // Set to false to disable the dashboard
-        'path' => '/admin',            // URL path (e.g., /admin, /dashboard, /_ava)
+        'enabled' => true,
+        'path' => '/admin',
     ],
 
-    // Active plugins (in load order)
+    // Active plugins
     'plugins' => [
         'sitemap',
         'feed',
         'redirects',
     ],
 
-    // CLI Configuration
     'cli' => [
-        // Enable colored output in the terminal
-        // Set to false for accessibility or if your terminal doesn't support colors
-        'colors' => true,
+        'colors' => true,           // Colored terminal output
     ],
 
-    // Debug Mode
-    // Controls error visibility and logging for development and troubleshooting.
+    'logs' => [
+        'max_size' => 10 * 1024 * 1024,     // 10MB before rotation
+        'max_files' => 3,                   // Keep 3 rotated files
+    ],
+
     'debug' => [
-        // Master switch - enables all debug features
         'enabled' => false,
-
-        // Display PHP errors in the browser (NEVER enable in production!)
-        // When true: errors show on screen
-        // When false: errors are hidden from visitors
-        'display_errors' => false,
-
-        // Log errors to storage/logs/error.log
+        'display_errors' => false,  // NEVER true in production!
         'log_errors' => true,
-
-        // Error level: 'all', 'errors', 'none'
-        // 'all'    - Notices, warnings, and errors
-        // 'errors' - Only fatal errors and exceptions
-        // 'none'   - Suppress all error reporting
-        'level' => 'errors',
+        'level' => 'errors',        // all/errors/none
     ],
 ];

@@ -168,26 +168,6 @@ final class EngineTest extends TestCase
     }
 
     // =========================================================================
-    // Button shortcode
-    // =========================================================================
-
-    public function testButtonShortcodeGeneratesLink(): void
-    {
-        $result = $this->engine->process('[button url="/contact"]Click Me[/button]');
-
-        $this->assertStringContains('href="/contact"', $result);
-        $this->assertStringContains('Click Me', $result);
-        $this->assertStringContains('class="button"', $result);
-    }
-
-    public function testButtonShortcodeWithCustomClass(): void
-    {
-        $result = $this->engine->process('[button url="#" class="btn-primary"]Go[/button]');
-
-        $this->assertStringContains('class="btn-primary"', $result);
-    }
-
-    // =========================================================================
     // Email shortcode
     // =========================================================================
 

@@ -13,35 +13,77 @@ A friendly, flexible, flat-file PHP-based CMS for bespoke personal websites, blo
 
 Ava is designed for people who love the web. It sits in the sweet spot between a static site generator and a full-blown CMS:
 
-- **📂 Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Your files are the source of truth—back them up however you like, and you own your data forever.
-- **✍️ Bring Your Own Editor.** No clunky WYSIWYG editors here. Write in VS Code, Obsidian, or Notepad. If you can write HTML and CSS, you can build a theme.
-- **🚀 No Database Required.** Ava indexes your content into fast PHP arrays. You get the speed of a static site with the dynamic power of PHP.
-- **⚡ Edit Live.** Change a file, hit refresh, and see it instantly. No build steps required.
-- **🎨 Bespoke by Design.** Don't fight a platform. Create any content type you want—blogs, portfolios, recipe collections, changelogs—without plugins or hacks.
-- **🤖 AI Friendly.** The clean, file-based structure and integrated docs makes it trivial for AI assistants to read your content, understand your config, and help you build features.
+- **📂 Your Files, Your Rules.** Content is just Markdown. Configuration is readable PHP. Your files are the source of truth. Back them up however you like and you own your data forever.
+- **✍️ Bring Your Own Editor.** No clunky WYSIWYG editors here. Write in VS Code, Obsidian, or Notepad. If you can write a little HTML and CSS, you can build a theme.
+- **🚀 No Database Required.** Ava automatically indexes your content into fast PHP arrays, binaries or SQLite. You get the speed of a static site with the dynamic power of PHP.
+- **⚡ Edit Live.** Change a file, hit refresh, and see it instantly. No build steps or tooling required.
+- **🎨 Bespoke by Design.** Don't fight a platform. Create any content type you want: blogs, portfolios, recipe collections, changelogs and more without plugins or hacks.
+- **🤖 AI Friendly.** The clean, file-based structure and integrated docs makes it easy for AI assistants to read your content, understand your config, and help you build themes and extensions.
 
 ## Core Features
 
 | Feature | What it does for you |
 |---------|-------------|
-| **Content Types** | Define exactly what you're publishing (Pages, Posts, Projects, etc.). |
-| **Taxonomies** | Organize content your way with custom categories, tags, or collections. |
-| **Smart Routing** | URLs are generated automatically based on your content structure. |
-| **Themes** | Write standard HTML and CSS. Use PHP only where you need dynamic data. |
-| **Plugins** | Add functionality like sitemaps and feeds without bloat. |
-| **Speed** | Built-in page caching makes your site load instantly, even on cheap hosting. |
+| **Content&nbsp;Types** | [Define](content_types.md) exactly what you're publishing (Pages, Posts, Projects, etc.). |
+| **Taxonomies** | [Organize](taxonomies.md) content your way with custom categories, tags, or collections. |
+| **Smart&nbsp;Routing** | URLs are generated [automatically](routing.md) based on your content structure. |
+| **Themes** | Write standard HTML and CSS however you prefer, use PHP and Ava's [helpers](themes.md) only where you need dynamic data. |
+| **Plugins** | Add [functionality](plugins.md) like sitemaps and feeds without bloat. |
+| **Speed** | Built-in page [caching](performance.md) makes your site load instantly, even on cheap hosting. |
+| **Search** | Full-text search across your content with [configurable](configuration.md?id=search-configuration) weights. |
+| **CLI Tool** | Manage your site from the [command line](cli.md): clear caches, create users, run tests, and more. |
 
 ## Performance
 
-Ava is designed to be fast by default, whether you have 10 posts or 100,000.
+Ava is designed to be fast by default, whether you have 100 posts or 100,000.
 
 - **Instant Publishing:** No build step. Edit a file, hit refresh, and it's live.
-- **Smart Caching:** A tiered caching system ensures your most popular pages load instantly.
-- **Scalable Backends:** Start with the default Array backend for raw speed, or switch to SQLite for constant memory usage at scale.
-- **Static Speed:** Enable full page caching to serve static HTML files, bypassing the application entirely for most visitors.
+- **Smart Caching:** A [tiered caching system](performance.md) ensures your most popular pages load instantly.
+- **Scalable Backends:** Start with the default Array backend for raw speed, or switch to [SQLite](performance.md?id=when-is-sqlite-faster) for constant memory usage at scale.
+- **Static Speed:** Enable [full page caching](performance.md?id=page-caching) to serve static HTML files, bypassing the application entirely for most visitors.
 
 [See full benchmarks and scaling guide →](performance.md)
 
+## Command Line Interface
+
+Ava includes a friendly CLI for managing your site. Run commands from your project root to check status, rebuild indexes, create content, and more.
+
+```bash
+./ava status
+```
+
+<pre><samp><span class="t-magenta">   ▄▄▄  ▄▄ ▄▄  ▄▄▄     ▄▄▄▄ ▄▄   ▄▄  ▄▄▄▄
+  ██▀██ ██▄██ ██▀██   ██▀▀▀ ██▀▄▀██ ███▄▄
+  ██▀██  ▀█▀  ██▀██   ▀████ ██   ██ ▄▄██▀</span>
+
+  <span class="t-dim">───</span> <span class="t-bold">Site</span> <span class="t-dim">──────────────────────────────────────────────</span>
+
+  <span class="t-dim">Name:</span>       <span class="t-white">My Site</span>
+  <span class="t-dim">URL:</span>        <span class="t-cyan">https://example.com</span>
+
+  <span class="t-dim">───</span> <span class="t-bold">Content</span> <span class="t-dim">───────────────────────────────────────────</span>
+
+  <span class="t-cyan">◆ Page:</span> <span class="t-white">5 published</span>
+  <span class="t-cyan">◆ Post:</span> <span class="t-white">38 published</span> <span class="t-yellow">(4 drafts)</span>
+
+  <span class="t-dim">───</span> <span class="t-bold">Page Cache</span> <span class="t-dim">────────────────────────────────────────</span>
+
+  <span class="t-dim">Status:</span>     <span class="t-green">● Enabled</span>
+  <span class="t-dim">Cached:</span>     <span class="t-white">42 pages</span></samp></pre>
+
+[See full CLI reference →](cli.md)
+
+## Admin Dashboard
+
+Ava includes a web-based admin panel for monitoring your site. It's completely optional and everything can be done via the CLI or direct file editing, but it's handy for quick overviews and common tasks.
+
+<a href="images/admin-dashboard.webp" target="_blank" rel="noopener">
+  <img src="images/admin-dashboard.webp" alt="Ava Admin Dashboard" style="border: 1px solid #e5e5e5;" />
+</a>
+
+The dashboard gives you a bird's-eye view of your content, taxonomy terms, and system health. Browse and preview content, view themes, manage redirects, and check logs without touching the command line.
+
+[See admin documentation →](admin.md)
 
 ## Requirements
 
@@ -60,11 +102,10 @@ These are bundled with most PHP installations. If you're missing one, your host'
 **Optional Extensions:**
 
 - `pdo_sqlite` — SQLite backend for large sites (10k+ items, constant memory)
-- `igbinary` — Faster content index (15× faster, 90% smaller)
+- `igbinary` — Faster content indexing and smaller cache files
 - `opcache` — Opcode caching for production
-- `gd` or `imagick` — Image processing if you add it later
 
-If `igbinary` isn't available, Ava falls back to PHP's built-in `serialize`. Both work fine—igbinary is just faster.
+If `igbinary` isn't available, Ava falls back to PHP's built-in `serialize`. Both work fine, `igbinary` is just [faster](performance.md).
 
 ## Quick Start
 
@@ -80,30 +121,23 @@ The simplest approach—no special tools required:
 2. Extract the ZIP file
 3. Upload to your web host (via SFTP, your host's file manager, or however you prefer)
 4. Run `composer install` to install dependencies
-5. Configure your site by editing `app/config/ava.php`
-6. Run `./ava rebuild` to build the content index
-7. Visit your site!
+5. [Configure](configuration.md) your site by editing `app/config/ava.php`
+6. Visit your site!
 
 ### Clone with Git
 
 If you're comfortable with Git and want version control from the start:
 
+1. Clone the repo in your websites root directory (above the `public` folder):
 ```bash
-# 1. Clone the repo
-git clone https://github.com/adamgreenough/ava.git mysite
-cd mysite
-
-# 2. Install dependencies
-composer install
-
-# 3. Configure your site by editing app/config/ava.php
-
-# 4. Check status (shows PHP version and extensions)
-./ava status
-
-# 5. Build the content index
-./ava rebuild
+git clone https://github.com/adamgreenough/ava.git
 ```
+2. Install dependencies:
+```bash
+composer install
+```
+3. [Configure](configuration.md) your site by editing `app/config/ava.php`
+4. Visit your site!
 
 ### Local Development (Optional)
 
@@ -129,19 +163,17 @@ By default, Ava comes with a simple example site. You can replace the content in
 
 <img src="images/default.webp" alt="Default theme preview" style="border: 1px solid #e5e5e5;" />
 
-The default theme provides a clean, minimal starting point for your site. Customize it with your own styles, scripts and templates to match your vibe.
+The default theme provides a clean, minimal starting point for your site. Customise it with your own styles, scripts and templates to match your vibe or [build something entirely new](themes.md).
 
 ## Project Structure
 
 ```
 mysite/
 ├── app/
-│   ├── config/          # Configuration files
-│   │   ├── ava.php      # Main config (site, paths, caching)
-│   │   ├── content_types.php
-│   │   └── taxonomies.php
-│   ├── hooks.php        # Custom hooks
-│   └── shortcodes.php   # Custom shortcodes
+│   └── config/          # Configuration files
+│       ├── ava.php      # Main config (site, paths, caching)
+│       ├── content_types.php
+│       └── taxonomies.php
 ├── content/
 │   ├── pages/           # Page content (hierarchical URLs)
 │   ├── posts/           # Blog posts (/blog/{slug})
@@ -153,6 +185,7 @@ mysite/
 ├── plugins/             # Optional plugins
 ├── snippets/            # Safe PHP snippets for [snippet] shortcode
 ├── public/              # Web root
+│   ├── media/           # Images/downloads referenced via @media: alias
 │   └── index.php        # Entry point
 ├── storage/cache/       # Content index and page cache (gitignored)
 └── ava                  # CLI tool
@@ -160,9 +193,9 @@ mysite/
 
 ## How It Works
 
-1. **Write** — Create Markdown files in your `content/` folder.
-2. **Index** — Ava automatically scans your files and builds a fast index.
-3. **Render** — Your theme turns that content into beautiful HTML.
+1. **[Write](content.md)** — Create Markdown files in your `content/` folder.
+2. **[Index](performance.md)** — Ava automatically scans your files and builds a fast index.
+3. **[Render](themes.md)** — Your theme turns that content into beautiful HTML.
 
 The system handles all the boring stuff: routing, sorting, pagination, and search. You just focus on the content and the design.
 
@@ -186,7 +219,8 @@ Ava is perfect if:
 - You know some HTML and CSS (or want to learn!).
 - You prefer writing in a real text editor over a web form.
 - You want a fast, personal site that you fully own and control.
-- You don't want to manage a database or complex server setup.
+- You don't want to deal with deployment processes or build steps.
+- You don't want to manage a database or complex server setup, just files.
 
 It won't be a good fit if you need a drag-and-drop page builder or a massive ecosystem of third-party themes.
 
@@ -216,7 +250,7 @@ Also worth knowing: the MIT license comes with a standard “no warranty” clau
 
 ## Contributing
 
-Ava is still fairly early and moving quickly, so I’m not looking for pull requests or additional contributors just yet.
+Ava is still fairly early and moving quickly, so I’m not looking for undiscussed pull requests or additional contributors just yet.
 
 That said, I’d genuinely love your feedback:
 

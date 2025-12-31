@@ -5,42 +5,37 @@ declare(strict_types=1);
 /**
  * Taxonomy Definitions
  *
- * Taxonomies let you organize content into groups.
- * Think of them as labels you can attach to posts, pages, or any content type.
- *
- * Examples: Categories, Tags, Authors, Series, Ingredients, Genres, etc.
- *
+ * Taxonomies organize content into groups (Categories, Tags, Authors, etc.).
  * Docs: https://ava.addy.zone/#/configuration?id=taxonomies-taxonomiesphp
  */
 
 return [
-    // Categories - hierarchical (can have parent/child relationships)
-    // Example: Tutorials > PHP > Beginners
+    // Categories - hierarchical (parent/child relationships)
     'category' => [
         'label' => 'Categories',
-        'hierarchical' => true,          // Allow parent/child relationships
-        'public' => true,                // Show on frontend (set false to hide)
+        'hierarchical' => true,
+        'public' => true,
         'rewrite' => [
-            'base' => '/category',       // URL prefix: /category/tutorials
-            'separator' => '/',          // For nested: /category/tutorials/php
+            'base' => '/category',       // /category/tutorials
+            'separator' => '/',          // /category/tutorials/php
         ],
         'behaviour' => [
-            'allow_unknown_terms' => true,   // Auto-create terms used in content
-            'hierarchy_rollup' => true,      // Include child terms when filtering by parent
+            'allow_unknown_terms' => true,   // Auto-create terms from content
+            'hierarchy_rollup' => true,      // Include child terms when filtering parent
         ],
         'ui' => [
-            'show_counts' => true,       // Show item count next to terms
-            'sort_terms' => 'name_asc',  // Sort alphabetically
+            'show_counts' => true,
+            'sort_terms' => 'name_asc',
         ],
     ],
 
-    // Tags - flat (no hierarchy, just simple labels)
+    // Tags - flat list (no hierarchy)
     'tag' => [
         'label' => 'Tags',
-        'hierarchical' => false,         // Flat list, no parent/child
+        'hierarchical' => false,
         'public' => true,
         'rewrite' => [
-            'base' => '/tag',            // URL prefix: /tag/php
+            'base' => '/tag',            // /tag/php
         ],
         'behaviour' => [
             'allow_unknown_terms' => true,

@@ -13,7 +13,6 @@ use Ava\Application;
  *
  * Syntax:
  * - Inline: [year]
- * - With attrs: [button url="/contact"]Contact[/button]
  * - Self-closing: [snippet name="cta" heading="Join"]
  *
  * Shortcodes are processed AFTER markdown rendering.
@@ -163,15 +162,6 @@ final class Engine
             }
         });
 
-        // [button url="..." class="..."]Text[/button] - styled button
-        $this->register('button', function (array $attrs, ?string $content) {
-            $url = $attrs['url'] ?? '#';
-            $class = $attrs['class'] ?? 'button';
-            $text = $content ?? 'Click here';
-
-            return '<a href="' . htmlspecialchars($url) . '" class="' . htmlspecialchars($class) . '">'
-                . htmlspecialchars($text) . '</a>';
-        });
     }
 
     /**

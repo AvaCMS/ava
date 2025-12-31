@@ -856,7 +856,27 @@
         nextText: 'Next',
         crossChapter: true,
         crossChapterText: true
-      }
+      },
+      plugins: [
+        function pageFooter(hook, vm) {
+          var footer = [
+            '<hr/>',
+            '<footer style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; margin-top: 1.25rem; font-size: 0.875rem;">',
+            '<span style="color: #888;">Made with 💖 & ☕ by <a href="https://addy.zone/" target="_blank" rel="noopener">Addy</a></span>',
+            '<div style="display: flex; gap: 1rem;">',
+            '<a href="https://github.com/adamgreenough/ava" target="_blank" rel="noopener">GitHub</a>',
+            '<a href="https://github.com/adamgreenough/ava/blob/main/LICENSE" target="_blank" rel="noopener">License</a>',
+            '<a href="https://ko-fi.com/addycodes" target="_blank" rel="noopener">Ko-fi</a>',
+            '<a href="https://discord.gg/Z7bF9YeK" target="_blank" rel="noopener">Discord</a>',
+            '</div>',
+            '</footer>',
+          ].join('');
+
+          hook.afterEach(function (html) {
+            return html + footer;
+          });
+        },
+      ]
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>

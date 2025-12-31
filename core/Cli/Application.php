@@ -58,6 +58,7 @@ ASCII;
     {
         $this->app = AvaApp::getInstance();
         $this->registerCommands();
+        $this->registerPluginCommands();
     }
 
     /**
@@ -107,13 +108,19 @@ ASCII;
         $this->commands['lint'] = [$this, 'cmdLint'];
         $this->commands['make'] = [$this, 'cmdMake'];
         $this->commands['prefix'] = [$this, 'cmdPrefix'];
+        $this->commands['pages'] = [$this, 'cmdPagesStats']; // Alias for pages:stats
         $this->commands['pages:clear'] = [$this, 'cmdPagesClear'];
         $this->commands['pages:stats'] = [$this, 'cmdPagesStats'];
+        $this->commands['logs'] = [$this, 'cmdLogsStats']; // Alias for logs:stats
+        $this->commands['logs:stats'] = [$this, 'cmdLogsStats'];
+        $this->commands['logs:clear'] = [$this, 'cmdLogsClear'];
+        $this->commands['logs:tail'] = [$this, 'cmdLogsTail'];
         $this->commands['benchmark'] = [$this, 'cmdBenchmark'];
         $this->commands['test'] = [$this, 'cmdTest'];
         $this->commands['stress:generate'] = [$this, 'cmdStressGenerate'];
         $this->commands['stress:clean'] = [$this, 'cmdStressClean'];
         $this->commands['stress:benchmark'] = [$this, 'cmdBenchmark']; // Alias for benchmark
+        $this->commands['user'] = [$this, 'cmdUserList']; // Alias for user:list
         $this->commands['user:add'] = [$this, 'cmdUserAdd'];
         $this->commands['user:password'] = [$this, 'cmdUserPassword'];
         $this->commands['user:remove'] = [$this, 'cmdUserRemove'];
@@ -122,6 +129,69 @@ ASCII;
         $this->commands['update:check'] = [$this, 'cmdUpdateCheck'];
         $this->commands['update:apply'] = [$this, 'cmdUpdateApply'];
     }
+
+    /**
+     * Register commands from enabled plugins.
+     * 
+     * Plugins can register CLI commands by including a 'commands' key in their
+     * plugin.php return array. Each command should be an array with:
+     * - 'name': Command name (e.g., 'sitemap:stats')
+     * - 'description': Command description for help
+     * - 'handler': Callable that receives $args array and returns exit code
+     * 
+     * @example
+     * return [
+     *     'name' => 'My Plugin',
+     *     'commands' => [
+     *         'myplugin:status' => [
+     *             'description' => 'Show plugin status',
+     *             'handler' => function($args) use ($app) {
+     *                 echo "Plugin is running!\n";
+     *                 return 0;
+     *             },
+     *         ],
+     *     ],
+     * ];
+     */
+    private function registerPluginCommands(): void
+    {
+        $enabledPlugins = $this->app->config('plugins', []);
+        $pluginsPath = $this->app->configPath('plugins');
+
+        foreach ($enabledPlugins as $pluginName) {
+            $pluginFile = $pluginsPath . '/' . $pluginName . '/plugin.php';
+            if (!file_exists($pluginFile)) {
+                continue;
+            }
+
+            $plugin = require $pluginFile;
+            if (!is_array($plugin) || empty($plugin['commands'])) {
+                continue;
+            }
+
+            foreach ($plugin['commands'] as $cmdConfig) {
+                $cmdName = $cmdConfig['name'] ?? null;
+                if (!$cmdName || !isset($cmdConfig['handler']) || !is_callable($cmdConfig['handler'])) {
+                    continue;
+                }
+
+                // Store the command with plugin context
+                $this->commands[$cmdName] = function ($args) use ($cmdConfig) {
+                    return $cmdConfig['handler']($args, $this);
+                };
+
+                // Store command metadata for help display
+                $this->pluginCommands[] = [
+                    'name' => $cmdName,
+                    'description' => $cmdConfig['description'] ?? 'Plugin command',
+                    'plugin' => $pluginName,
+                ];
+            }
+        }
+    }
+
+    /** @var array<string, array> Plugin command metadata for help display */
+    private array $pluginCommands = [];
 
     // =========================================================================
     // Commands
@@ -629,7 +699,7 @@ ASCII;
 
         $userName = $name ?? explode('@', $email)[0];
         $users[$email] = [
-            'password' => password_hash($password, PASSWORD_DEFAULT),
+            'password' => password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]),
             'name' => $userName,
             'created' => date('Y-m-d'),
         ];
@@ -676,7 +746,7 @@ ASCII;
             return 1;
         }
 
-        $users[$email]['password'] = password_hash($password, PASSWORD_DEFAULT);
+        $users[$email]['password'] = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
         $users[$email]['updated'] = date('Y-m-d');
 
         $this->saveUsers($usersFile, $users);
@@ -1556,6 +1626,292 @@ ASCII;
     }
 
     /**
+     * Show log file statistics.
+     */
+    private function cmdLogsStats(array $args): int
+    {
+        $logsPath = $this->app->configPath('storage') . '/logs';
+
+        $this->writeln('');
+        echo $this->color('  ─── Logs ', self::PRIMARY, self::BOLD);
+        echo $this->color(str_repeat('─', 47), self::PRIMARY, self::BOLD) . "\n";
+        $this->writeln('');
+
+        if (!is_dir($logsPath)) {
+            $this->writeln('  ' . $this->color('ℹ', self::PRIMARY) . ' No logs directory found.');
+            $this->writeln('');
+            return 0;
+        }
+
+        $logFiles = glob($logsPath . '/*.log*') ?: [];
+
+        if (empty($logFiles)) {
+            $this->writeln('  ' . $this->color('ℹ', self::PRIMARY) . ' No log files found.');
+            $this->writeln('');
+            return 0;
+        }
+
+        // Group by base name (e.g., indexer.log, indexer.log.1, etc.)
+        $grouped = [];
+        foreach ($logFiles as $file) {
+            $basename = basename($file);
+            // Extract the base log name (e.g., indexer.log from indexer.log.1)
+            if (preg_match('/^(.+\.log)(\.\d+)?$/', $basename, $m)) {
+                $base = $m[1];
+                $grouped[$base][] = $file;
+            }
+        }
+
+        $totalSize = 0;
+        $totalFiles = 0;
+
+        foreach ($grouped as $baseName => $files) {
+            $size = 0;
+            $lines = 0;
+            $oldest = null;
+            $newest = null;
+
+            foreach ($files as $file) {
+                $size += filesize($file);
+                $mtime = filemtime($file);
+                if ($oldest === null || $mtime < $oldest) {
+                    $oldest = $mtime;
+                }
+                if ($newest === null || $mtime > $newest) {
+                    $newest = $mtime;
+                }
+            }
+
+            // Count lines in main log file only
+            $mainLog = $logsPath . '/' . $baseName;
+            if (file_exists($mainLog)) {
+                $lines = $this->countLines($mainLog);
+            }
+
+            $totalSize += $size;
+            $totalFiles += count($files);
+
+            $this->keyValue($baseName, $this->formatBytes($size) . 
+                (count($files) > 1 ? $this->color(' (' . count($files) . ' files)', self::DIM) : '') .
+                ($lines > 0 ? $this->color(" · {$lines} lines", self::DIM) : ''));
+        }
+
+        $this->writeln('');
+        $this->keyValue('Total', $this->color($this->formatBytes($totalSize), self::PRIMARY, self::BOLD) . 
+            $this->color(" ({$totalFiles} files)", self::DIM));
+
+        // Show config
+        $maxSize = $this->app->config('logs.max_size', 10 * 1024 * 1024);
+        $maxFiles = $this->app->config('logs.max_files', 3);
+        $this->writeln('');
+        $this->keyValue('Max Size', $this->formatBytes($maxSize) . $this->color(' per log', self::DIM));
+        $this->keyValue('Max Files', $maxFiles . $this->color(' rotated copies', self::DIM));
+
+        $this->writeln('');
+        return 0;
+    }
+
+    /**
+     * Clear log files.
+     */
+    private function cmdLogsClear(array $args): int
+    {
+        $logsPath = $this->app->configPath('storage') . '/logs';
+
+        $this->writeln('');
+
+        if (!is_dir($logsPath)) {
+            $this->writeln('  ' . $this->color('ℹ', self::PRIMARY) . ' No logs directory found.');
+            $this->writeln('');
+            return 0;
+        }
+
+        // Check for specific log name argument
+        $logName = $args[0] ?? null;
+
+        if ($logName) {
+            // Clear specific log and its rotated copies
+            $pattern = $logsPath . '/' . $logName . '*';
+            $files = glob($pattern) ?: [];
+
+            if (empty($files)) {
+                $this->writeln('  ' . $this->color('ℹ', self::PRIMARY) . " No logs matching: {$logName}");
+                $this->writeln('');
+                return 0;
+            }
+
+            $count = 0;
+            $size = 0;
+            foreach ($files as $file) {
+                $size += filesize($file);
+                unlink($file);
+                $count++;
+            }
+
+            $this->success("Cleared {$count} log file(s) ({$this->formatBytes($size)})");
+        } else {
+            // List all logs and ask for confirmation
+            $logFiles = glob($logsPath . '/*.log*') ?: [];
+
+            if (empty($logFiles)) {
+                $this->writeln('  ' . $this->color('ℹ', self::PRIMARY) . ' No log files found.');
+                $this->writeln('');
+                return 0;
+            }
+
+            $totalSize = array_sum(array_map('filesize', $logFiles));
+            $this->writeln('  Found ' . $this->color((string) count($logFiles), self::PRIMARY, self::BOLD) . 
+                ' log file(s) (' . $this->formatBytes($totalSize) . ').');
+            $this->writeln('');
+
+            echo '  Clear all log files? [' . $this->color('y', self::RED) . '/N]: ';
+            $answer = trim(fgets(STDIN));
+
+            if (strtolower($answer) !== 'y') {
+                $this->writeln('');
+                $this->writeln('  ' . $this->color('ℹ', self::PRIMARY) . ' Cancelled.');
+                $this->writeln('');
+                return 0;
+            }
+
+            $count = 0;
+            foreach ($logFiles as $file) {
+                unlink($file);
+                $count++;
+            }
+
+            $this->success("Cleared {$count} log file(s) ({$this->formatBytes($totalSize)})");
+        }
+
+        $this->writeln('');
+        return 0;
+    }
+
+    /**
+     * Show the last N lines of a log file.
+     */
+    private function cmdLogsTail(array $args): int
+    {
+        $logsPath = $this->app->configPath('storage') . '/logs';
+        $logName = $args[0] ?? 'indexer.log';
+        $lines = 20;
+
+        // Check for -n flag
+        foreach ($args as $i => $arg) {
+            if ($arg === '-n' && isset($args[$i + 1])) {
+                $lines = (int) $args[$i + 1];
+                break;
+            }
+            if (preg_match('/^-n(\d+)$/', $arg, $m)) {
+                $lines = (int) $m[1];
+                break;
+            }
+        }
+
+        $logFile = $logsPath . '/' . $logName;
+
+        $this->writeln('');
+
+        if (!file_exists($logFile)) {
+            // Try with .log extension
+            if (!str_ends_with($logName, '.log')) {
+                $logFile = $logsPath . '/' . $logName . '.log';
+            }
+
+            if (!file_exists($logFile)) {
+                $this->writeln('  ' . $this->color('ℹ', self::PRIMARY) . " Log file not found: {$logName}");
+                $this->writeln('');
+
+                // List available logs
+                $available = glob($logsPath . '/*.log') ?: [];
+                if (!empty($available)) {
+                    $this->writeln($this->color('  Available logs:', self::BOLD));
+                    foreach ($available as $file) {
+                        $this->writeln('    ' . $this->color('▸ ', self::PRIMARY) . basename($file));
+                    }
+                    $this->writeln('');
+                }
+                return 1;
+            }
+        }
+
+        echo $this->color('  ─── ', self::PRIMARY, self::BOLD);
+        echo $this->color(basename($logFile), self::PRIMARY, self::BOLD);
+        echo $this->color(' (last ' . $lines . ' lines) ', self::PRIMARY, self::BOLD);
+        echo $this->color(str_repeat('─', max(1, 40 - strlen(basename($logFile)))), self::PRIMARY, self::BOLD) . "\n";
+        $this->writeln('');
+
+        // Read last N lines efficiently
+        $content = $this->tailFile($logFile, $lines);
+        
+        if (empty(trim($content))) {
+            $this->writeln('  ' . $this->color('(empty)', self::DIM));
+        } else {
+            // Indent and colorize timestamps
+            foreach (explode("\n", rtrim($content)) as $line) {
+                if (preg_match('/^\[([^\]]+)\]/', $line, $m)) {
+                    $line = $this->color('[' . $m[1] . ']', self::DIM) . substr($line, strlen($m[0]));
+                }
+                $this->writeln('  ' . $line);
+            }
+        }
+
+        $this->writeln('');
+        return 0;
+    }
+
+    /**
+     * Read the last N lines from a file.
+     */
+    private function tailFile(string $file, int $lines): string
+    {
+        $buffer = 4096;
+        $output = '';
+        $lineCount = 0;
+
+        $f = fopen($file, 'rb');
+        if (!$f) {
+            return '';
+        }
+
+        fseek($f, 0, SEEK_END);
+        $pos = ftell($f);
+
+        while ($lineCount < $lines && $pos > 0) {
+            $toRead = min($buffer, $pos);
+            $pos -= $toRead;
+            fseek($f, $pos);
+            $chunk = fread($f, $toRead);
+            $output = $chunk . $output;
+            $lineCount = substr_count($output, "\n");
+        }
+
+        fclose($f);
+
+        // Trim to exact line count
+        $allLines = explode("\n", $output);
+        $allLines = array_slice($allLines, -$lines - 1);
+
+        return implode("\n", $allLines);
+    }
+
+    /**
+     * Count lines in a file.
+     */
+    private function countLines(string $file): int
+    {
+        $count = 0;
+        $f = fopen($file, 'rb');
+        if ($f) {
+            while (!feof($f)) {
+                $count += substr_count(fread($f, 8192), "\n");
+            }
+            fclose($f);
+        }
+        return $count;
+    }
+
+    /**
      * Generate a single dummy content file.
      */
     private function generateDummyContent(
@@ -1880,50 +2236,6 @@ ASCII;
     }
 
     /**
-     * Show a table.
-     */
-    private function table(array $headers, array $rows): void
-    {
-        if (empty($rows)) {
-            return;
-        }
-
-        // Calculate column widths
-        $widths = [];
-        foreach ($headers as $i => $header) {
-            $widths[$i] = strlen($header);
-        }
-        foreach ($rows as $row) {
-            foreach ($row as $i => $cell) {
-                $widths[$i] = max($widths[$i] ?? 0, strlen((string) $cell));
-            }
-        }
-
-        // Header
-        $headerRow = '  ';
-        foreach ($headers as $i => $header) {
-            $headerRow .= $this->color(str_pad($header, $widths[$i] + 2), self::BOLD);
-        }
-        $this->writeln($headerRow);
-
-        // Separator
-        $sep = '  ';
-        foreach ($widths as $w) {
-            $sep .= $this->color(str_repeat('─', $w + 2), self::DIM);
-        }
-        $this->writeln($sep);
-
-        // Rows
-        foreach ($rows as $row) {
-            $rowText = '  ';
-            foreach ($row as $i => $cell) {
-                $rowText .= str_pad((string) $cell, ($widths[$i] ?? 0) + 2);
-            }
-            $this->writeln($rowText);
-        }
-    }
-
-    /**
      * Show tip text.
      */
     private function tip(string $text): void
@@ -1962,18 +2274,22 @@ ASCII;
         $this->commandItem('prefix <add|remove> [type]', 'Toggle date prefixes');
 
         $this->sectionHeader('Page Cache');
-        $this->commandItem('pages:stats', 'View cache statistics');
+        $this->commandItem('pages:stats (or pages)', 'View cache statistics');
         $this->commandItem('pages:clear [pattern]', 'Clear cached pages');
+
+        $this->sectionHeader('Logs');
+        $this->commandItem('logs:stats (or logs)', 'View log file statistics');
+        $this->commandItem('logs:tail [name] [-n N]', 'Show last N lines of a log');
+        $this->commandItem('logs:clear [name]', 'Clear log files');
 
         $this->sectionHeader('Users');
         $this->commandItem('user:add <email> <pass>', 'Create admin user');
         $this->commandItem('user:password <email> <pass>', 'Update password');
         $this->commandItem('user:remove <email>', 'Remove user');
-        $this->commandItem('user:list', 'List all users');
+        $this->commandItem('user:list (or user)', 'List all users');
 
         $this->sectionHeader('Updates');
-        $this->commandItem('update', 'Check for updates');
-        $this->commandItem('update:check', 'Check for updates');
+        $this->commandItem('update:check (or update)', 'Check for updates');
         $this->commandItem('update:apply', 'Apply available update');
 
         $this->sectionHeader('Testing');
@@ -1981,6 +2297,14 @@ ASCII;
         $this->commandItem('stress:generate <type> <n>', 'Generate test content');
         $this->commandItem('stress:clean <type>', 'Remove test content');
         $this->commandItem('stress:benchmark', 'Benchmark index backends');
+
+        // Show plugin commands if any are registered
+        if (!empty($this->pluginCommands)) {
+            $this->sectionHeader('Plugins');
+            foreach ($this->pluginCommands as $cmd) {
+                $this->commandItem($cmd['name'], $cmd['description']);
+            }
+        }
 
         $this->writeln('');
         echo $this->color('  Examples:', self::BOLD) . "\n";
@@ -1998,25 +2322,170 @@ ASCII;
         echo $this->color($description, self::DIM) . "\n";
     }
 
-    private function writeln(string $message): void
+    // =========================================================================
+    // Public Output Helpers (for use by plugins)
+    // =========================================================================
+
+    /**
+     * Write a line to stdout.
+     */
+    public function writeln(string $message): void
     {
         echo $message . "\n";
     }
 
-    private function success(string $message): void
+    /**
+     * Display a section header.
+     */
+    public function header(string $title): void
+    {
+        $this->writeln('');
+        echo '  ' . $this->color($title, self::BOLD) . "\n";
+        echo '  ' . $this->color(str_repeat('─', strlen($title)), self::DIM) . "\n";
+    }
+
+    /**
+     * Display an informational message.
+     */
+    public function info(string $message): void
+    {
+        echo '  ' . $this->color('ℹ', self::CYAN) . ' ' . $message . "\n";
+    }
+
+    /**
+     * Display a success message.
+     */
+    public function success(string $message): void
     {
         echo "\n  " . $this->color('✓', self::GREEN, self::BOLD) . " " . $this->color($message, self::GREEN) . "\n";
     }
 
-    private function error(string $message): void
+    /**
+     * Display an error message.
+     */
+    public function error(string $message): void
     {
         echo "\n  " . $this->color('✗', self::RED, self::BOLD) . " " . $this->color($message, self::RED) . "\n";
     }
 
-    private function warning(string $message): void
+    /**
+     * Display a warning message.
+     */
+    public function warning(string $message): void
     {
         echo "  " . $this->color('⚠', self::YELLOW) . " " . $this->color($message, self::YELLOW) . "\n";
     }
+
+    /**
+     * Format text with primary color (purple).
+     */
+    public function primary(string $text): string
+    {
+        return $this->color($text, self::PRIMARY);
+    }
+
+    /**
+     * Format text as bold.
+     */
+    public function bold(string $text): string
+    {
+        return $this->color($text, self::BOLD);
+    }
+
+    /**
+     * Format text as dim/muted.
+     */
+    public function dim(string $text): string
+    {
+        return $this->color($text, self::DIM);
+    }
+
+    /**
+     * Format text with green color.
+     */
+    public function green(string $text): string
+    {
+        return $this->color($text, self::GREEN);
+    }
+
+    /**
+     * Format text with yellow color.
+     */
+    public function yellow(string $text): string
+    {
+        return $this->color($text, self::YELLOW);
+    }
+
+    /**
+     * Format text with red color.
+     */
+    public function red(string $text): string
+    {
+        return $this->color($text, self::RED);
+    }
+
+    /**
+     * Format text with cyan color.
+     */
+    public function cyan(string $text): string
+    {
+        return $this->color($text, self::CYAN);
+    }
+
+    /**
+     * Display a formatted table.
+     */
+    public function table(array $headers, array $rows): void
+    {
+        if (empty($rows)) {
+            return;
+        }
+
+        // Helper to strip ANSI codes for length calculation
+        $stripAnsi = fn(string $text): string => preg_replace('/\033\[[0-9;]*m/', '', $text);
+
+        // Calculate column widths (strip ANSI codes for accurate length)
+        $widths = [];
+        foreach ($headers as $i => $header) {
+            $widths[$i] = strlen($stripAnsi($header));
+        }
+        foreach ($rows as $row) {
+            foreach ($row as $i => $cell) {
+                $widths[$i] = max($widths[$i] ?? 0, strlen($stripAnsi((string) $cell)));
+            }
+        }
+
+        // Header
+        $headerRow = '  ';
+        foreach ($headers as $i => $header) {
+            $headerRow .= $this->color(str_pad($header, $widths[$i] + 2), self::BOLD);
+        }
+        $this->writeln($headerRow);
+
+        // Separator
+        $sep = '  ';
+        foreach ($widths as $w) {
+            $sep .= $this->color(str_repeat('─', $w + 2), self::DIM);
+        }
+        $this->writeln($sep);
+
+        // Rows - need to account for ANSI codes in padding
+        foreach ($rows as $row) {
+            $rowText = '  ';
+            foreach ($row as $i => $cell) {
+                $cellStr = (string) $cell;
+                $visibleLen = strlen($stripAnsi($cellStr));
+                $targetLen = ($widths[$i] ?? 0) + 2;
+                $padding = max(0, $targetLen - $visibleLen);
+                $rowText .= $cellStr . str_repeat(' ', $padding);
+            }
+            $this->writeln($rowText);
+        }
+    }
+
+    // =========================================================================
+    // Private Helpers
+    // =========================================================================
 
     private function formatBytes(int $bytes): string
     {

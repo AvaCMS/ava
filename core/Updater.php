@@ -360,7 +360,7 @@ final class Updater
         }
 
         // Note: We deliberately do NOT update themes/default/
-        // Users may have customized the default theme, and we don't want to overwrite their changes.
+        // Users may have customised the default theme, and we don't want to overwrite their changes.
         // Theme updates should be done manually if needed.
 
         // Update bundled plugins (but don't activate new ones)

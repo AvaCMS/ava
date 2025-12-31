@@ -18,13 +18,13 @@
   </div>
   <div class="feature">
     <div class="feature-icon">🎨</div>
-    <div class="feature-title">Your HTML</div>
-    <div class="feature-desc">No complex themes, just your code</div>
+    <div class="feature-title">Easy Theming</div>
+    <div class="feature-desc">Your HTML/PHP plus helpful utilties</div>
   </div>
   <div class="feature">
     <div class="feature-icon">🧩</div>
     <div class="feature-title">Any Content</div>
-    <div class="feature-desc">Blogs, portfolios, recipes, wikis</div>
+    <div class="feature-desc">Blogs, portfolios, recipes, wikis, more</div>
   </div>
   <div class="feature">
     <div class="feature-icon">🛣️</div>

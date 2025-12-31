@@ -27,7 +27,7 @@ Run the test suite from your project root:
     <span class="t-dim">...</span>
 
   <span class="t-dim">──────────────────────────────────────────────────</span>
-  <span class="t-bold">Tests:</span> <span class="t-green">333 passed</span> <span class="t-dim">(70ms)</span></samp></pre>
+  <span class="t-bold">Tests:</span> <span class="t-green">383 passed</span> <span class="t-dim">(70ms)</span></samp></pre>
 
 ### Filtering Tests
 
@@ -52,7 +52,7 @@ Run tests with minimal output (header + summary only):
 
 <pre><samp>  <span class="t-bold">Ava CMS Test Suite</span>
   <span class="t-dim">──────────────────────────────────────────────────</span>
-  <span class="t-bold">Tests:</span> <span class="t-green">355 passed</span> <span class="t-dim">(60ms)</span></samp></pre>
+  <span class="t-bold">Tests:</span> <span class="t-green">383 passed</span> <span class="t-dim">(60ms)</span></samp></pre>
 
 Useful for CI/CD pipelines or when you just want to know if tests pass.
 
@@ -64,12 +64,17 @@ Tests live in the `tests/` directory, organized by component:
 
 ```
 tests/
+├── Admin/
+│   └── DebugTest.php          # Debug configuration and logging
 ├── Config/
 │   └── ConfigTest.php         # Configuration access patterns
 ├── Content/
 │   ├── ItemTest.php           # Content item value object
 │   └── ParserTest.php         # Markdown/YAML parser
+├── Core/
+│   └── UpdaterTest.php        # Update system
 ├── Http/
+│   ├── HttpsEnforcementTest.php  # HTTPS/localhost detection
 │   ├── RequestTest.php        # HTTP request handling
 │   └── ResponseTest.php       # HTTP response building
 ├── Plugins/

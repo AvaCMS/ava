@@ -185,14 +185,89 @@ return [
                         $totalUrls += $indexable;
                     }
 
+                    // Render content-only view
                     ob_start();
-                    include __DIR__ . '/views/admin.php';
-                    $html = ob_get_clean();
+                    include __DIR__ . '/views/content.php';
+                    $content = ob_get_clean();
 
-                    return Response::html($html);
+                    // Use the admin layout wrapper
+                    return $controller->renderPluginPage([
+                        'title' => 'Sitemap',
+                        'icon' => 'map',
+                        'activePage' => 'sitemap',
+                        'headerActions' => '<a href="' . htmlspecialchars($baseUrl) . '/sitemap.xml" target="_blank" class="btn btn-primary btn-sm">
+                            <span class="material-symbols-rounded">open_in_new</span>
+                            View Sitemap
+                        </a>',
+                    ], $content);
                 },
             ];
             return $pages;
         });
     },
+
+    'commands' => [
+        [
+            'name' => 'sitemap:stats',
+            'description' => 'Show sitemap statistics',
+            'handler' => function (array $args, $cli) {
+                $app = \Ava\Application::getInstance();
+                $repository = $app->repository();
+                $types = $repository->types();
+                $baseUrl = rtrim($app->config('site.base_url', ''), '/');
+
+                $cli->header('Sitemap Statistics');
+                
+                $totalUrls = 0;
+                $tableData = [];
+
+                foreach ($types as $type) {
+                    $items = $repository->published($type);
+                    $indexable = 0;
+                    $noindexed = 0;
+
+                    foreach ($items as $item) {
+                        if ($item->noindex()) {
+                            $noindexed++;
+                        } else {
+                            $indexable++;
+                        }
+                    }
+
+                    if ($indexable > 0 || $noindexed > 0) {
+                        $tableData[] = [
+                            'type' => $type,
+                            'indexable' => $indexable,
+                            'noindex' => $noindexed,
+                            'file' => "/sitemap-{$type}.xml",
+                        ];
+                        $totalUrls += $indexable;
+                    }
+                }
+
+                if (empty($tableData)) {
+                    $cli->warning('No content types with published content found.');
+                    return 0;
+                }
+
+                // Display table with colors
+                $cli->writeln('');
+                $headers = ['Content Type', 'Indexable', 'Noindex', 'Sitemap File'];
+                $rows = array_map(fn($d) => [
+                    $cli->primary($d['type']),
+                    $cli->green((string)$d['indexable']),
+                    $d['noindex'] > 0 ? $cli->yellow((string)$d['noindex']) : $cli->dim('0'),
+                    $cli->cyan($d['file']),
+                ], $tableData);
+                $cli->table($headers, $rows);
+
+                $cli->writeln('');
+                $cli->info("Total URLs in sitemap: " . $cli->bold((string)$totalUrls));
+                $cli->info("Main sitemap: " . $cli->primary("{$baseUrl}/sitemap.xml"));
+                $cli->writeln('');
+
+                return 0;
+            },
+        ],
+    ],
 ];
