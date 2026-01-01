@@ -20,7 +20,7 @@ Thoughtfully [documented](https://ava.addy.zone/#/) and designed to be approacha
 
 **Perfect for:** personal sites, blogs, portfolios, documentation, directories, and any project where you want simplicity without giving up power.
 
----
+## Screenshots
 
 ![Ava CMS Screenshots](https://addy.zip/ava/ava-screenshots.webp)
 
