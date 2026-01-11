@@ -320,6 +320,27 @@ final class ReleaseChecksTest extends TestCase
     }
 
     /**
+     * Test that media directory is empty
+     */
+    public function testMediaDirectoryIsEmpty(): void
+    {
+        $mediaDir = AVA_ROOT . '/public/media';
+        
+        if (!is_dir($mediaDir)) {
+            // Directory doesn't exist, which is fine
+            $this->assertTrue(true, 'Media directory does not exist (empty)');
+            return;
+        }
+
+        $files = array_diff(scandir($mediaDir), ['.', '..']);
+        
+        $this->assertEmpty(
+            $files,
+            'Media directory should be empty for release (found: ' . implode(', ', $files) . ')'
+        );
+    }
+
+    /**
      * Test that preview token is placeholder
      */
     public function testPreviewTokenIsPlaceholder(): void
