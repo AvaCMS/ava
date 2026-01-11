@@ -9,6 +9,7 @@ use Ava\Content\Item;
 use Ava\Plugins\Hooks;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 use League\CommonMark\MarkdownConverter;
 
@@ -37,6 +38,12 @@ final class Engine
 
         // Resolve template path
         $templatePath = $this->resolveTemplate($template);
+
+        // Special handling for 404 - use built-in fallback if theme doesn't have one
+        if ($templatePath === null && $template === '404') {
+            $requestedPath = isset($context['request']) ? $context['request']->path() : null;
+            return ErrorPages::render404($requestedPath);
+        }
 
         if ($templatePath === null) {
             throw new \RuntimeException("Template not found: {$template}");
@@ -126,12 +133,16 @@ final class Engine
             $candidates[] = $themePath . '/templates/' . $template . '.php';
         }
 
-        // Fallback templates
-        $candidates[] = $themePath . '/templates/single.php';
-        $candidates[] = $themePath . '/templates/index.php';
+        // For error templates (404, 500, etc.), don't fall back to other templates
+        // Let the render() method handle the fallback to built-in error pages
+        if (!in_array($template, ['404', '500', '503'])) {
+            // Fallback templates for content
+            $candidates[] = $themePath . '/templates/single.php';
+            $candidates[] = $themePath . '/templates/index.php';
 
-        // Check partials directory too
-        $candidates[] = $themePath . '/partials/' . $template . '.php';
+            // Check partials directory too
+            $candidates[] = $themePath . '/partials/' . $template . '.php';
+        }
 
         foreach ($candidates as $path) {
             if (file_exists($path)) {
@@ -171,6 +182,8 @@ final class Engine
     private function getMarkdownConverter(): MarkdownConverter
     {
         if ($this->markdown === null) {
+            $enableHeadingIds = $this->app->config('content.markdown.heading_ids', true);
+
             $config = [
                 'html_input' => $this->app->config('content.markdown.allow_html', true)
                     ? 'allow'
@@ -178,9 +191,22 @@ final class Engine
                 'allow_unsafe_links' => false,
             ];
 
+            if ($enableHeadingIds) {
+                // Add ids to headings for in-page anchors without visible permalink markup
+                $config['heading_permalink'] = [
+                    'apply_id_to_heading' => true,
+                    'insert' => 'none', // Do not inject extra anchor markup
+                    'min_heading_level' => 1,
+                    'max_heading_level' => 6,
+                ];
+            }
+
             $environment = new Environment($config);
             $environment->addExtension(new CommonMarkCoreExtension());
             $environment->addExtension(new GithubFlavoredMarkdownExtension());
+            if ($enableHeadingIds) {
+                $environment->addExtension(new HeadingPermalinkExtension());
+            }
 
             // Allow plugins to add extensions
             Hooks::doAction('markdown.configure', $environment);

@@ -938,32 +938,52 @@ final class Application
 
     /**
      * Apply update.
+     * 
+     * Options:
+     *   --dev    Update from the latest commit on main branch instead of a release
+     *   --yes    Skip confirmation prompts
+     *   -y       Same as --yes
      */
     private function cmdUpdateApply(array $args): int
     {
         $this->writeln('');
 
-        // Check for available update first
+        $devMode = in_array('--dev', $args) || in_array('-d', $args);
         $updater = new \Ava\Updater($this->app);
-        $check = $updater->check(true);
 
-        if ($check['error']) {
-            $this->error('Could not check for updates: ' . $check['error']);
-            return 1;
-        }
-
-        if (!$check['available']) {
-            $this->box("Already running the latest version ({$check['current']})", 'success');
+        if ($devMode) {
+            // Dev mode: update from latest commit
+            echo $this->color('  ─── Dev Update ', self::PRIMARY, self::BOLD);
+            echo $this->color(str_repeat('─', 42), self::PRIMARY, self::BOLD) . "\n";
             $this->writeln('');
-            return 0;
-        }
+            $this->writeln('  ' . $this->color('⚠️  Updating from latest commit on main branch', self::YELLOW));
+            $this->writeln('  ' . $this->color('   This may include unstable or untested changes.', self::DIM));
+            $this->writeln('');
+            $this->keyValue('From', $updater->currentVersion());
+            $this->keyValue('To', $this->color('main (latest commit)', self::YELLOW, self::BOLD));
+            $this->writeln('');
+        } else {
+            // Check for available update first
+            $check = $updater->check(true);
 
-        echo $this->color('  ─── Update Available ', self::PRIMARY, self::BOLD);
-        echo $this->color(str_repeat('─', 35), self::PRIMARY, self::BOLD) . "\n";
-        $this->writeln('');
-        $this->keyValue('From', $check['current']);
-        $this->keyValue('To', $this->color($check['latest'], self::GREEN, self::BOLD));
-        $this->writeln('');
+            if ($check['error']) {
+                $this->error('Could not check for updates: ' . $check['error']);
+                return 1;
+            }
+
+            if (!$check['available']) {
+                $this->box("Already running the latest version ({$check['current']})", 'success');
+                $this->writeln('');
+                return 0;
+            }
+
+            echo $this->color('  ─── Update Available ', self::PRIMARY, self::BOLD);
+            echo $this->color(str_repeat('─', 35), self::PRIMARY, self::BOLD) . "\n";
+            $this->writeln('');
+            $this->keyValue('From', $check['current']);
+            $this->keyValue('To', $this->color($check['latest'], self::GREEN, self::BOLD));
+            $this->writeln('');
+        }
 
         // Confirm unless --yes flag
         if (!in_array('--yes', $args) && !in_array('-y', $args)) {
@@ -1003,8 +1023,8 @@ final class Application
             $this->writeln('');
         }
 
-        $result = $this->withSpinner('Downloading update', function () use ($updater) {
-            return $updater->apply();
+        $result = $this->withSpinner('Downloading update', function () use ($updater, $devMode) {
+            return $updater->apply(null, $devMode);
         });
 
         if (!$result['success']) {

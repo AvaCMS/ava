@@ -147,32 +147,50 @@ final class Updater
      * Apply an update.
      *
      * @param string|null $version Specific version to update to (null = latest)
+     * @param bool $dev If true, update from the latest commit on main branch instead of a release
      * @return array{success: bool, message: string, updated_from: string, updated_to: string, new_plugins: string[]}
      */
-    public function apply(?string $version = null): array
+    public function apply(?string $version = null, bool $dev = false): array
     {
         $currentVersion = $this->currentVersion();
 
         try {
-            // Get release info
-            if ($version === null) {
-                $release = $this->fetchLatestRelease();
+            // Dev mode: get latest commit from main branch
+            if ($dev) {
+                $commit = $this->fetchLatestCommit();
+                if ($commit === null) {
+                    return [
+                        'success' => false,
+                        'message' => 'Could not fetch latest commit from GitHub',
+                        'updated_from' => $currentVersion,
+                        'updated_to' => $currentVersion,
+                        'new_plugins' => [],
+                    ];
+                }
+                $shortSha = substr($commit['sha'], 0, 7);
+                $newVersion = $currentVersion . '-dev.' . $shortSha;
+                $zipUrl = $this->getBranchZipUrl();
             } else {
-                $release = $this->fetchRelease($version);
-            }
+                // Get release info
+                if ($version === null) {
+                    $release = $this->fetchLatestRelease();
+                } else {
+                    $release = $this->fetchRelease($version);
+                }
 
-            if ($release === null) {
-                return [
-                    'success' => false,
-                    'message' => 'Could not fetch release from GitHub',
-                    'updated_from' => $currentVersion,
-                    'updated_to' => $currentVersion,
-                    'new_plugins' => [],
-                ];
-            }
+                if ($release === null) {
+                    return [
+                        'success' => false,
+                        'message' => 'Could not fetch release from GitHub',
+                        'updated_from' => $currentVersion,
+                        'updated_to' => $currentVersion,
+                        'new_plugins' => [],
+                    ];
+                }
 
-            $newVersion = ltrim($release['tag_name'], 'v');
-            $zipUrl = $release['zipball_url'] ?? null;
+                $newVersion = ltrim($release['tag_name'], 'v');
+                $zipUrl = $release['zipball_url'] ?? null;
+            }
 
             if (!$zipUrl) {
                 return [
@@ -258,6 +276,23 @@ final class Updater
         $tag = str_starts_with($version, 'v') ? $version : 'v' . $version;
         $url = "https://api.github.com/repos/{$this->githubRepo}/releases/tags/{$tag}";
         return $this->githubApiRequest($url);
+    }
+
+    /**
+     * Fetch the latest commit info from the main branch.
+     */
+    private function fetchLatestCommit(string $branch = 'main'): ?array
+    {
+        $url = "https://api.github.com/repos/{$this->githubRepo}/commits/{$branch}";
+        return $this->githubApiRequest($url);
+    }
+
+    /**
+     * Get zipball URL for a branch.
+     */
+    private function getBranchZipUrl(string $branch = 'main'): string
+    {
+        return "https://api.github.com/repos/{$this->githubRepo}/zipball/{$branch}";
     }
 
     /**

@@ -58,7 +58,7 @@ return function (Application $app): void {
         if ($request->path() !== '/search') {
             return $match; // Let Ava handle this URL normally
         }
-
+<?php breakme(); ?>
         // Get the search query from ?q= parameter
         // $request->query() safely retrieves GET parameters with a default value
         $searchQuery = trim($request->query('q', ''));

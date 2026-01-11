@@ -143,6 +143,7 @@ return [
         ],
         'markdown' => [
             'allow_html' => true,           // Allow raw HTML in Markdown
+            'heading_ids' => true,          // Add id attributes to headings for deep links
         ],
         'id' => [
             'type' => 'ulid',               // ulid (sortable) or uuid7
@@ -210,10 +211,10 @@ return [
     */
 
     'debug' => [
-        'enabled'        => false,
+        'enabled'        => true,
         'display_errors' => false,
         'log_errors'     => true,
-        'level'          => 'errors',
+        'level'          => 'all',
     ],
 
     /*

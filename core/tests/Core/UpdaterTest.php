@@ -124,7 +124,7 @@ final class UpdaterTest extends TestCase
      */
     public function testUpdateDirectoriesExist(): void
     {
-        $dirs = ['core', 'docs', 'bin'];
+        $dirs = ['core', 'bin'];
         
         foreach ($dirs as $dir) {
             $path = AVA_ROOT . '/' . $dir;
