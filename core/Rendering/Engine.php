@@ -189,6 +189,11 @@ final class Engine
                     ? 'allow'
                     : 'strip',
                 'allow_unsafe_links' => false,
+                // GFM registers the DisallowedRawHtmlExtension; configure it so filesystem content
+                // can opt into allowing tags like iframe while still letting users block others.
+                'disallowed_raw_html' => [
+                    'disallowed_tags' => $this->app->config('content.markdown.disallowed_tags', []),
+                ],
             ];
 
             if ($enableHeadingIds) {

@@ -144,6 +144,7 @@ return [
         'markdown' => [
             'allow_html' => true,           // Allow raw HTML in Markdown
             'heading_ids' => true,          // Add id attributes to headings for deep links
+            'disallowed_tags' => [],        // Tags to strip if allow_html is true (e.g. ['script', 'iframe'])
         ],
         'id' => [
             'type' => 'ulid',               // ulid (sortable) or uuid7
