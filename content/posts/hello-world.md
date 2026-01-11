@@ -1,5 +1,4 @@
 ---
-id: 01JGMK0000POST0000000000001
 title: Hello World
 slug: hello-world
 status: published

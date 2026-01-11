@@ -225,7 +225,14 @@ final class Router
 
         if ($type === 'single') {
             $repository = $this->app->repository();
-            $item = $repository->get($routeData['content_type'], $routeData['slug']);
+
+            // Use file path for lookup if available (more reliable for hierarchical content)
+            // Fall back to type+slug for backwards compatibility
+            if (isset($routeData['file'])) {
+                $item = $repository->getByPath($routeData['file']);
+            } else {
+                $item = $repository->get($routeData['content_type'], $routeData['slug']);
+            }
 
             if ($item === null) {
                 return null;

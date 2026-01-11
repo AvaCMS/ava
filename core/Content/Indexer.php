@@ -585,6 +585,7 @@ final class Indexer
                     'type' => 'single',
                     'content_type' => $typeName,
                     'slug' => $item->slug(),
+                    'file' => $this->getRelativePath($item->filePath()),
                     'template' => $item->template() ?? $typeConfig['templates']['single'] ?? 'single.php',
                 ];
 

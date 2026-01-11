@@ -1,9 +1,7 @@
 ---
-id: 01JGMK0000HOMEPAGE00000001
 title: Home
 slug: index
 status: published
-template: page.php
 ---
 
 # Welcome to Ava 👋

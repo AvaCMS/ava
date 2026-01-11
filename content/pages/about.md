@@ -1,5 +1,4 @@
 ---
-id: 01JGMK0000ABOUT00000000001
 title: About
 slug: about
 status: published
