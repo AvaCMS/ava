@@ -26,16 +26,16 @@ final class UpdaterTest extends TestCase
     }
 
     /**
-     * Test version format is CalVer (YY.0M.MICRO)
+     * Test version format is SemVer (MAJOR.MINOR.PATCH)
      */
-    public function testVersionFormatCalVer(): void
+    public function testVersionFormatSemVer(): void
     {
         $version = constant('AVA_VERSION');
         
-        // Should match pattern: 25.12.1 or 26.01.2 etc
+        // Should match pattern: 1.0.0, 2.1.3 etc
         $this->assertTrue(
-            (bool) preg_match('/^\d{2}\.\d{2}\.\d+$/', $version),
-            "Version '$version' should match CalVer format YY.0M.MICRO"
+            (bool) preg_match('/^\d+\.\d+\.\d+$/', $version),
+            "Version '$version' should match SemVer format MAJOR.MINOR.PATCH"
         );
     }
 
@@ -44,9 +44,9 @@ final class UpdaterTest extends TestCase
      */
     public function testVersionComparison(): void
     {
-        $v1 = '25.12.1';
-        $v2 = '25.12.2';
-        $v3 = '26.01.1';
+        $v1 = '1.0.0';
+        $v2 = '1.0.1';
+        $v3 = '1.1.0';
         
         $this->assertTrue(version_compare($v2, $v1, '>'));
         $this->assertTrue(version_compare($v1, $v2, '<'));
@@ -108,9 +108,9 @@ final class UpdaterTest extends TestCase
     {
         // Simulate GitHub release tag format
         $tags = [
-            'v25.12.1' => '25.12.1',
-            'v26.01.2' => '26.01.2',
-            '25.12.1' => '25.12.1',
+            'v1.0.0' => '1.0.0',
+            'v2.1.3' => '2.1.3',
+            '1.0.0' => '1.0.0',
         ];
         
         foreach ($tags as $tag => $expected) {
@@ -230,14 +230,14 @@ final class UpdaterTest extends TestCase
     {
         $result = [
             'available' => true,
-            'current' => '25.12.1',
-            'latest' => '25.12.2',
+            'current' => '1.0.0',
+            'latest' => '1.0.1',
             'release' => [
-                'name' => '25.12.2',
+                'name' => '1.0.1',
                 'body' => 'Bug fixes and improvements',
-                'published_at' => '2025-12-31T00:00:00Z',
-                'html_url' => 'https://github.com/adamgreenough/ava/releases/tag/v25.12.2',
-                'zipball_url' => 'https://api.github.com/repos/adamgreenough/ava/zipball/v25.12.2',
+                'published_at' => '2026-01-10T00:00:00Z',
+                'html_url' => 'https://github.com/adamgreenough/ava/releases/tag/v1.0.1',
+                'zipball_url' => 'https://api.github.com/repos/adamgreenough/ava/zipball/v1.0.1',
             ],
             'error' => null,
         ];
@@ -257,8 +257,8 @@ final class UpdaterTest extends TestCase
         $result = [
             'success' => true,
             'message' => 'Updated successfully',
-            'updated_from' => '25.12.1',
-            'updated_to' => '25.12.2',
+            'updated_from' => '1.0.0',
+            'updated_to' => '1.0.1',
             'new_plugins' => [],
         ];
         
@@ -311,13 +311,13 @@ final class UpdaterTest extends TestCase
      */
     public function testVersionComponents(): void
     {
-        $version = '25.12.1';
+        $version = '1.2.3';
         $parts = explode('.', $version);
         
         $this->assertEquals(3, count($parts));
-        $this->assertEquals('25', $parts[0]);  // Year
-        $this->assertEquals('12', $parts[1]);  // Month
-        $this->assertEquals('1', $parts[2]);   // Micro
+        $this->assertEquals('1', $parts[0]);  // Major
+        $this->assertEquals('2', $parts[1]);  // Minor
+        $this->assertEquals('3', $parts[2]);  // Patch
     }
 
     /**
@@ -327,8 +327,8 @@ final class UpdaterTest extends TestCase
     {
         $errorResult = [
             'available' => false,
-            'current' => '25.12.1',
-            'latest' => '25.12.1',
+            'current' => '1.0.0',
+            'latest' => '1.0.0',
             'release' => null,
             'error' => 'Could not fetch release info from GitHub',
         ];

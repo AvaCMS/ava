@@ -4,15 +4,18 @@ This guide is for maintainers who are releasing a new version of Ava.
 
 ## Versioning
 
-We use date-based versioning: `YY.MM.Patch`.
-- `25.12.1` = First release of December 2025.
+We use [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
+- `1.0.0` = Initial stable release
+- `1.0.1` = Patch release with bug fixes
+- `1.1.0` = Minor release with new features
+- `2.0.0` = Major release with breaking changes
 
 ## How to Release
 
 1. **Update Version:** Change `AVA_VERSION` in `bootstrap.php`.
 2. **Test:** Run `./ava lint` and `./ava rebuild` to make sure everything is solid.
 3. **Release Tests:** Run `./ava test --release` to verify release readiness.
-4. **Tag:** Create a git tag (e.g., `v25.12.1`).
+4. **Tag:** Create a git tag (e.g., `v1.0.0`).
 5. **Push:** Push the tag to GitHub.
 6. **Release:** Create a new Release on GitHub using that tag.
 
@@ -35,7 +38,7 @@ The `--release` flag runs additional tests that verify the project is ready for 
 | Admin settings | path = "/admin", theme = "cyan" |
 | CLI settings | theme = "cyan" |
 | Site identity | name = "My Ava Site", base_url contains "localhost", timezone = "UTC", locale = "en_GB" |
-| Version | CalVer format, version higher than current GitHub release |
+| Version | SemVer format, version higher than current GitHub release |
 | Structure | default theme exists, example content exists, no users.php file |
 | Documentation | README.md, LICENSE, docs/ exist |
 | Dependencies | composer.json valid, vendor/ exists |
@@ -111,17 +114,17 @@ Before releasing, test the update mechanism:
 
 ## Hotfix Releases
 
-For urgent fixes within the same month:
+For urgent bug fixes:
 
-1. Just increment MICRO: `25.12.1` → `25.12.2`
+1. Increment PATCH: `1.0.0` → `1.0.1`
 2. Follow the normal release process
 3. Note in changelog that it's a hotfix
 
 ## Pre-release / Beta
 
 Not officially supported, but you could use:
-- `25.12.1-beta.1`
-- `25.12.1-rc.1`
+- `1.0.0-beta.1`
+- `1.0.0-rc.1`
 
 The version comparison should still work, but these would be considered "less than" the final release.
 
@@ -143,7 +146,7 @@ Ensure the GitHub repository has:
 
 ### Version comparison issues
 
-The updater uses PHP's `version_compare()`. CalVer format works correctly:
-- `25.12.1` < `25.12.2` ✓
-- `25.12.9` < `25.12.10` ✓
-- `25.12.99` < `26.01.1` ✓
+The updater uses PHP's `version_compare()`. SemVer format works correctly:
+- `1.0.0` < `1.0.1` ✓
+- `1.0.9` < `1.0.10` ✓
+- `1.9.9` < `2.0.0` ✓

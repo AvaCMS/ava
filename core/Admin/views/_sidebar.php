@@ -26,7 +26,7 @@ $activePage = $activePage ?? '';
 
 <aside class="sidebar" id="sidebar">
     <div class="logo">
-        <h1>✨ Ava <span class="version-badge">v<?= htmlspecialchars($version ?? '1.0') ?></span></h1>
+        <h1>✨ Ava <span class="version-badge">v<?= htmlspecialchars($version ?? '1.0.0') ?></span></h1>
     </div>
     <nav class="nav">
         <div class="nav-section">Overview</div>

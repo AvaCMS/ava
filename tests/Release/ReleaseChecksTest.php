@@ -207,15 +207,15 @@ final class ReleaseChecksTest extends TestCase
     // =========================================================================
 
     /**
-     * Test that version follows CalVer format
+     * Test that version follows SemVer format
      */
-    public function testVersionFollowsCalVer(): void
+    public function testVersionFollowsSemVer(): void
     {
         $version = AVA_VERSION;
         
         $this->assertTrue(
-            (bool) preg_match('/^\d{2}\.\d{2}\.\d+$/', $version),
-            "Version '{$version}' should match CalVer format YY.0M.MICRO (e.g., 25.12.1)"
+            (bool) preg_match('/^\d+\.\d+\.\d+$/', $version),
+            "Version '{$version}' should match SemVer format MAJOR.MINOR.PATCH (e.g., 1.0.0)"
         );
     }
 

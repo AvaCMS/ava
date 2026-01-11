@@ -9,7 +9,7 @@ namespace Ava;
  *
  * Handles checking for and applying updates from GitHub.
  *
- * Version Format: CalVer YY.0M.MICRO (e.g., 25.12.1)
+ * Version Format: SemVer MAJOR.MINOR.PATCH (e.g., 1.0.0)
  *
  * What gets updated:
  * - core/, docs/, bin/, bootstrap.php, composer.json

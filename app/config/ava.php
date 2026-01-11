@@ -53,7 +53,7 @@ return [
     */
 
     'admin' => [
-        'enabled' => true,
+        'enabled' => false,
         'path'    => '/admin',
         'theme'   => 'cyan',
 
@@ -210,7 +210,7 @@ return [
     */
 
     'debug' => [
-        'enabled'        => true,
+        'enabled'        => false,
         'display_errors' => false,
         'log_errors'     => true,
         'level'          => 'errors',

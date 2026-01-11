@@ -9,8 +9,8 @@ declare(strict_types=1);
  * This file is shared by both the web front controller and CLI.
  */
 
-// Ava version (CalVer: YY.0M.MICRO - e.g., 25.12.1 = first release of Dec 2025)
-define('AVA_VERSION', '25.12.3');
+// Ava version (SemVer: MAJOR.MINOR.PATCH)
+define('AVA_VERSION', '1.0.0');
 
 // Ensure we have a root constant
 if (!defined('AVA_ROOT')) {

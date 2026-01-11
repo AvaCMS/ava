@@ -2457,7 +2457,7 @@ JS;
             'taxonomies' => $this->getTaxonomyStats(),
             'taxonomyConfig' => $this->getTaxonomyConfig(),
             'customPages' => Hooks::apply('admin.register_pages', [], $this->app),
-            'version' => defined('AVA_VERSION') ? AVA_VERSION : '1.0',
+            'version' => defined('AVA_VERSION') ? AVA_VERSION : '1.0.0',
             'user' => $this->auth->user(),
             'csrf' => $this->auth->csrfToken(),
             'site' => [
