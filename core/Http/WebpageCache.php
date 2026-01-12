@@ -267,23 +267,14 @@ final class WebpageCache
      */
     private function isUserLoggedIn(): bool
     {
-        // Only check if session is already active - don't start one
+        // Only check if session is already active - don't start one.
         if (session_status() === PHP_SESSION_ACTIVE) {
             return isset($_SESSION['ava_admin_user']);
         }
 
-        // Check for admin session cookie (ava_admin, not the default session name)
-        // The admin uses a separate session with this specific name
-        if (isset($_COOKIE['ava_admin'])) {
-            // Temporarily start admin session to check login status
-            @session_name('ava_admin');
-            @session_start();
-            $isLoggedIn = isset($_SESSION['ava_admin_user']);
-            session_write_close(); // Close immediately to not block
-            return $isLoggedIn;
-        }
-
-        return false;
+        // If the admin session cookie exists, be conservative and assume the user might be logged in.
+        // We intentionally do NOT start the session here to avoid session fixation and DoS risks.
+        return isset($_COOKIE['ava_admin']);
     }
 
     /**

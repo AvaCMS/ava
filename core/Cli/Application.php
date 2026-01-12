@@ -863,7 +863,7 @@ final class Application
      */
     private function saveUsers(string $file, array $users): void
     {
-        $content = "<?php\n\ndeclare(strict_types=1);\n\n/**\n * Users Configuration\n *\n * Managed by CLI. Do not edit manually.\n */\n\nreturn " . var_export($users, true) . ";\n";
+        $content = "<?php\n\ndeclare(strict_types=1);\n\n// Prevent direct access\ndefined('AVA_ROOT') || exit;\n\n/**\n * Users Configuration\n *\n * Managed by CLI. Do not edit manually.\n */\n\nreturn " . var_export($users, true) . ";\n";
         file_put_contents($file, $content, LOCK_EX);
     }
 

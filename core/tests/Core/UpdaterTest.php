@@ -124,7 +124,8 @@ final class UpdaterTest extends TestCase
      */
     public function testUpdateDirectoriesExist(): void
     {
-        $dirs = ['core', 'bin'];
+        // 'ava' is a file, not a directory
+        $dirs = ['core'];
         
         foreach ($dirs as $dir) {
             $path = AVA_ROOT . '/' . $dir;
@@ -133,6 +134,12 @@ final class UpdaterTest extends TestCase
                 "Update directory '$dir' should exist"
             );
         }
+        
+        // Check CLI file exists
+        $this->assertTrue(
+            file_exists(AVA_ROOT . '/ava'),
+            "CLI script 'ava' should exist"
+        );
     }
 
     /**
@@ -290,7 +297,7 @@ final class UpdaterTest extends TestCase
      */
     public function testUpdateDirsNotEmpty(): void
     {
-        $dirs = ['core', 'docs', 'bin'];
+        $dirs = ['core', 'docs', 'ava'];
         
         $this->assertTrue(count($dirs) > 0);
     }

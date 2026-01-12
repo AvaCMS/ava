@@ -12,7 +12,7 @@ namespace Ava;
  * Version Format: SemVer MAJOR.MINOR.PATCH (e.g., 1.0.0)
  *
  * What gets updated:
- * - core/, docs/, bin/, bootstrap.php, composer.json
+ * - core/, docs/, ava (CLI), bootstrap.php, composer.json
  * - public/index.php, public/assets/admin.css
  * - Bundled plugins (sitemap, feed, redirects)
  *
@@ -34,7 +34,7 @@ final class Updater
     private array $updateDirs = [
         'core',
         'docs',
-        'bin',
+        'ava',
         'public/index.php',
         'bootstrap.php',
         'composer.json',

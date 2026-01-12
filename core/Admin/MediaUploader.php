@@ -500,7 +500,9 @@ final class MediaUploader
         $dom->resolveExternals = false;
         $dom->substituteEntities = false;
         
-        if (!$dom->loadXML($content, LIBXML_NONET | LIBXML_NOENT | LIBXML_NOCDATA)) {
+        // Security: do NOT expand entities (avoid billion-laughs style attacks).
+        // LIBXML_NONET prevents network fetches; we also keep substituteEntities=false above.
+        if (!$dom->loadXML($content, LIBXML_NONET | LIBXML_NOCDATA)) {
             libxml_clear_errors();
             return ['success' => false, 'error' => 'Invalid SVG XML structure'];
         }

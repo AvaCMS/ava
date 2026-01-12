@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// Prevent direct access
+defined('AVA_ROOT') || exit;
+
 /**
  * ══════════════════════════════════════════════════════════════════════════════
  * AVA CMS — CONTENT TYPES

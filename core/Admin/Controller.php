@@ -563,7 +563,11 @@ final class Controller
         // Parse YAML frontmatter if present
         if (preg_match('/^---\n(.*?)\n---\n*/s', $fileContent, $matches)) {
             try {
-                $frontmatter = \Symfony\Component\Yaml\Yaml::parse($matches[1]) ?? [];
+                // Defense-in-depth: reject any unsupported YAML types.
+                $frontmatter = \Symfony\Component\Yaml\Yaml::parse(
+                    $matches[1],
+                    \Symfony\Component\Yaml\Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE
+                ) ?? [];
             } catch (\Exception $e) {
                 // Invalid YAML - return raw content
                 return [
@@ -1093,7 +1097,22 @@ final class Controller
         $terms = [];
         if (file_exists($filePath)) {
             $content = file_get_contents($filePath);
-            $terms = \Symfony\Component\Yaml\Yaml::parse($content) ?? [];
+            if ($content === false) {
+                return 'Failed to read taxonomy file.';
+            }
+
+            try {
+                $terms = \Symfony\Component\Yaml\Yaml::parse(
+                    $content,
+                    \Symfony\Component\Yaml\Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE
+                ) ?? [];
+            } catch (\Throwable) {
+                return 'Invalid taxonomy file format.';
+            }
+
+            if (!is_array($terms)) {
+                return 'Invalid taxonomy file format.';
+            }
         }
 
         // Add new term
@@ -1137,7 +1156,22 @@ final class Controller
         }
 
         $content = file_get_contents($filePath);
-        $terms = \Symfony\Component\Yaml\Yaml::parse($content) ?? [];
+        if ($content === false) {
+            return 'Failed to read taxonomy file.';
+        }
+
+        try {
+            $terms = \Symfony\Component\Yaml\Yaml::parse(
+                $content,
+                \Symfony\Component\Yaml\Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE
+            ) ?? [];
+        } catch (\Throwable) {
+            return 'Invalid taxonomy file format.';
+        }
+
+        if (!is_array($terms)) {
+            return 'Invalid taxonomy file format.';
+        }
 
         // Filter out the term
         $terms = array_filter($terms, fn($term) => ($term['slug'] ?? '') !== $slug);

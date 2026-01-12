@@ -1,0 +1,46 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# AVA CMS - ROOT HTACCESS (MISCONFIGURATION PROTECTION)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# WARNING: If you see this file served by your web server, your document root
+# is misconfigured! The document root should be the /public folder, not the
+# project root.
+#
+# Correct: DocumentRoot /var/www/yoursite/public
+# Wrong:   DocumentRoot /var/www/yoursite
+#
+# This file provides basic protection if misconfigured, but you should fix
+# your server configuration immediately.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Redirect everything to public/index.php if misconfigured
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # If requesting the root or a non-existent file, redirect to public/
+    RewriteCond %{REQUEST_URI} ^/$
+    RewriteRule ^$ public/index.php [L]
+    
+    # Block direct access to sensitive directories
+    RewriteRule ^(app|core|storage|vendor)(/.*)?$ - [F,L]
+    
+    # Block sensitive files (CLI script, bootstrap, composer files, git/env)
+    RewriteRule ^(ava|bootstrap\.php|composer\.(json|lock)|\.git.*|\.env.*)$ - [F,L]
+    
+    # Allow public directory
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/index.php [L]
+</IfModule>
+
+# Block direct access to PHP files outside public (backup if rewrite is off)
+<FilesMatch "^(bootstrap|ava)\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>

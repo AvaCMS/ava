@@ -90,6 +90,7 @@ final class Response
      */
     public function withHeader(string $name, string $value): self
     {
+        self::assertValidHeader($name, $value);
         $response = clone $this;
         $response->headers[$name] = $value;
         return $response;
@@ -100,6 +101,12 @@ final class Response
      */
     public function withHeaders(array $headers): self
     {
+        foreach ($headers as $name => $value) {
+            if (!is_string($name) || !is_string($value)) {
+                throw new \InvalidArgumentException('Header names and values must be strings');
+            }
+            self::assertValidHeader($name, $value);
+        }
         $response = clone $this;
         $response->headers = array_merge($response->headers, $headers);
         return $response;
@@ -153,11 +160,30 @@ final class Response
 
         // Send headers
         foreach ($this->headers as $name => $value) {
+            // Guard in case headers were injected via direct property manipulation.
+            self::assertValidHeader($name, $value);
             header("{$name}: {$value}");
         }
 
         // Send content
         echo $this->content;
+    }
+
+    /**
+     * Guard against header injection and invalid header names.
+     */
+    private static function assertValidHeader(string $name, string $value): void
+    {
+        // Prevent response splitting / header injection.
+        if (str_contains($name, "\r") || str_contains($name, "\n") || str_contains($value, "\r") || str_contains($value, "\n")) {
+            throw new \InvalidArgumentException('Invalid header: CRLF not allowed');
+        }
+
+        // Conservative header-name validation (RFC 7230 token).
+        // Allow common header-name chars only.
+        if (!preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+$/', $name)) {
+            throw new \InvalidArgumentException('Invalid header name');
+        }
     }
 
     /**

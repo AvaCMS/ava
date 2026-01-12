@@ -1,4 +1,34 @@
 #!/usr/bin/env php
 <?php
-// Shortcut to bin/ava
-require __DIR__ . '/bin/ava';
+
+declare(strict_types=1);
+
+/**
+ * Ava CMS CLI
+ *
+ * Command-line interface for Ava CMS.
+ *
+ * Usage:
+ *   ./ava <command> [options] [arguments]
+ *
+ * Commands:
+ *   status     Show site status and cache info
+ *   rebuild    Rebuild all cache files
+ *   lint       Validate content files
+ *   make:page  Create a new page
+ *   make:type  Create content of a specific type
+ */
+
+// Ensure we're running from CLI
+if (php_sapi_name() !== 'cli') {
+    die("This script must be run from the command line.\n");
+}
+
+define('AVA_ROOT', __DIR__);
+
+// Load bootstrap and get app
+$app = require AVA_ROOT . '/bootstrap.php';
+
+// Get CLI instance with app
+$cli = new Ava\Cli\Application($app);
+$cli->run($argv);

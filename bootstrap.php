@@ -9,6 +9,12 @@ declare(strict_types=1);
  * This file is shared by both the web front controller and CLI.
  */
 
+// Prevent direct web access if accidentally exposed
+if (php_sapi_name() !== 'cli' && !defined('AVA_START')) {
+    http_response_code(403);
+    exit('Direct access denied.');
+}
+
 // Ava version (SemVer: MAJOR.MINOR.PATCH)
 define('AVA_VERSION', '1.0.0');
 
