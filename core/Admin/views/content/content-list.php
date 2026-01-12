@@ -31,7 +31,7 @@ $getContentPath = function($item) use ($routes, $typeConfig, $type) {
     }
     
     // For drafts, generate URL from pattern
-    if (!$item->isPublished()) {
+    if ($item->isDraft()) {
         $urlConfig = $typeConfig['url'] ?? [];
         $urlType = $urlConfig['type'] ?? 'pattern';
         $pattern = $urlConfig['pattern'] ?? ($urlType === 'hierarchical' ? '/{slug}' : '/' . $type . '/{slug}');
@@ -54,7 +54,7 @@ $getContentUrl = function($item, $forcePreview = false) use ($site, $previewToke
     $url = rtrim($site['url'], '/') . $path;
     
     // For drafts, add preview token if available
-    if ((!$item->isPublished() || $forcePreview) && $previewToken) {
+    if (($item->isDraft() || $forcePreview) && $previewToken) {
         $url .= '?preview=1&token=' . urlencode($previewToken);
     }
     
@@ -98,7 +98,7 @@ $formatBytes = function($bytes) {
                         $itemUrl = $getContentUrl($item);
                         $itemPath = $getContentPath($item);
                         $fileSize = file_exists($item->filePath()) ? filesize($item->filePath()) : 0;
-                        $isDraft = !$item->isPublished();
+                        $isDraft = $item->isDraft();
                     ?>
                     <tr>
                         <td>

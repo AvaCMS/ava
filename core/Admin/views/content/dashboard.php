@@ -44,7 +44,7 @@ $getContentPath = function($item) use ($routes, $contentTypes) {
     }
     
     // For drafts, generate URL from pattern
-    if (!$item->isPublished()) {
+    if ($item->isDraft()) {
         $typeConfig = $contentTypes[$type] ?? [];
         $urlConfig = $typeConfig['url'] ?? [];
         $urlType = $urlConfig['type'] ?? 'pattern';
@@ -66,7 +66,7 @@ $getContentUrl = function($item) use ($site, $previewToken, $getContentPath) {
     }
     
     $url = rtrim($site['url'], '/') . $path;
-    if (!$item->isPublished() && $previewToken) {
+    if ($item->isDraft() && $previewToken) {
         $url .= '?preview=1&token=' . urlencode($previewToken);
     }
     return $url;

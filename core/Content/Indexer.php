@@ -589,9 +589,10 @@ final class Indexer
             $urlConfig = $typeConfig['url'] ?? [];
 
             foreach ($items as $item) {
-                // Skip non-published for route generation
-                // (they'll be accessible via preview token)
-                if (!$item->isPublished()) {
+                // Skip drafts for route generation
+                // - drafts are only accessible via preview token
+                // - unlisted items should be accessible via direct URL
+                if ($item->isDraft()) {
                     continue;
                 }
 
