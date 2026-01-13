@@ -763,14 +763,23 @@ final class Controller
             return null; // 404
         }
 
+        $contentTypes = $this->getContentTypeConfig();
+        $typeConfig = $contentTypes[$type] ?? [];
+
         // Check if content exists
-        $item = $repository->get($type, $slug);
+        // Note: for hierarchical content types, the index file (index.md) is stored under
+        // an empty content key '' so /admin/content/page/index/edit must resolve to ''.
+        $lookupKey = $slug;
+        $urlType = $typeConfig['url']['type'] ?? 'pattern';
+        if ($urlType === 'hierarchical' && ($slug === 'index' || $slug === '_index')) {
+            $lookupKey = '';
+        }
+
+        $item = $repository->get($type, $lookupKey);
         if ($item === null) {
             return null; // 404
         }
 
-        $contentTypes = $this->getContentTypeConfig();
-        $typeConfig = $contentTypes[$type] ?? [];
         $taxonomyConfig = $this->getTaxonomyConfig();
         $error = null;
         $securityWarnings = [];
@@ -935,8 +944,19 @@ final class Controller
             return null; // 404
         }
 
+        $contentTypes = $this->getContentTypeConfig();
+        $typeConfig = $contentTypes[$type] ?? [];
+
         // Check if content exists
-        $item = $repository->get($type, $slug);
+        // Note: for hierarchical content types, the index file (index.md) is stored under
+        // an empty content key '' so /admin/content/page/index/delete must resolve to ''.
+        $lookupKey = $slug;
+        $urlType = $typeConfig['url']['type'] ?? 'pattern';
+        if ($urlType === 'hierarchical' && ($slug === 'index' || $slug === '_index')) {
+            $lookupKey = '';
+        }
+
+        $item = $repository->get($type, $lookupKey);
         if ($item === null) {
             return null; // 404
         }
