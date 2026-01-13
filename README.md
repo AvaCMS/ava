@@ -2,83 +2,106 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://ava.addy.zone/media/dark.png">
   <source media="(prefers-color-scheme: light)" srcset="https://ava.addy.zone/media/light.png">
-  <img alt="Fallback image description" src="https://ava.addy.zone/media/light.png">
+  <img alt="Ava CMS" src="https://ava.addy.zone/media/light.png">
 </picture>
 </p>
 
 <p align="center">
-  <strong>A fast, flexible, file-based CMS.</strong><br>
+  <strong>A fast, flexible, file-based CMS built with modern PHP.</strong><br>
 </p>
 
 ---
 
 # Ava CMS
 
-[![Release](https://img.shields.io/github/v/release/avacms/ava)](https://github.com/avacms/ava/releases)
-[![Issues](https://img.shields.io/github/issues/avacms/ava)](https://github.com/avacms/ava/issues)
-[![Stars](https://img.shields.io/github/stars/avacms/ava)](https://github.com/avacms/ava/stargazers)
-[![Code size](https://img.shields.io/github/languages/code-size/avacms/ava)](https://github.com/avacms/ava)
+[![Release](https://img.shields.io/github/v/release/AvaCMS/ava)](https://github.com/AvaCMS/ava/releases)
+[![Issues](https://img.shields.io/github/issues/AvaCMS/ava)](https://github.com/AvaCMS/ava/issues)
+[![Stars](https://img.shields.io/github/stars/AvaCMS/ava)](https://github.com/AvaCMS/ava/stargazers)
+[![Code size](https://img.shields.io/github/languages/code-size/AvaCMS/ava)](https://github.com/AvaCMS/ava)
+[![License](https://img.shields.io/github/license/AvaCMS/ava)](https://github.com/AvaCMS/ava/blob/main/LICENSE)
 [![Discord](https://img.shields.io/discord/1028357262189801563)](https://discord.gg/fZwW4jBVh5)
 
-Ava is a modern flat-file CMS built for developers and content creators who want simplicity without sacrificing power. Your content lives as **Markdown files** on disk. Your theme is just **PHP & HTML**. Your configuration is a simple array.
+**Links:** [Docs](https://ava.addy.zone/) · [Releases](https://github.com/AvaCMS/ava/releases) · [Issues](https://github.com/AvaCMS/ava/issues) · [Discord](https://discord.gg/fZwW4jBVh5)
 
-There is **no database** to manage, **no complex build pipeline** to configure, and **no vendor lock-in**. If you can write Markdown and edit files, you can build a site with Ava.
+**Explore:** [Themes](https://ava.addy.zone/themes) · [Plugins](https://ava.addy.zone/plugins) · [Showcase](https://ava.addy.zone/showcase)
 
-### ✨ Key Features
+Build content in Markdown. Render with plain PHP. No database required.
 
-*   **📂 Flat-File Architecture**: Your content is portable, version-controllable, and human-readable.
-*   **⚡ Blazing Fast**: Heavy caching layer ensures your site loads instantly.
-*   **🔌 Zero-Database**: No MySQL, PostgreSQL, or SQLite connection to robustly manage.
-*   **🛠️ Powerful CLI**: A friendly command-line tool for managing your site, clearing cache, and more.
-*   **🎛️ Admin Dashboard**: Optional built-in admin panel for quick edits and content management on the go.
-*   **🎨 Flexible Theming**: Use standard PHP templates. No new templating language to learn.
-*   **🧩 Plugin System**: Extend functionality with hooks and bundled plugins (Sitemap, Redirects, etc.).
+Ava is a modern flat‑file CMS for developers and content creators who want simplicity without giving up control. Your content lives as **Markdown files** on disk, your theme is **PHP + HTML**, and your configuration is a small set of PHP arrays.
+
+## Why Ava
+
+- **Markdown & HTML**: Write fast in Markdown, drop into HTML when you want full control.
+- **Instant feedback**: No manual build step or deploy queue — edit a file, refresh, see it live.
+- **Design freedom**: Standard HTML/CSS templates, with PHP only where you need dynamic data.
+- **Model anything**: Content types + taxonomies make blogs, portfolios, docs, and catalogs feel natural.
+- **Dev-friendly**: CLI, hooks, and plugins keep advanced features clean and optional.
+- **Scale when you need**: Start with flat files, switch backends (like SQLite) for huge sites.
+
+## ✨ Highlights
+
+- **Markdown + front matter** content on disk
+- **Content types & taxonomies** for structured sites
+- **Built-in CLI** for common tasks (including cache management)
+- **Bundled plugins** like sitemap, redirects, and feeds
+- **Pragmatic defaults** with plenty of escape hatches
+- **No database by default**, with optional backends for scale (including SQLite)
+
+### How it works
+
+1. **Write** — Create Markdown files in `content/`.
+2. **Index** — Ava automatically scans your files and builds a fast index.
+3. **Render** — Your theme turns content into HTML.
 
 ## 📸 Screenshots
 
 ![Ava CMS screenshots](https://ava.addy.zone/media/screenshots.png)
 
-## 🛠️ Requirements
-
-*   **PHP 8.3** or higher
-*   **Composer**
-
-That's it. Ava runs on almost any shared hosting, VPS, or local machine that supports modern PHP.
-
 ## 🏁 Quick Start
 
-### 1. Installation
+### Requirements
 
-Clone the repository and install dependencies:
+- **PHP 8.3+**
+- **Composer**
+
+That’s it — Ava is designed to run happily on shared hosting, a VPS, or locally.
+
+### 1) Install
+
+**Option A: Download a release**
+
+- Grab the latest release from https://github.com/AvaCMS/ava/releases
+- Unzip it into a new folder
+
+**Option B: Clone from GitHub**
 
 ```bash
-<<<<<<< HEAD
-# 1. Download from GitHub releases (or git clone)
-#    https://github.com/avacms/ava/releases
-
-# 2. Install dependencies
-=======
-git clone https://github.com/ava-cms/ava.git my-site
+git clone https://github.com/AvaCMS/ava.git my-site
 cd my-site
->>>>>>> 035ee8b639e389b817b0a8cd0a778c4063972490
 composer install
 ```
 
-### 2. Run Locally
+If you downloaded a release zip, just run:
+
+```bash
+composer install
+```
+
+### 2) Run locally
 
 Start the built-in PHP development server:
 
 ```bash
 ./ava start
-# OR simply
+# or
 php -S localhost:8000 -t public
 ```
 
-Visit `http://localhost:8000` to see your new Ava site!
+Visit `http://localhost:8000`.
 
-### 3. Create Content
+### 3) Create content
 
-Add a new page by creating a Markdown file in `content/pages/`:
+Add a new page by creating a Markdown file in `content/pages/`.
 
 **File:** `content/pages/hello.md`
 
@@ -98,13 +121,19 @@ Visit `http://localhost:8000/hello-world` to see it live.
 
 ## 📚 Documentation
 
-Detailed documentation is available at **[ava.addy.zone](https://ava.addy.zone/)**.
+Documentation lives at **https://ava.addy.zone/**.
 
-*   [**Getting Started**](https://ava.addy.zone/docs)
-*   [**Configuration**](https://ava.addy.zone/docs/configuration)
-*   [**Theming Guide**](https://ava.addy.zone/docs/theming)
-*   [**CLI Reference**](https://ava.addy.zone/docs/cli)
-*   [**Plugin Development**](https://ava.addy.zone/docs/creating-plugins)
+- [Getting Started](https://ava.addy.zone/docs)
+- [Configuration](https://ava.addy.zone/docs/configuration)
+- [Theming](https://ava.addy.zone/docs/theming)
+- [CLI](https://ava.addy.zone/docs/cli)
+- [Plugin Development](https://ava.addy.zone/docs/creating-plugins)
+
+## 🔌 Plugins
+
+Ava includes a simple hook-based plugin system. A few plugins are bundled in this repo (like sitemap, redirects, and a feed plugin) so you can see the pattern and ship common features quickly.
+
+Browse community plugins at https://ava.addy.zone/plugins
 
 ## 🏗️ Project Structure
 
@@ -125,41 +154,28 @@ my-site/
 └── ava                  # CLI tool
 ```
 
-## 🤝 Contributing
+## ⚡ Performance
 
-Ava is still fairly early and moving quickly, so I'm not looking for undiscussed pull requests or additional contributors just yet.
+Ava is designed to be fast by default, whether you have 100 pages or 100,000:
 
-That said, I'd genuinely love your feedback:
+- **No manual build step**: publish instantly (indexing is automatic).
+- **Tiered caching**: avoid repeating expensive work on every request.
+- **Page caching** (optional): serve cached HTML to bypass PHP for most visitors.
 
-- If you run into a bug, get stuck, or have a "this could be nicer" moment, please [open an issue](https://github.com/ava-cms/ava/issues).
-- Feature requests, ideas, and suggestions are very welcome.
+See https://ava.addy.zone/docs/performance
 
-If you prefer a more conversational place to ask questions and share ideas, join the [Discord community](https://discord.gg/fZwW4jBVh5).
+## 🤝 Contributing & Community
 
-<<<<<<< HEAD
-## Performance
+Feedback is the most helpful thing right now.
 
-Ava is designed to be fast by default, whether you have 100 posts or 100,000.
+- Bugs, questions, and ideas: https://github.com/AvaCMS/ava/issues
+- Chat & support: https://discord.gg/fZwW4jBVh5
+- Community themes: https://ava.addy.zone/themes
+- Community plugins: https://ava.addy.zone/plugins
+- Sites built with Ava: https://ava.addy.zone/showcase
 
-- **Instant Publishing:** No build step. Edit a file, hit refresh, and it's live.
-- **Smart Caching:** A tiered caching system ensures your most popular pages load instantly.
-- **Scalable Backends:** Start with the default Array backend for raw speed, or switch to SQLite for constant memory usage at scale.
-- **Static Speed:** Enable full page caching to serve static HTML files, bypassing the application entirely for most visitors.
+If you’d like to contribute core code, open an issue first so we can agree on approach and scope.
 
-[See full benchmarks and scaling guide →](https://ava.addy.zone/docs/performance)
-
-## Contributing
-
-Ava is moving quickly, so I'm not accepting undiscussed pull requests right now. The best way to help:
-
-- [Open an issue](https://github.com/avacms/ava/issues) — bugs, ideas, questions all welcome
-- [Join the Discord](https://discord.gg/fZwW4jBVh5) — chat and support
-
-## License
-
-MIT — free and open source. See [LICENSE](LICENSE).
-=======
 ## 📄 License
->>>>>>> 035ee8b639e389b817b0a8cd0a778c4063972490
 
 Ava is open-source software licensed under the [MIT license](LICENSE).

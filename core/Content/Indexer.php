@@ -6,6 +6,7 @@ namespace Ava\Content;
 
 use Ava\Application;
 use Ava\Content\Backends\SqliteBackend;
+use Ava\Plugins\Hooks;
 use Ava\Support\Path;
 
 /**
@@ -120,6 +121,9 @@ final class Indexer
 
         // Clear webpage cache when content cache is rebuilt
         $this->clearWebpageCache();
+
+        // Trigger rebuild hook (allows observing plugins to run actions)
+        Hooks::doAction('indexer.rebuild', $this->app);
 
         // Log any errors
         if (!empty($errors)) {

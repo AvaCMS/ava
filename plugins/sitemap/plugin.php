@@ -195,8 +195,8 @@ return [
             return $pages;
         });
 
-        // Add sitemap to robots.txt on rebuild
-        Hooks::addAction('cli.rebuild', function (Application $app) use ($baseUrl) {
+        // Add sitemap to robots.txt on content rebuild (CLI, auto, or admin)
+        Hooks::addAction('indexer.rebuild', function (Application $app) use ($baseUrl) {
             $robotsFile = $app->path('public/robots.txt');
             $sitemapUrl = $baseUrl . '/sitemap.xml';
             $sitemapLine = "Sitemap: {$sitemapUrl}";
@@ -227,17 +227,23 @@ return [
 
                 if ($updated) {
                     file_put_contents($robotsFile, implode("\n", $newLines));
-                    echo "  \033[32m✔\033[0m Updated Sitemap URL in robots.txt\n";
+                    if (php_sapi_name() === 'cli') {
+                        echo "  \033[32m✔\033[0m Updated Sitemap URL in robots.txt\n";
+                    }
                 } elseif (!$found) {
                     // Append if not present
                     $separator = (substr($content, -1) !== "\n") ? "\n" : "";
                     file_put_contents($robotsFile, $content . $separator . $sitemapLine . "\n");
-                    echo "  \033[32m✔\033[0m Added Sitemap to robots.txt\n";
+                    if (php_sapi_name() === 'cli') {
+                        echo "  \033[32m✔\033[0m Added Sitemap to robots.txt\n";
+                    }
                 }
             } else {
                 // Create if it doesn't exist
                 file_put_contents($robotsFile, "User-agent: *\nAllow: /\n\n" . $sitemapLine . "\n");
-                echo "  \033[32m✔\033[0m Created robots.txt with Sitemap link\n";
+                if (php_sapi_name() === 'cli') {
+                    echo "  \033[32m✔\033[0m Created robots.txt with Sitemap link\n";
+                }
             }
         });
     },
