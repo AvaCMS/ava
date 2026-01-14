@@ -16,14 +16,16 @@ final class Request
     private string $path;
     private array $query;
     private array $headers;
-    private string $body;
+    private ?string $body;
+    private bool $bodyLoaded;
 
     public function __construct(
         string $method,
         string $uri,
         array $query = [],
         array $headers = [],
-        string $body = ''
+        ?string $body = null,
+        bool $bodyLoaded = true
     ) {
         $this->method = strtoupper($method);
         $this->uri = $uri;
@@ -31,6 +33,7 @@ final class Request
         $this->query = $query;
         $this->headers = array_change_key_case($headers, CASE_LOWER);
         $this->body = $body;
+        $this->bodyLoaded = $bodyLoaded;
     }
 
     /**
@@ -58,9 +61,8 @@ final class Request
             $headers['content-length'] = $_SERVER['CONTENT_LENGTH'];
         }
 
-        $body = file_get_contents('php://input') ?: '';
-
-        return new self($method, $uri, $_GET, $headers, $body);
+        // Defer body reading until actually needed (lazy loading for performance)
+        return new self($method, $uri, $_GET, $headers, null, false);
     }
 
     public function method(): string
@@ -132,10 +134,15 @@ final class Request
 
     /**
      * Get the request body.
+     * Body is lazy-loaded on first access to avoid reading php://input for GET requests.
      */
     public function body(): string
     {
-        return $this->body;
+        if (!$this->bodyLoaded) {
+            $this->body = file_get_contents('php://input') ?: '';
+            $this->bodyLoaded = true;
+        }
+        return $this->body ?? '';
     }
 
     /**

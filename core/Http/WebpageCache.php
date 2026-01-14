@@ -19,6 +19,9 @@ final class WebpageCache
     private bool $enabled;
     private ?int $ttl;
     private array $exclude;
+    
+    /** @var array<string, string> Compiled regex patterns for exclusion matching */
+    private array $excludePatterns = [];
 
     public function __construct(Application $app)
     {
@@ -27,6 +30,16 @@ final class WebpageCache
         $this->enabled = (bool) $app->config('webpage_cache.enabled', false);
         $this->ttl = $app->config('webpage_cache.ttl'); // null = forever (until cleared)
         $this->exclude = $app->config('webpage_cache.exclude', []);
+        
+        // Pre-compile exclusion patterns to regex for faster matching
+        foreach ($this->exclude as $pattern) {
+            $regex = str_replace(
+                ['*', '?'],
+                ['.*', '.'],
+                preg_quote($pattern, '/')
+            );
+            $this->excludePatterns[$pattern] = '/^' . $regex . '$/';
+        }
     }
 
     /**
@@ -113,32 +126,39 @@ final class WebpageCache
 
     /**
      * Get cached response from file.
+     * 
+     * Optimized to minimize filesystem calls:
+     * - Single stat() via filemtime() instead of file_exists() + filemtime()
+     * - Store mtime to avoid double stat() call
      */
     private function getFromFile(Request $request): ?Response
     {
         $cacheFile = $this->getCacheFilePath($request);
 
-        if (!file_exists($cacheFile)) {
+        // Get mtime (returns false if file doesn't exist) - single stat() call
+        $mtime = @filemtime($cacheFile);
+        if ($mtime === false) {
             return null;
         }
 
-        // Check TTL
-        if ($this->ttl !== null) {
-            $age = time() - filemtime($cacheFile);
-            if ($age > $this->ttl) {
-                unlink($cacheFile);
-                return null;
-            }
+        // Check TTL using stored mtime
+        $now = time();
+        $age = $now - $mtime;
+        if ($this->ttl !== null && $age > $this->ttl) {
+            @unlink($cacheFile);
+            return null;
         }
 
-        $content = file_get_contents($cacheFile);
+        // Read file content
+        $content = @file_get_contents($cacheFile);
         if ($content === false) {
             return null;
         }
 
+        // Build response with pre-computed age (avoid second stat)
         return Response::html($content)
             ->withHeader('X-Page-Cache', 'HIT')
-            ->withHeader('X-Cache-Age', (string) (time() - filemtime($cacheFile)));
+            ->withHeader('X-Cache-Age', (string) $age);
     }
 
     /**
@@ -306,10 +326,17 @@ final class WebpageCache
 
     /**
      * Check if path matches a pattern.
+     * Uses pre-compiled regex from constructor for exclusion patterns,
+     * falls back to dynamic compilation for other patterns.
      */
     private function matchesPattern(string $path, string $pattern): bool
     {
-        // Convert glob-like pattern to regex
+        // Use pre-compiled pattern if available (for exclusion patterns)
+        if (isset($this->excludePatterns[$pattern])) {
+            return (bool) preg_match($this->excludePatterns[$pattern], $path);
+        }
+        
+        // Fallback: compile pattern dynamically (for clearPattern usage)
         $regex = str_replace(
             ['*', '?'],
             ['.*', '.'],

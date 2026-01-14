@@ -133,6 +133,16 @@ final class Response
     }
 
     /**
+     * Default security headers applied to all responses.
+     * Defined as class constant to avoid array allocation on every send().
+     */
+    private const SECURITY_HEADERS = [
+        'X-Content-Type-Options' => 'nosniff',
+        'X-Frame-Options' => 'SAMEORIGIN',
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
+    ];
+
+    /**
      * Send the response to the client.
      */
     public function send(): void
@@ -145,14 +155,8 @@ final class Response
             $this->headers['Content-Type'] = 'text/html; charset=utf-8';
         }
 
-        // Add security headers if not already set
-        $securityHeaders = [
-            'X-Content-Type-Options' => 'nosniff',
-            'X-Frame-Options' => 'SAMEORIGIN',
-            'Referrer-Policy' => 'strict-origin-when-cross-origin',
-        ];
-
-        foreach ($securityHeaders as $name => $value) {
+        // Add security headers if not already set (using class constant)
+        foreach (self::SECURITY_HEADERS as $name => $value) {
             if (!isset($this->headers[$name])) {
                 $this->headers[$name] = $value;
             }
@@ -160,7 +164,6 @@ final class Response
 
         // Send headers
         foreach ($this->headers as $name => $value) {
-            // Guard in case headers were injected via direct property manipulation.
             self::assertValidHeader($name, $value);
             header("{$name}: {$value}");
         }
