@@ -163,7 +163,7 @@ foreach ($assets as $asset):
     </div>
     <div class="card-body">
         <?php if (empty($themeInfo['assets'])): ?>
-        <p class="text-tertiary">No assets found in themes/<?= htmlspecialchars($currentTheme) ?>/assets/</p>
+        <p class="text-tertiary">No assets found in app/themes/<?= htmlspecialchars($currentTheme) ?>/assets/</p>
         <?php else: ?>
         <table class="table">
             <thead>

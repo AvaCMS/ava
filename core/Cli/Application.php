@@ -958,13 +958,29 @@ final class Application
      *   --dev    Update from the latest commit on main branch instead of a release
      *   --yes    Skip confirmation prompts
      *   -y       Same as --yes
+     *   --force  Proceed even if custom paths are detected
      */
     private function cmdUpdateApply(array $args): int
     {
         $this->writeln('');
 
         $devMode = in_array('--dev', $args) || in_array('-d', $args);
+        $forceMode = in_array('--force', $args);
         $updater = new \Ava\Updater($this->app);
+
+        // Check for custom paths that may conflict with updater
+        $pathCheck = $updater->checkPathSafety();
+        if (!$pathCheck['safe'] && !$forceMode) {
+            $this->box('Custom paths detected', 'warning');
+            $this->writeln('');
+            foreach ($pathCheck['warnings'] as $warning) {
+                $this->writeln('  ' . $this->color('⚠', self::YELLOW) . ' ' . $warning);
+            }
+            $this->writeln('');
+            $this->tip('Use --force to proceed anyway');
+            $this->writeln('');
+            return 1;
+        }
 
         if ($devMode) {
             // Dev mode: force update from latest commit (bypass version check)
@@ -1004,16 +1020,16 @@ final class Application
         // Confirm unless --yes flag
         if (!in_array('--yes', $args) && !in_array('-y', $args)) {
             $this->writeln($this->color('  Will be updated:', self::BOLD));
-            echo "    " . $this->color('▸', self::GREEN) . " Core files (core/, bin/, bootstrap.php)\n";
-            echo "    " . $this->color('▸', self::GREEN) . " Default theme (themes/default/)\n";
-            echo "    " . $this->color('▸', self::GREEN) . " Bundled plugins (sitemap, feed, redirects)\n";
+            echo "    " . $this->color('▸', self::GREEN) . " Core files (core/, bootstrap.php)\n";
+            echo "    " . $this->color('▸', self::GREEN) . " Bundled plugins in app/plugins/ (sitemap, feed, redirects)\n";
             echo "    " . $this->color('▸', self::GREEN) . " Documentation (docs/)\n";
             $this->writeln('');
             $this->writeln($this->color('  Will NOT be modified:', self::BOLD));
             echo "    " . $this->color('•', self::DIM) . " Your content (content/)\n";
-            echo "    " . $this->color('•', self::DIM) . " Your configuration (app/)\n";
-            echo "    " . $this->color('•', self::DIM) . " Custom themes and plugins\n";
-            echo "    " . $this->color('•', self::DIM) . " Storage and cache files\n";
+            echo "    " . $this->color('•', self::DIM) . " Your config (app/config/)\n";
+            echo "    " . $this->color('•', self::DIM) . " Your themes (app/themes/)\n";
+            echo "    " . $this->color('•', self::DIM) . " Your snippets (app/snippets/)\n";
+            echo "    " . $this->color('•', self::DIM) . " Custom plugins, storage, and cache\n";
             $this->writeln('');
 
             // Backup check
@@ -1039,13 +1055,21 @@ final class Application
             $this->writeln('');
         }
 
-        $result = $this->withSpinner('Downloading update', function () use ($updater, $devMode) {
-            return $updater->apply(null, $devMode);
+        $result = $this->withSpinner('Downloading update', function () use ($updater, $devMode, $forceMode) {
+            return $updater->apply(null, $devMode, $forceMode);
         });
 
         if (!$result['success']) {
             $this->error($result['message']);
             return 1;
+        }
+
+        // Show warnings if any (e.g., custom paths)
+        if (!empty($result['warnings'])) {
+            foreach ($result['warnings'] as $warning) {
+                $this->writeln('  ' . $this->color('⚠', self::YELLOW) . ' ' . $warning);
+            }
+            $this->writeln('');
         }
 
         $this->success($result['message']);

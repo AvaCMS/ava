@@ -93,7 +93,7 @@ return function (Application $app): void {
         /**
          * Render a template with custom variables.
          * 
-         * The renderer loads templates from themes/<theme>/templates/ and
+         * The renderer loads templates from app/themes/<theme>/templates/ and
          * provides them with the $ava helper and $site configuration
          * automatically.
          * 

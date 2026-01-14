@@ -75,7 +75,7 @@ final class UpdaterTest extends TestCase
         $bundledPlugins = ['sitemap', 'feed', 'redirects'];
         
         foreach ($bundledPlugins as $plugin) {
-            $pluginDir = AVA_ROOT . '/plugins/' . $plugin;
+            $pluginDir = AVA_ROOT . '/app/plugins/' . $plugin;
             $this->assertTrue(
                 is_dir($pluginDir),
                 "Bundled plugin '$plugin' should exist"
@@ -91,7 +91,7 @@ final class UpdaterTest extends TestCase
         $plugins = ['sitemap', 'feed', 'redirects'];
         
         foreach ($plugins as $plugin) {
-            $pluginDir = AVA_ROOT . '/plugins/' . $plugin;
+            $pluginDir = AVA_ROOT . '/app/plugins/' . $plugin;
             $pluginFile = $pluginDir . '/plugin.php';
             
             $this->assertTrue(
@@ -163,7 +163,7 @@ final class UpdaterTest extends TestCase
      */
     public function testCustomThemesDirectory(): void
     {
-        $themesDir = AVA_ROOT . '/themes';
+        $themesDir = AVA_ROOT . '/app/themes';
         
         $this->assertTrue(is_dir($themesDir));
         
@@ -176,7 +176,7 @@ final class UpdaterTest extends TestCase
      */
     public function testCustomPluginsDirectory(): void
     {
-        $pluginsDir = AVA_ROOT . '/plugins';
+        $pluginsDir = AVA_ROOT . '/app/plugins';
         
         $this->assertTrue(is_dir($pluginsDir));
     }

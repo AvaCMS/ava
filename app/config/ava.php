@@ -41,7 +41,7 @@ return [
     |───────────────────────────────────────────────────────────────────────────
     | THEME
     |───────────────────────────────────────────────────────────────────────────
-    | The active theme folder name inside themes/
+    | The active theme folder name inside app/themes/
     */
 
     'theme' => 'default',
@@ -178,15 +178,18 @@ return [
     |───────────────────────────────────────────────────────────────────────────
     | PATHS
     |───────────────────────────────────────────────────────────────────────────
-    | Directory locations (rarely need to change these).
+    | Directory locations relative to the project root.
     | Aliases let you use @media:photo.jpg in content instead of /media/photo.jpg
+    |
+    | All user-editable code lives in app/ by default, keeping it separate from
+    | Ava's core files. The auto-updater expects these exact paths.
     */
 
     'paths' => [
         'content'  => 'content',
-        'themes'   => 'themes',
-        'plugins'  => 'plugins',
-        'snippets' => 'snippets',
+        'themes'   => 'app/themes',
+        'plugins'  => 'app/plugins',
+        'snippets' => 'app/snippets',
         'storage'  => 'storage',
 
         'aliases' => [

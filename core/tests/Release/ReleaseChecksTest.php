@@ -272,11 +272,11 @@ final class ReleaseChecksTest extends TestCase
      */
     public function testDefaultThemeExists(): void
     {
-        $themePath = AVA_ROOT . '/themes/default';
+        $themePath = AVA_ROOT . '/app/themes/default';
         
         $this->assertTrue(
             is_dir($themePath),
-            'Default theme directory should exist at themes/default'
+            'Default theme directory should exist at app/themes/default'
         );
     }
 
@@ -285,7 +285,7 @@ final class ReleaseChecksTest extends TestCase
      */
     public function testDefaultThemeHasBootstrap(): void
     {
-        $themeFile = AVA_ROOT . '/themes/default/theme.php';
+        $themeFile = AVA_ROOT . '/app/themes/default/theme.php';
         
         $this->assertTrue(
             file_exists($themeFile),

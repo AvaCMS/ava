@@ -14,12 +14,11 @@ namespace Ava;
  * What gets updated:
  * - core/, docs/, ava (CLI), bootstrap.php, composer.json
  * - public/index.php, public/assets/admin.css
- * - Bundled plugins (sitemap, feed, redirects)
+ * - Bundled plugins in app/plugins/ (sitemap, feed, redirects)
  *
  * What is preserved (never touched):
- * - content/, app/, storage/, vendor/, .git, .env
- * - themes/ (including themes/default/ to protect customizations)
- * - public/robots.txt, custom plugins
+ * - content/, app/config/, app/themes/, app/snippets/, storage/, vendor/
+ * - Custom plugins, public/robots.txt, .git, .env
  *
  * Note: Updates sync individual files, not entire directories.
  * This may leave stale files from old versions. Use update:stale to detect them.
@@ -47,14 +46,26 @@ final class Updater
         'redirects',
     ];
 
-    /** @var string[] Directories/files that should NEVER be touched
-     * @phpstan-ignore-next-line Reserved for future use in update safety checks */
+    /** @var string[] Default paths that the updater expects */
+    private array $defaultPaths = [
+        'themes'   => 'app/themes',
+        'plugins'  => 'app/plugins',
+        'snippets' => 'app/snippets',
+    ];
+
+    /**
+     * Directories/files that should NEVER be touched.
+     * Reserved for future use in update safety checks.
+     *
+     * @var string[]
+     */
     private array $preserveDirs = [
         'content',
-        'app',
+        'app/config',
+        'app/themes',
+        'app/snippets',
         'storage',
         'vendor',
-        'themes',
         'public/robots.txt',
         '.git',
         '.env',
@@ -72,6 +83,33 @@ final class Updater
     public function currentVersion(): string
     {
         return AVA_VERSION;
+    }
+
+    /**
+     * Check if any configured paths differ from defaults.
+     *
+     * The updater uses hardcoded paths for bundled plugins and core files.
+     * If users have customized paths in their config, the auto-updater may
+     * not work as expected (e.g., bundled plugin updates go to wrong location).
+     *
+     * @return array{safe: bool, warnings: string[]}
+     */
+    public function checkPathSafety(): array
+    {
+        $warnings = [];
+
+        foreach ($this->defaultPaths as $key => $default) {
+            $configured = $this->app->config("paths.{$key}", $default);
+            if ($configured !== $default) {
+                $warnings[] = "Custom '{$key}' path detected: '{$configured}' (default: '{$default}'). "
+                    . "Bundled plugin updates will still go to '{$default}/'.";
+            }
+        }
+
+        return [
+            'safe' => empty($warnings),
+            'warnings' => $warnings,
+        ];
     }
 
     /**
@@ -149,11 +187,29 @@ final class Updater
      *
      * @param string|null $version Specific version to update to (null = latest)
      * @param bool $dev If true, update from the latest commit on main branch instead of a release
-     * @return array{success: bool, message: string, updated_from: string, updated_to: string, new_plugins: string[]}
+     * @param bool $force If true, proceed even if path safety checks fail
+     * @return array{success: bool, message: string, updated_from: string, updated_to: string, new_plugins: string[], warnings: string[]}
      */
-    public function apply(?string $version = null, bool $dev = false): array
+    public function apply(?string $version = null, bool $dev = false, bool $force = false): array
     {
         $currentVersion = $this->currentVersion();
+        $warnings = [];
+
+        // Check path safety before proceeding
+        $pathCheck = $this->checkPathSafety();
+        if (!$pathCheck['safe']) {
+            $warnings = $pathCheck['warnings'];
+            if (!$force) {
+                return [
+                    'success' => false,
+                    'message' => 'Custom paths detected. Use --force to update anyway. ' . implode(' ', $warnings),
+                    'updated_from' => $currentVersion,
+                    'updated_to' => $currentVersion,
+                    'new_plugins' => [],
+                    'warnings' => $warnings,
+                ];
+            }
+        }
 
         try {
             // Dev mode: get latest commit from main branch
@@ -166,6 +222,7 @@ final class Updater
                         'updated_from' => $currentVersion,
                         'updated_to' => $currentVersion,
                         'new_plugins' => [],
+                        'warnings' => $warnings,
                     ];
                 }
                 $shortSha = substr($commit['sha'], 0, 7);
@@ -186,6 +243,7 @@ final class Updater
                         'updated_from' => $currentVersion,
                         'updated_to' => $currentVersion,
                         'new_plugins' => [],
+                        'warnings' => $warnings,
                     ];
                 }
 
@@ -200,6 +258,7 @@ final class Updater
                     'updated_from' => $currentVersion,
                     'updated_to' => $currentVersion,
                     'new_plugins' => [],
+                    'warnings' => $warnings,
                 ];
             }
 
@@ -247,6 +306,7 @@ final class Updater
                 'updated_from' => $currentVersion,
                 'updated_to' => $newVersion,
                 'new_plugins' => $newPlugins,
+                'warnings' => $warnings,
             ];
 
         } catch (\Exception $e) {
@@ -256,6 +316,7 @@ final class Updater
                 'updated_from' => $currentVersion,
                 'updated_to' => $currentVersion,
                 'new_plugins' => [],
+                'warnings' => $warnings,
             ];
         }
     }
@@ -395,13 +456,19 @@ final class Updater
             }
         }
 
-        // Update bundled plugins (files only, not entire directories)
-        $pluginsSource = $sourceDir . '/plugins';
+        // Update bundled plugins to app/plugins/
+        $pluginsSource = $sourceDir . '/app/plugins';
+        // Fall back to old location for releases that still use plugins/
+        if (!is_dir($pluginsSource)) {
+            $pluginsSource = $sourceDir . '/plugins';
+        }
+        $pluginsDest = $rootDir . '/app/plugins';
+
         if (is_dir($pluginsSource)) {
             foreach ($this->bundledPlugins as $plugin) {
                 $pluginSource = $pluginsSource . '/' . $plugin;
                 if (is_dir($pluginSource)) {
-                    $this->syncDirectory($pluginSource, $rootDir . '/plugins/' . $plugin);
+                    $this->syncDirectory($pluginSource, $pluginsDest . '/' . $plugin);
                 }
             }
 
@@ -409,7 +476,7 @@ final class Updater
             $releaseBundled = glob($pluginsSource . '/*', GLOB_ONLYDIR);
             foreach ($releaseBundled as $pluginDir) {
                 $pluginName = basename($pluginDir);
-                $destDir = $rootDir . '/plugins/' . $pluginName;
+                $destDir = $pluginsDest . '/' . $pluginName;
 
                 // Only sync bundled plugins, don't overwrite custom plugins
                 if (!in_array($pluginName, $this->bundledPlugins) && !is_dir($destDir)) {
