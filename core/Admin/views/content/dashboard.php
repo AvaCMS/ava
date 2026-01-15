@@ -199,14 +199,16 @@ $renderTime = round((microtime(true) - $system['request_time']) * 1000, 2);
             </div>
             <form method="POST" action="<?= htmlspecialchars($admin_url) ?>/rebuild" class="mt-4">
                 <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf) ?>">
-                <label class="flex items-center gap-2 text-xs text-dim mb-2">
-                    <input type="checkbox" name="keep_webpage_cache" value="1">
-                    Keep webpage cache
-                </label>
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <span class="material-symbols-rounded">refresh</span>
-                    Rebuild Now
-                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <span class="material-symbols-rounded">autorenew</span>
+                        Rebuild Now
+                    </button>
+                    <button type="submit" name="keep_webpage_cache" value="1" class="btn btn-secondary btn-sm">
+                        <span class="material-symbols-rounded">file_copy</span>
+                        Rebuild (Keep Cache)
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -235,15 +237,13 @@ $renderTime = round((microtime(true) - $system['request_time']) * 1000, 2);
                 <span class="list-label">TTL</span>
                 <span class="list-value"><?= $webpageCache['ttl'] ? $webpageCache['ttl'] . 's' : 'Forever' ?></span>
             </div>
-            <?php if ($webpageCache['count'] > 0): ?>
             <form method="POST" action="<?= htmlspecialchars($admin_url) ?>/flush-pages" class="mt-4">
                 <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf) ?>">
-                <button type="submit" class="btn btn-secondary btn-sm">
+                <button type="submit" class="btn btn-secondary btn-sm" <?= $webpageCache['count'] > 0 ? '' : 'disabled' ?>>
                     <span class="material-symbols-rounded">delete_sweep</span>
-                    Flush Webpages
+                    Clear Webpage Cache
                 </button>
             </form>
-            <?php endif; ?>
             <?php else: ?>
             <p class="text-dim text-sm m-0">Enable in config for faster page loads.</p>
             <?php endif; ?>
