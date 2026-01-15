@@ -1036,7 +1036,6 @@ final class Application
             $this->writeln($this->color('  Will be updated:', self::BOLD));
             echo "    " . $this->color('▸', self::GREEN) . " Core files (core/, bootstrap.php)\n";
             echo "    " . $this->color('▸', self::GREEN) . " Bundled plugins in app/plugins/ (sitemap, feed, redirects)\n";
-            echo "    " . $this->color('▸', self::GREEN) . " Documentation (docs/)\n";
             $this->writeln('');
             $this->writeln($this->color('  Will NOT be modified:', self::BOLD));
             echo "    " . $this->color('•', self::DIM) . " Your content (content/)\n";
