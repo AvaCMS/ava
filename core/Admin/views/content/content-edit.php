@@ -108,6 +108,11 @@ $successMsg = $successMessage ?? 'Changes saved successfully.';
             <a href="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>" class="btn btn-secondary">
                 Cancel
             </a>
+            <a href="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>/edit?file=<?= htmlspecialchars($fileParam) ?>&mode=focused" 
+               class="btn btn-secondary" title="Switch to visual editor">
+                <span class="material-symbols-rounded">view_compact</span>
+                Field Editor
+            </a>
             <a href="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>/<?= htmlspecialchars($item->slug()) ?>/delete" 
                class="btn btn-danger-outline">
                 <span class="material-symbols-rounded">delete</span>

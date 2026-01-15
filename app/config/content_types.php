@@ -42,7 +42,100 @@ return [
         ],
 
         'taxonomies' => [],                 // Pages typically don't use taxonomies
-        'fields'     => [],                 // Custom fields (for validation/admin)
+        
+        // Example fields - demonstrates all available field types
+        'fields' => [
+            // Text input with validation
+            'subtitle' => [
+                'type'        => 'text',
+                'label'       => 'Subtitle',
+                'description' => 'A secondary heading for the page',
+                'required'    => false,
+                'maxlength'   => 100,
+                'group'       => 'content',
+            ],
+            
+            // Textarea for longer content
+            'summary' => [
+                'type'        => 'textarea',
+                'label'       => 'Summary',
+                'description' => 'Brief overview for card displays',
+                'rows'        => 3,
+                'group'       => 'content',
+            ],
+            
+            // Select dropdown
+            'layout' => [
+                'type'        => 'select',
+                'label'       => 'Layout Style',
+                'options'     => [
+                    ''          => '— Default —',
+                    'sidebar'   => 'With Sidebar',
+                    'full'      => 'Full Width',
+                    'centered'  => 'Centered Content',
+                ],
+                'default'     => '',
+                'group'       => 'display',
+            ],
+            
+            // Checkbox
+            'featured' => [
+                'type'        => 'checkbox',
+                'label'       => 'Featured Page',
+                'description' => 'Show this page in featured sections',
+                'group'       => 'display',
+            ],
+            
+            // Number with min/max
+            'display_order' => [
+                'type'        => 'number',
+                'label'       => 'Display Order',
+                'description' => 'For sorting in navigation (lower = first)',
+                'min'         => 0,
+                'max'         => 999,
+                'step'        => 1,
+                'group'       => 'display',
+            ],
+            
+            // Image with media picker
+            'hero_image' => [
+                'type'        => 'image',
+                'label'       => 'Hero Image',
+                'description' => 'Large banner image for the page header',
+                'group'       => 'media',
+            ],
+            
+            // URL field
+            'external_link' => [
+                'type'        => 'url',
+                'label'       => 'External Link',
+                'description' => 'Link to external resource',
+                'group'       => 'advanced',
+            ],
+            
+            // Email field
+            'contact_email' => [
+                'type'        => 'email',
+                'label'       => 'Contact Email',
+                'description' => 'Email address for this page',
+                'group'       => 'advanced',
+            ],
+            
+            // Date field
+            'event_date' => [
+                'type'        => 'date',
+                'label'       => 'Event Date',
+                'description' => 'For event pages',
+                'group'       => 'advanced',
+            ],
+            
+            // Hidden field (for system values)
+            'page_version' => [
+                'type'        => 'hidden',
+                'default'     => '1.0',
+            ],
+        ],
+        
         'sorting'    => 'manual',           // manual, date_desc, date_asc, title
 
         'search' => [

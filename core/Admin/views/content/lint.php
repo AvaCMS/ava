@@ -57,9 +57,10 @@
             The linter checks all content files for:
         </p>
         <div class="list-item"><span class="list-label">YAML Syntax</span><span class="text-secondary text-sm">Valid frontmatter structure</span></div>
-        <div class="list-item"><span class="list-label">Required Fields</span><span class="text-secondary text-sm">Title, date, status presence</span></div>
-        <div class="list-item"><span class="list-label">Date Format</span><span class="text-secondary text-sm">ISO 8601 date format</span></div>
-        <div class="list-item"><span class="list-label">Taxonomy Terms</span><span class="text-secondary text-sm">Valid taxonomy references</span></div>
+        <div class="list-item"><span class="list-label">Required Fields</span><span class="text-secondary text-sm">Title, slug, status presence</span></div>
+        <div class="list-item"><span class="list-label">Custom Fields</span><span class="text-secondary text-sm">Fields defined in content types config</span></div>
+        <div class="list-item"><span class="list-label">Slug Format</span><span class="text-secondary text-sm">URL-safe lowercase alphanumeric</span></div>
+        <div class="list-item"><span class="list-label">Unique IDs</span><span class="text-secondary text-sm">No duplicate content IDs</span></div>
     </div>
 </div>
 

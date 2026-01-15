@@ -808,16 +808,40 @@ final class Controller
                 }
                 
                 if (!$error) {
-                    // Get new filename from form (without .md extension)
-                    $newFilename = trim($request->post('filename', ''));
+                    // Check which editor mode was used
+                    $editorMode = $request->post('_editor_mode', 'raw');
                     
-                    // Parse the unified file content
-                    $fileContent = $request->post('file_content', '');
-                    $parsed = $this->parseFileContent($fileContent);
-                    
-                    if ($parsed['error']) {
-                        $error = $parsed['error'];
+                    if ($editorMode === 'focused') {
+                        // Handle focused editor form submission
+                        $result = $this->handleFocusedFormSubmission($request, $item, $type, $typeConfig, $file);
+                        if ($result['success']) {
+                            $successMessage = $result['message'];
+                            // Parse the file directly to get fresh content (no need to rebuild index)
+                            $parser = new \Ava\Content\Parser();
+                            $filePath = $this->app->path('content/' . $fullPath);
+                            if (file_exists($filePath)) {
+                                $item = $parser->parseFile($filePath, $type);
+                            }
+                            // Redirect if filename changed
+                            if (!empty($result['redirect'])) {
+                                return Response::redirect($result['redirect']);
+                            }
+                        } else {
+                            $error = $result['error'];
+                            $securityWarnings = $result['warnings'] ?? [];
+                        }
                     } else {
+                        // Handle raw editor form submission (existing logic)
+                        // Get new filename from form (without .md extension)
+                        $newFilename = trim($request->post('filename', ''));
+                        
+                        // Parse the unified file content
+                        $fileContent = $request->post('file_content', '');
+                        $parsed = $this->parseFileContent($fileContent);
+                        
+                        if ($parsed['error']) {
+                            $error = $parsed['error'];
+                        } else {
                         $fm = $parsed['frontmatter'];
                         $body = $parsed['body'];
                         
@@ -899,6 +923,7 @@ final class Controller
                             }
                         }
                     }
+                    } // end else (raw mode)
                 }
             }
         }
@@ -914,6 +939,16 @@ final class Controller
         
         // For URLs, convert slashes back to pipes
         $fileParam = str_replace('/', '|', $file);
+
+        // Editor mode: 'raw' for raw file editing, 'focused' for structured fields
+        // Default to focused mode unless explicitly set or user prefers raw
+        $mode = $request->query('mode', 'raw');
+        
+        // Create field renderer for focused mode
+        $fieldRenderer = null;
+        if ($mode === 'focused') {
+            $fieldRenderer = new \Ava\Fields\FieldRenderer($this->app);
+        }
         
         $data = [
             'type' => $type,
@@ -928,6 +963,8 @@ final class Controller
             'securityWarnings' => $securityWarnings,
             'csrf' => $this->auth->csrfToken(),
             'fileMtime' => $fileMtime,
+            'fieldRenderer' => $fieldRenderer,
+            'app' => $this->app,
             'site' => [
                 'name' => $this->app->config('site.name'),
                 'url' => $this->app->config('site.base_url'),
@@ -944,7 +981,10 @@ final class Controller
             'headerActions' => '<a href="https://ava.addy.zone" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm"><span class="material-symbols-rounded">menu_book</span>Docs</a>',
         ];
 
-        return Response::html($this->render('content/content-edit', $data, $layout));
+        // Choose view based on mode
+        $viewName = ($mode === 'focused') ? 'content/content-edit-focused' : 'content/content-edit';
+
+        return Response::html($this->render($viewName, $data, $layout));
     }
 
     /**
@@ -1320,6 +1360,189 @@ final class Controller
     }
 
     /**
+     * Handle focused editor form submission.
+     * Converts structured field data to YAML frontmatter.
+     */
+    private function handleFocusedFormSubmission(
+        Request $request, 
+        \Ava\Content\Item $item, 
+        string $type, 
+        array $typeConfig, 
+        string $file
+    ): array {
+        // Get submitted fields
+        $fields = $request->post('fields', []);
+        $newFilename = trim($request->post('filename', ''));
+        
+        // Get current filename
+        $currentFilename = pathinfo(basename($item->filePath()), PATHINFO_FILENAME);
+        
+        // If no new filename provided, keep the current one
+        if (empty($newFilename)) {
+            $newFilename = $currentFilename;
+        }
+        
+        // Validate filename
+        $filenameResult = $this->validateFilename($newFilename);
+        if (!$filenameResult['valid']) {
+            return ['success' => false, 'error' => 'Filename: ' . $filenameResult['error'], 'warnings' => []];
+        }
+        $newFilename = $filenameResult['filename'];
+        
+        // Extract and validate core fields
+        $title = trim($fields['title'] ?? '');
+        if (empty($title)) {
+            return ['success' => false, 'error' => 'Title is required.', 'warnings' => []];
+        }
+        
+        $newSlug = trim($fields['slug'] ?? $item->slug());
+        $slugResult = $this->validateSlug($newSlug);
+        if (!$slugResult['valid']) {
+            return ['success' => false, 'error' => $slugResult['error'], 'warnings' => []];
+        }
+        $newSlug = $slugResult['slug'];
+        
+        // Check for duplicate slug
+        if ($newSlug !== $item->slug()) {
+            $existing = $this->app->repository()->get($type, $newSlug);
+            if ($existing !== null) {
+                return ['success' => false, 'error' => "Content with slug '{$newSlug}' already exists.", 'warnings' => []];
+            }
+        }
+        
+        // Get body content
+        $body = $fields['body'] ?? $item->rawContent();
+        unset($fields['body']);
+        
+        // Security check on body content
+        $security = new ContentSecurity();
+        $securityResult = $security->validate($body);
+        
+        if (!$securityResult['valid']) {
+            return ['success' => false, 'error' => $securityResult['errors'][0], 'warnings' => $securityResult['errors']];
+        }
+        
+        // Validate custom fields using FieldValidator
+        $fieldValidator = new \Ava\Fields\FieldValidator($this->app);
+        $fieldErrors = $fieldValidator->getErrors($fields, $type);
+        if (!empty($fieldErrors)) {
+            return ['success' => false, 'error' => $fieldErrors[0], 'warnings' => []];
+        }
+        
+        // Build frontmatter array
+        $frontmatter = [];
+        
+        // Preserve ID if exists
+        $id = trim($fields['id'] ?? $item->id() ?? '');
+        if (!empty($id)) {
+            $frontmatter['id'] = $id;
+        }
+        
+        // Core fields
+        $frontmatter['title'] = $title;
+        $frontmatter['slug'] = $newSlug;
+        $frontmatter['status'] = $fields['status'] ?? $item->status();
+        
+        // Date (if content type uses dates)
+        $usesDate = in_array($typeConfig['sorting'] ?? '', ['date_desc', 'date_asc'], true);
+        if ($usesDate && !empty($fields['date'])) {
+            $frontmatter['date'] = $fields['date'];
+        }
+        
+        // Taxonomies
+        foreach ($typeConfig['taxonomies'] ?? [] as $taxName) {
+            $taxValue = $fields[$taxName] ?? [];
+            if (is_string($taxValue)) {
+                // Comma-separated input
+                $taxValue = array_filter(array_map('trim', explode(',', $taxValue)));
+            }
+            if (!empty($taxValue)) {
+                if (count($taxValue) === 1) {
+                    $frontmatter[$taxName] = $taxValue[0];
+                } else {
+                    $frontmatter[$taxName] = $taxValue;
+                }
+            }
+        }
+        
+        // Excerpt
+        if (!empty($fields['excerpt'])) {
+            $frontmatter['excerpt'] = $fields['excerpt'];
+        }
+        
+        // SEO fields
+        if (!empty($fields['meta_title'])) {
+            $frontmatter['meta_title'] = $fields['meta_title'];
+        }
+        if (!empty($fields['meta_description'])) {
+            $frontmatter['meta_description'] = $fields['meta_description'];
+        }
+        if (!empty($fields['og_image'])) {
+            $frontmatter['og_image'] = $fields['og_image'];
+        }
+        if (!empty($fields['noindex'])) {
+            $frontmatter['noindex'] = true;
+        }
+        
+        // Advanced fields
+        if (!empty($fields['template'])) {
+            $frontmatter['template'] = $fields['template'];
+        }
+        if (isset($fields['cache']) && !$fields['cache']) {
+            $frontmatter['cache'] = false;
+        }
+        if (!empty($fields['redirect_from'])) {
+            $redirects = array_filter($fields['redirect_from'], fn($v) => !empty($v));
+            if (!empty($redirects)) {
+                $frontmatter['redirect_from'] = array_values($redirects);
+            }
+        }
+        
+        // Custom fields (from field definitions in content type config)
+        $fieldDefinitions = $typeConfig['fields'] ?? [];
+        foreach ($fieldDefinitions as $fieldName => $fieldConfig) {
+            if (isset($fields[$fieldName]) && $fields[$fieldName] !== '' && $fields[$fieldName] !== null) {
+                $frontmatter[$fieldName] = $fieldValidator->prepareForStorage(
+                    [$fieldName => $fields[$fieldName]], 
+                    $type
+                )[$fieldName];
+            }
+        }
+        
+        // Convert frontmatter to YAML
+        $yaml = \Symfony\Component\Yaml\Yaml::dump($frontmatter, 2, 2);
+        
+        // Build file content
+        $fileContent = "---\n" . trim($yaml) . "\n---\n\n" . $body;
+        
+        // Update the file
+        $result = $this->updateContentFileRaw($item, $type, $typeConfig, $newFilename, $fileContent, $currentFilename);
+        
+        if ($result !== true) {
+            return ['success' => false, 'error' => $result, 'warnings' => []];
+        }
+        
+        $this->auth->regenerateCsrf();
+        $this->logAction('INFO', "Updated {$type} '{$title}' (file: {$newFilename}.md, slug: {$newSlug}) via focused editor");
+        
+        // Return success with optional redirect
+        $redirect = null;
+        if ($newFilename !== $currentFilename) {
+            $dir = dirname($file);
+            $newFile = ($dir === '.' ? '' : $dir . '/') . $newFilename;
+            $newFileParam = str_replace('/', '|', $newFile);
+            $redirect = $this->adminUrl() . '/content/' . $type . '/edit?file=' . urlencode($newFileParam) . '&mode=focused&saved=1';
+        }
+        
+        return [
+            'success' => true, 
+            'message' => "'{$title}' saved successfully.", 
+            'warnings' => $securityResult['warnings'] ?? [],
+            'redirect' => $redirect,
+        ];
+    }
+
+    /**
      * Lint content action.
      */
     public function lint(Request $request): Response
@@ -1690,6 +1913,48 @@ JS;
         ];
 
         return Response::html($this->render('content/media', $data, $layout));
+    }
+
+    /**
+     * Media API - returns JSON for media picker.
+     *
+     * GET /admin/api/media?folder=optional-folder
+     * Returns: { files: [...], folders: [...] }
+     */
+    public function mediaApi(Request $request): Response
+    {
+        $uploader = new MediaUploader($this->app);
+
+        if (!$uploader->isEnabled()) {
+            return Response::json(['error' => 'Media uploads are disabled'], 403);
+        }
+
+        $folder = $request->query('folder', '');
+        $files = $uploader->listFiles($folder !== '' ? $folder : null);
+        $folders = $uploader->getExistingFolders();
+
+        // Add URL to each file for media picker
+        $baseUrl = rtrim($this->app->config('site.base_url', ''), '/');
+        $mediaPath = ltrim($uploader->getMediaPath(), '/');
+
+        $fileData = array_map(function ($file) use ($baseUrl, $mediaPath) {
+            // Build URL from the file path
+            $path = $file['path'] ?? $file['name'];
+            $url = $baseUrl . '/' . $mediaPath . '/' . ltrim($path, '/');
+
+            return [
+                'name' => $file['name'],
+                'path' => $path,
+                'url' => $url,
+                'size' => $file['size'] ?? 0,
+                'modified' => $file['modified'] ?? 0,
+            ];
+        }, $files);
+
+        return Response::json([
+            'files' => $fileData,
+            'folders' => $folders,
+        ]);
     }
 
     // -------------------------------------------------------------------------

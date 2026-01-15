@@ -2,6 +2,10 @@
 title: Home
 slug: index
 status: published
+excerpt: test
+subtitle: testtesttesttest
+summary: testttt
+featured: false
 ---
 
 # Welcome to Ava 👋
@@ -12,7 +16,7 @@ Congratulations! Your site is up and running. This is your homepage, rendered fr
 
 ## What is Ava?
 
-Ava is a **flat-file CMS** built for developers and writers who love working with files. No databases, no build steps—just Markdown files, PHP templates, and blazing-fast caching.
+Ava is a **flat-file CMS** built for developers and writers who love working with files. No databases, no build steps—just Markdown files, PHP templates, and blazing-fast caching. 
 
 ### Why you'll love it
 

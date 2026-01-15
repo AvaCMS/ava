@@ -66,13 +66,13 @@ Ava CMS is not a “one-click” CMS, and it doesn’t try to be. It trades heav
 
 ## 📦 What’s included
 
-- **Content types** and **taxonomies** for modeling your site your way
+- **Content types**, **custom fields** and **taxonomies** for modeling your site your way
+- **Optional admin dashboard** for structured content editing and site monitoring
 - **Smart routing** based on your content structure or configured patterns
 - **Shortcodes** and **snippets** for reusable dynamic blocks inside Markdown
 - **Search** across your content with configurable weighting
 - **Plugins + hooks** (with bundled plugins like sitemap, redirects, and feeds)
 - **CLI tool** for everyday tasks (cache, users, diagnostics, and more)
-- **Optional admin dashboard** for quick edits and site monitoring
 - **SEO features** like customisable meta tags, sitemaps, and clean URLs
 - **Caching** (two-tier content indexing + configurable full-page caching for static-speed delivery)
 

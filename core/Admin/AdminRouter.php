@@ -118,6 +118,11 @@ final class AdminRouter
             return $this->handleMedia($request);
         });
 
+        // Media API (protected) - returns JSON for media picker
+        $router->addRoute($basePath . '/api/media', function (Request $request) {
+            return $this->handleMediaApi($request);
+        });
+
         // Content list (protected) - pattern: /admin/content/{type}
         $router->addRoute($basePath . '/content/{type}', function (Request $request, array $params) {
             return $this->handleContent($request, $params['type']);
@@ -256,6 +261,27 @@ final class AdminRouter
         }
 
         $response = $this->controller->media($request);
+
+        $response = $this->applyAdminSecurityHeaders($response);
+
+        return new RouteMatch(
+            type: 'admin',
+            template: '__raw__',
+            params: ['response' => $response]
+        );
+    }
+
+    /**
+     * Handle media API request - returns JSON for media picker.
+     */
+    private function handleMediaApi(Request $request): RouteMatch
+    {
+        $accessCheck = $this->checkAccess($request);
+        if ($accessCheck !== null) {
+            return $accessCheck;
+        }
+
+        $response = $this->controller->mediaApi($request);
 
         $response = $this->applyAdminSecurityHeaders($response);
 
