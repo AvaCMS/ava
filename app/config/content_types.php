@@ -30,6 +30,7 @@ return [
 
     'page' => [
         'label'       => 'Pages',
+        'icon'        => 'description',
         'content_dir' => 'pages',
 
         'url' => [
@@ -163,6 +164,7 @@ return [
 
     'post' => [
         'label'       => 'Posts',
+        'icon'        => 'article',
         'content_dir' => 'posts',
 
         'url' => [

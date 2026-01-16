@@ -81,7 +81,7 @@ $formatBytes = function($bytes) {
     <div class="card content-main">
         <?php if (!empty($items)): ?>
         <div class="table-wrap">
-            <table class="table">
+            <table class="table table-responsive">
                 <thead>
                     <tr>
                         <th>Title</th>
@@ -119,20 +119,25 @@ $formatBytes = function($bytes) {
                         $editUrl = $admin_url . '/content/' . htmlspecialchars($type) . '/edit?file=' . htmlspecialchars($editFile);
                     ?>
                     <tr>
-                        <td>
+                        <td data-label="Title">
                             <?php 
                             $title = $item->title();
                             $truncatedTitle = mb_strlen($title) > 40 ? mb_substr($title, 0, 40) . '…' : $title;
                             ?>
                             <a href="<?= $editUrl ?>" class="table-title-link" <?= mb_strlen($title) > 40 ? 'title="' . htmlspecialchars($title) . '"' : '' ?>><?= htmlspecialchars($truncatedTitle) ?></a>
+                            <div class="table-mobile-meta">
+                                <?php if ($item->date()): ?>
+                                    <span class="text-xs text-tertiary"><?= $item->date()->format('M j, Y') ?></span>
+                                <?php endif; ?>
+                            </div>
                         </td>
-                        <td>
+                        <td data-label="File">
                             <code class="text-xs"><?= htmlspecialchars($relPath) ?></code>
                         </td>
-                        <td>
+                        <td data-label="URL">
                             <code class="text-xs <?= $isDraft ? 'text-tertiary' : '' ?>"><?= $itemPath ? htmlspecialchars($itemPath) : '—' ?></code>
                         </td>
-                        <td>
+                        <td data-label="Date">
                             <?php if ($item->date()): ?>
                             <div class="text-sm"><?= $item->date()->format('M j, Y') ?></div>
                             <div class="text-xs text-tertiary"><?= $item->date()->format('H:i') ?></div>
@@ -140,22 +145,24 @@ $formatBytes = function($bytes) {
                             <span class="text-tertiary">—</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td data-label="Size">
                             <div class="text-sm"><?= $formatBytes($fileSize) ?></div>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             <span class="badge <?= $item->isPublished() ? 'badge-success' : ($item->status() === 'draft' ? 'badge-warning' : 'badge-muted') ?>">
                                 <?= $item->status() ?>
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Action">
                             <div class="btn-group">
                                 <a href="<?= $editUrl ?>" class="btn btn-xs btn-secondary" title="Edit">
                                     <span class="material-symbols-rounded">edit</span>
+                                    <span class="btn-label">Edit</span>
                                 </a>
                                 <?php if ($itemUrl): ?>
                                 <a href="<?= htmlspecialchars($itemUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-secondary" title="<?= $isDraft ? 'Preview' : 'View' ?>">
                                     <span class="material-symbols-rounded"><?= $isDraft ? 'visibility' : 'open_in_new' ?></span>
+                                    <span class="btn-label"><?= $isDraft ? 'Preview' : 'View' ?></span>
                                 </a>
                                 <?php endif; ?>
                             </div>
@@ -233,7 +240,7 @@ $formatBytes = function($bytes) {
         </div>
 
         <!-- Configuration -->
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">settings</span>
@@ -241,7 +248,6 @@ $formatBytes = function($bytes) {
                 </span>
             </div>
             <div class="card-body">
-                <div class="list-item"><span class="list-label">Config</span><code class="text-xs">app/config/content_types.php</code></div>
                 <div class="list-item"><span class="list-label">Directory</span><code>content/<?= htmlspecialchars($contentDir) ?>/</code></div>
                 <div class="list-item"><span class="list-label">URL Type</span><span class="badge badge-muted"><?= htmlspecialchars($urlType) ?></span></div>
                 <div class="list-item"><span class="list-label">Pattern</span><code class="text-xs"><?= htmlspecialchars($urlPattern) ?></code></div>
@@ -252,7 +258,7 @@ $formatBytes = function($bytes) {
         </div>
 
         <!-- Templates -->
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">code</span>
@@ -269,7 +275,7 @@ $formatBytes = function($bytes) {
 
         <?php if (!empty($taxonomiesForType)): ?>
         <!-- Taxonomies -->
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">sell</span>
@@ -294,7 +300,7 @@ $formatBytes = function($bytes) {
         <?php endif; ?>
 
         <!-- Options -->
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">tune</span>

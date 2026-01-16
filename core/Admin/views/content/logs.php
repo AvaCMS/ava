@@ -12,29 +12,42 @@
     <div class="card-header">
         <span class="card-title">
             <span class="material-symbols-rounded">group</span>
-            Users
+            Admin Users
         </span>
         <span class="badge badge-muted"><?= count($users ?? []) ?></span>
     </div>
     <?php if (!empty($users)): ?>
-    <div class="card-body">
-        <?php foreach ($users as $email => $userData): ?>
-        <div class="list-item">
-            <span class="list-label">
-                <span>
-                    <?= htmlspecialchars($userData['name'] ?? $email) ?>
-                    <span class="text-xs text-tertiary d-block"><?= htmlspecialchars($email) ?></span>
-                </span>
-            </span>
-            <span class="list-value text-sm text-tertiary">
-                <?php if (!empty($userData['last_login'])): ?>
-                    <?= date('M j, H:i', strtotime($userData['last_login'])) ?>
-                <?php else: ?>
-                    Never
-                <?php endif; ?>
-            </span>
-        </div>
-        <?php endforeach; ?>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Last Login</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($users as $email => $userData): ?>
+                <tr>
+                    <td>
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-rounded text-tertiary">person</span>
+                            <?= htmlspecialchars($userData['name'] ?? 'Unnamed') ?>
+                        </span>
+                    </td>
+                    <td><code class="text-xs"><?= htmlspecialchars($email) ?></code></td>
+                    <td>
+                        <?php if (!empty($userData['last_login'])): ?>
+                            <span class="text-sm"><?= date('M j, Y', strtotime($userData['last_login'])) ?></span>
+                            <span class="text-xs text-tertiary"><?= date('H:i', strtotime($userData['last_login'])) ?></span>
+                        <?php else: ?>
+                            <span class="text-tertiary">Never</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
     <?php else: ?>
     <div class="empty-state">

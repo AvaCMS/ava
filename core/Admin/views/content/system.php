@@ -132,6 +132,33 @@ $loadColor = function($val) use ($cpuCount) {
     </div>
 </div>
 
+<!-- Sticky Tab Navigation -->
+<div class="sticky-tabs">
+    <button class="tab-btn active" data-tab="server">
+        <span class="material-symbols-rounded">dns</span>
+        Server
+    </button>
+    <button class="tab-btn" data-tab="cache">
+        <span class="material-symbols-rounded">database</span>
+        Cache & PHP
+    </button>
+    <button class="tab-btn" data-tab="config">
+        <span class="material-symbols-rounded">settings</span>
+        Configuration
+    </button>
+    <button class="tab-btn" data-tab="content">
+        <span class="material-symbols-rounded">folder_open</span>
+        Content
+    </button>
+    <button class="tab-btn" data-tab="directories">
+        <span class="material-symbols-rounded">folder</span>
+        Directories
+    </button>
+</div>
+
+<!-- Server Tab -->
+<div class="tab-panel active" id="tab-server">
+
 <!-- Server Load & Memory -->
 <div class="grid grid-2">
     <div class="card">
@@ -222,8 +249,13 @@ $loadColor = function($val) use ($cpuCount) {
     </div>
 </div>
 
+</div><!-- End Server Tab -->
+
+<!-- Cache & PHP Tab -->
+<div class="tab-panel" id="tab-cache">
+
 <!-- Cache Files -->
-<div class="card mt-4">
+<div class="card">
     <div class="card-header">
         <span class="card-title"><span class="material-symbols-rounded">database</span> Cache Files</span>
         <?php 
@@ -413,8 +445,13 @@ $loadColor = function($val) use ($cpuCount) {
     </div>
 </div>
 
+</div><!-- End Cache & PHP Tab -->
+
+<!-- Configuration Tab -->
+<div class="tab-panel" id="tab-config">
+
 <!-- Ava Config & Content Stats -->
-<div class="grid grid-2 mt-4">
+<div class="grid grid-2">
     <div class="card">
         <div class="card-header">
             <span class="card-title"><span class="material-symbols-rounded">settings</span> Ava Config</span>
@@ -474,8 +511,13 @@ $loadColor = function($val) use ($cpuCount) {
     </div>
 </div>
 
+</div><!-- End Configuration Tab -->
+
+<!-- Directories Tab -->
+<div class="tab-panel" id="tab-directories">
+
 <?php if (!empty($debugInfo['recent_errors'])): ?>
-<div class="card mt-4">
+<div class="card">
     <div class="card-header">
         <span class="card-title"><span class="material-symbols-rounded">error</span> Recent Errors</span>
         <div class="d-flex gap-2">
@@ -491,7 +533,7 @@ endforeach; ?></pre>
 <?php endif; ?>
 
 <!-- Directory Status -->
-<div class="card mt-4">
+<div class="card <?= !empty($debugInfo['recent_errors']) ? 'mt-4' : '' ?>">
     <div class="card-header">
         <span class="card-title"><span class="material-symbols-rounded">folder</span> Directory Status</span>
         <?php 
@@ -611,8 +653,13 @@ endforeach; ?></pre>
     </div>
 </div>
 
+</div><!-- End Directories Tab -->
+
+<!-- Content Tab -->
+<div class="tab-panel" id="tab-content">
+
 <!-- Content Types & Routes -->
-<div class="grid grid-2 mt-4">
+<div class="grid grid-2">
     <div class="card">
         <div class="card-header">
             <span class="card-title"><span class="material-symbols-rounded">folder_open</span> Content Types</span>
@@ -699,3 +746,31 @@ endforeach; ?></pre>
     </div>
 </div>
 
+</div><!-- End Content Tab -->
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        
+        // Update buttons
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Update panels
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        
+        // Save to localStorage
+        localStorage.setItem('ava-system-tab', tabId);
+    });
+});
+
+// Restore saved tab
+const savedTab = localStorage.getItem('ava-system-tab');
+if (savedTab) {
+    const btn = document.querySelector('.tab-btn[data-tab="' + savedTab + '"]');
+    if (btn) btn.click();
+}
+</script>

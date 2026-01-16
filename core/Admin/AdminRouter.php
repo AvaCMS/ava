@@ -535,7 +535,7 @@ final class AdminRouter
                 "object-src 'none'",
                 "frame-ancestors 'none'",
                 "form-action 'self'",
-                "img-src 'self' data:",
+                "img-src 'self' data: blob:",
                 "font-src 'self' https://fonts.gstatic.com data:",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 "script-src 'self' 'unsafe-inline'",

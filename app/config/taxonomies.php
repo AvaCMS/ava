@@ -30,6 +30,7 @@ return [
 
     'category' => [
         'label'        => 'Categories',
+        'icon'         => 'folder',
         'hierarchical' => true,             // Supports parent/child terms
         'public'       => true,             // Has public archive pages
 
@@ -61,6 +62,7 @@ return [
 
     'tag' => [
         'label'        => 'Tags',
+        'icon'         => 'tag',
         'hierarchical' => false,
         'public'       => true,
 

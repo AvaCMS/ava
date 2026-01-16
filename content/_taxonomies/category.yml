@@ -1,7 +1,12 @@
-- slug: general
+-
+  slug: general
   name: General
-  description: General posts and updates
-
-- slug: getting-started
-  name: Getting Started
-  description: Introduction and setup guides
+  description: 'General posts and updates'
+-
+  slug: getting-started
+  name: 'Getting Started'
+  description: 'Introduction and setup guides'
+-
+  slug: test
+  name: test
+  description: test

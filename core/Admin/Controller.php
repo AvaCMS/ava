@@ -1706,7 +1706,7 @@ JS;
 
         $data = [
             'logs' => $logs,
-            'users' => $this->app->loadConfig('users'),
+            'users' => $this->auth->allUsers(),
             'content' => $this->getContentStats(),
             'taxonomies' => $this->getTaxonomyStats(),
             'taxonomyConfig' => $this->getTaxonomyConfig(),
@@ -1745,75 +1745,99 @@ JS;
         $success = null;
         $uploadedFiles = [];
 
-        // Handle file upload
+        // Handle POST actions
         if ($request->isMethod('POST')) {
             // CSRF check
             $csrf = $request->post('_csrf', '');
             if (!$this->auth->verifyCsrf($csrf)) {
                 $error = 'Invalid request. Please try again.';
             } else {
-                $files = $_FILES['media'] ?? null;
-
-                if ($files === null || empty($files['name'][0])) {
-                    $error = 'No files selected.';
+                $action = $request->post('action', 'upload');
+                
+                if ($action === 'delete_file') {
+                    // Handle file deletion
+                    $filePath = $request->post('file_path', '');
+                    
+                    $result = $uploader->deleteFile($filePath);
+                    
+                    if ($result['success']) {
+                        $this->auth->regenerateCsrf();
+                        $this->logAction('INFO', "Deleted media file: {$filePath}");
+                        $success = "File deleted successfully.";
+                    } else {
+                        $error = $result['error'];
+                    }
                 } else {
-                    // Determine target folder
-                    $folderMode = $request->post('folder_mode', 'date');
-                    $targetFolder = null;
+                    // Handle file upload (default action)
+                    $files = $_FILES['media'] ?? null;
 
-                    if ($folderMode === 'existing') {
-                        $targetFolder = $request->post('existing_folder', '');
-                        if ($targetFolder === '') {
+                    if ($files === null || empty($files['name'][0])) {
+                        $error = 'No files selected.';
+                    } else {
+                        // Determine target folder
+                        $folderMode = $request->post('folder_mode', 'date');
+                        $targetFolder = null;
+
+                        if ($folderMode === 'existing') {
+                            $targetFolder = $request->post('existing_folder', '');
+                            if ($targetFolder === '') {
+                                $targetFolder = null;
+                            }
+                        } elseif ($folderMode === 'current') {
+                            // Upload to current browsing folder
+                            $targetFolder = $request->post('current_folder', '');
+                            if ($targetFolder === '') {
+                                $targetFolder = null;
+                            }
+                        } elseif ($folderMode === 'root') {
                             $targetFolder = null;
                         }
-                    } elseif ($folderMode === 'root') {
-                        $targetFolder = null;
-                    }
-                    // 'date' mode uses null with default date organization
+                        // 'date' mode uses null with default date organization
 
-                    $useDate = ($folderMode === 'date');
+                        $useDate = ($folderMode === 'date');
 
-                    // Handle multiple files
-                    $totalFiles = count($files['name']);
-                    $successCount = 0;
-                    $errors = [];
+                        // Handle multiple files
+                        $totalFiles = count($files['name']);
+                        $successCount = 0;
+                        $errors = [];
 
-                    for ($i = 0; $i < $totalFiles; $i++) {
-                        if ($files['error'][$i] === UPLOAD_ERR_NO_FILE) {
-                            continue;
+                        for ($i = 0; $i < $totalFiles; $i++) {
+                            if ($files['error'][$i] === UPLOAD_ERR_NO_FILE) {
+                                continue;
+                            }
+
+                            $fileData = [
+                                'name' => $files['name'][$i],
+                                'type' => $files['type'][$i],
+                                'tmp_name' => $files['tmp_name'][$i],
+                                'error' => $files['error'][$i],
+                                'size' => $files['size'][$i],
+                            ];
+
+                            $result = $uploader->upload($fileData, $targetFolder, $useDate);
+
+                            if ($result['success']) {
+                                $successCount++;
+                                $uploadedFiles[] = $result;
+                                $relativePath = $result['path'] ?? $result['filename'] ?? 'unknown';
+                                $this->logAction('INFO', "Uploaded media: {$result['filename']} to {$relativePath}");
+                            } else {
+                                $errors[] = "{$files['name'][$i]}: {$result['error']}";
+                                $this->logAction('WARNING', "Media upload failed: {$files['name'][$i]} - {$result['error']}");
+                            }
                         }
 
-                        $fileData = [
-                            'name' => $files['name'][$i],
-                            'type' => $files['type'][$i],
-                            'tmp_name' => $files['tmp_name'][$i],
-                            'error' => $files['error'][$i],
-                            'size' => $files['size'][$i],
-                        ];
-
-                        $result = $uploader->upload($fileData, $targetFolder, $useDate);
-
-                        if ($result['success']) {
-                            $successCount++;
-                            $uploadedFiles[] = $result;
-                            $relativePath = $result['path'] ?? $result['filename'] ?? 'unknown';
-                            $this->logAction('INFO', "Uploaded media: {$result['filename']} to {$relativePath}");
-                        } else {
-                            $errors[] = "{$files['name'][$i]}: {$result['error']}";
-                            $this->logAction('WARNING', "Media upload failed: {$files['name'][$i]} - {$result['error']}");
+                        if ($successCount > 0) {
+                            $success = "Uploaded {$successCount} file" . ($successCount > 1 ? 's' : '') . " successfully.";
                         }
-                    }
 
-                    if ($successCount > 0) {
-                        $success = "Uploaded {$successCount} file" . ($successCount > 1 ? 's' : '') . " successfully.";
-                    }
+                        if (!empty($errors)) {
+                            $error = implode("\n", $errors);
+                        }
 
-                    if (!empty($errors)) {
-                        $error = implode("\n", $errors);
+                        // Regenerate CSRF after successful upload
+                        $this->auth->regenerateCsrf();
                     }
-
-                    // Regenerate CSRF after successful upload
-                    $this->auth->regenerateCsrf();
                 }
             }
         }
@@ -1824,6 +1848,17 @@ JS;
 
         // Get current folder from query string for browsing
         $currentFolder = $request->query('folder', '');
+        
+        // Validate that folder exists (redirect to root with error if not)
+        if ($currentFolder !== '' && !$uploader->folderExists($currentFolder)) {
+            $error = 'Folder not found.';
+            $currentFolder = ''; // Reset to root
+        }
+        
+        // Get subfolders in current directory (for navigation)
+        $subfolders = $uploader->listSubfolders($currentFolder !== '' ? $currentFolder : null);
+        
+        // Get files in current folder
         $allFiles = $uploader->listFiles($currentFolder !== '' ? $currentFolder : null);
 
         // Sorting
@@ -1839,8 +1874,11 @@ JS;
             return $sortDir === 'desc' ? -$result : $result;
         });
 
+        // View mode (grid or list) - default to list
+        $viewMode = $request->query('view', 'list');
+
         // Pagination
-        $perPage = 25;
+        $perPage = $viewMode === 'grid' ? 24 : 25;
         $page = max(1, (int) $request->query('page', 1));
         $totalFiles = count($allFiles);
         $totalPages = max(1, (int) ceil($totalFiles / $perPage));
@@ -1863,6 +1901,7 @@ JS;
             'success' => $success,
             'uploadedFiles' => $uploadedFiles,
             'existingFolders' => $existingFolders,
+            'subfolders' => $subfolders,
             'uploadLimits' => $uploadLimits,
             'currentFolder' => $currentFolder,
             'currentFiles' => $currentFiles,
@@ -1879,6 +1918,7 @@ JS;
             // Sorting and pagination
             'sortBy' => $sortBy,
             'sortDir' => $sortDir,
+            'viewMode' => $viewMode,
             'page' => $page,
             'totalPages' => $totalPages,
             'totalFiles' => $totalFiles,
@@ -2792,6 +2832,7 @@ JS;
     {
         return [
             'content' => $this->getContentStats(),
+            'contentTypes' => $this->getContentTypeConfig(),
             'taxonomies' => $this->getTaxonomyStats(),
             'taxonomyConfig' => $this->getTaxonomyConfig(),
             'customPages' => Hooks::apply('admin.register_pages', [], $this->app),

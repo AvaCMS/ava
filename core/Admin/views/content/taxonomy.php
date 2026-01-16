@@ -29,25 +29,22 @@ $ui = $config['ui'] ?? [];
     <div class="card content-main">
         <?php if (!empty($terms)): ?>
         <div class="table-wrap">
-            <table class="table">
+            <table class="table table-responsive">
                 <thead>
                     <tr>
                         <th>Term</th>
                         <th>Slug</th>
                         <th>Content</th>
-                        <th>Usage</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php 
-                    $maxCount = max(1, max(array_column($terms, 'count')));
                     foreach ($terms as $slug => $termData): 
                         $termUrl = $taxBase . '/' . $slug;
-                        $usagePercent = round(($termData['count'] / $maxCount) * 100);
                     ?>
                     <tr>
-                        <td>
+                        <td data-label="Term">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="material-symbols-rounded text-tertiary icon-sm">label</span>
                                 <?php 
@@ -56,25 +53,25 @@ $ui = $config['ui'] ?? [];
                                 ?>
                                 <span class="font-medium" <?= mb_strlen($termName) > 40 ? 'title="' . htmlspecialchars($termName) . '"' : '' ?>><?= htmlspecialchars($truncatedName) ?></span>
                             </div>
+                            <div class="table-mobile-meta">
+                                <span class="text-xs text-tertiary"><?= $termData['count'] ?> item<?= $termData['count'] !== 1 ? 's' : '' ?></span>
+                            </div>
                         </td>
-                        <td><code class="text-xs"><?= htmlspecialchars($slug) ?></code></td>
-                        <td>
+                        <td data-label="Slug"><code class="text-xs"><?= htmlspecialchars($slug) ?></code></td>
+                        <td data-label="Content">
                             <span class="badge <?= $termData['count'] > 0 ? 'badge-accent' : 'badge-muted' ?>">
                                 <?= $termData['count'] ?>
                             </span>
                         </td>
-                        <td class="w-120">
-                            <div class="progress-bar">
-                                <div class="progress-fill accent" style="width: <?= $usagePercent ?>%"></div>
-                            </div>
-                        </td>
-                        <td>
+                        <td data-label="Action">
                             <div class="btn-group">
                                 <a href="<?= htmlspecialchars($termUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-secondary" title="View archive">
                                     <span class="material-symbols-rounded">open_in_new</span>
+                                    <span class="btn-label">View</span>
                                 </a>
                                 <a href="<?= htmlspecialchars($admin_url) ?>/taxonomy/<?= htmlspecialchars($taxonomy) ?>/<?= htmlspecialchars($slug) ?>/delete" class="btn btn-xs btn-secondary" title="Delete term">
                                     <span class="material-symbols-rounded">delete</span>
+                                    <span class="btn-label">Delete</span>
                                 </a>
                             </div>
                         </td>
@@ -112,7 +109,7 @@ $ui = $config['ui'] ?? [];
         </div>
 
         <!-- Configuration -->
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">settings</span>
@@ -132,7 +129,7 @@ $ui = $config['ui'] ?? [];
         </div>
 
         <!-- Behaviour -->
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">tune</span>
@@ -158,7 +155,7 @@ $ui = $config['ui'] ?? [];
         </div>
 
         <!-- UI Options -->
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <span class="card-title">
                     <span class="material-symbols-rounded">visibility</span>

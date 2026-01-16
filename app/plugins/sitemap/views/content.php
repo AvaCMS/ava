@@ -83,30 +83,37 @@
     </div>
 </div>
 
-<div class="card mt-5">
+<div class="card mt-4">
     <div class="card-header">
         <span class="card-title">
             <span class="material-symbols-rounded">help</span>
-            Configuration
+            Reference
         </span>
     </div>
-    <div class="card-body">
-        <p class="text-secondary text-sm" style="margin-bottom: var(--sp-4);">
-            Configure sitemap settings in <code>app/config/ava.php</code>:
-        </p>
-        <pre style="background: var(--bg-surface); padding: var(--sp-4); border-radius: var(--radius-md); overflow-x: auto; font-size: var(--text-sm);">'sitemap' => [
-    'enabled' => true,
-    'changefreq' => [
-        'page' => 'monthly',
-        'post' => 'weekly',
-    ],
-    'priority' => [
-        'page' => '0.8',
-        'post' => '0.6',
-    ],
-],</pre>
-        <p class="text-secondary text-sm" style="margin-top: var(--sp-4);">
-            To exclude content from the sitemap, add <code>noindex: true</code> to the frontmatter.
-        </p>
-    </div>
+        <div class="table-wrap">
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <td style="width: 160px;"><strong>Sitemap Index</strong></td>
+                        <td><code class="text-xs">/sitemap.xml</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Per-type Sitemaps</strong></td>
+                        <td><code class="text-xs">/sitemap-{type}.xml</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>robots.txt</strong></td>
+                        <td>URL auto-added on index rebuild</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exclude Content</strong></td>
+                        <td><code class="text-xs">noindex: true</code> in frontmatter</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Disable Plugin</strong></td>
+                        <td><code class="text-xs">'sitemap' => ['enabled' => false]</code> in ava.php</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 </div>

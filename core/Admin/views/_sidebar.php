@@ -26,7 +26,8 @@ $activePage = $activePage ?? '';
 <aside class="app-sidebar" id="sidebar">
     <div class="sidebar-header">
         <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
-            <span class="material-symbols-rounded">menu</span>
+            <span class="material-symbols-rounded toggle-icon-open">left_panel_close</span>
+            <span class="material-symbols-rounded toggle-icon-closed">left_panel_open</span>
         </button>
         <span class="sidebar-brand">Ava CMS</span>
     </div>
@@ -41,10 +42,14 @@ $activePage = $activePage ?? '';
 
         <div class="nav-group">
             <div class="nav-group-label">Content</div>
-            <?php foreach ($content as $type => $stats): ?>
-            <a href="<?= $admin_url ?>/content/<?= $type ?>" class="nav-item <?= $activePage === 'content-' . $type ? 'active' : '' ?>" data-tooltip="<?= ucfirst($type) ?>s" title="<?= ucfirst($type) ?>s">
-                <span class="material-symbols-rounded"><?= $type === 'page' ? 'description' : 'article' ?></span>
-                <span class="nav-item-label"><?= ucfirst($type) ?>s</span>
+            <?php foreach ($content as $type => $stats):
+                $typeConfig = $contentTypes[$type] ?? [];
+                $typeLabel = $typeConfig['label'] ?? ucfirst($type) . 's';
+                $typeIcon = $typeConfig['icon'] ?? 'description';
+            ?>
+            <a href="<?= $admin_url ?>/content/<?= $type ?>" class="nav-item <?= $activePage === 'content-' . $type ? 'active' : '' ?>" data-tooltip="<?= htmlspecialchars($typeLabel) ?>" title="<?= htmlspecialchars($typeLabel) ?>">
+                <span class="material-symbols-rounded"><?= htmlspecialchars($typeIcon) ?></span>
+                <span class="nav-item-label"><?= htmlspecialchars($typeLabel) ?></span>
             </a>
             <?php endforeach; ?>
         </div>
@@ -53,10 +58,12 @@ $activePage = $activePage ?? '';
             <div class="nav-group-label">Taxonomies</div>
             <?php foreach ($taxonomies as $tax => $count): 
                 $taxConfig = $taxonomyConfig[$tax] ?? [];
+                $taxLabel = $taxConfig['label'] ?? ucfirst($tax);
+                $taxIcon = $taxConfig['icon'] ?? 'tag';
             ?>
-            <a href="<?= $admin_url ?>/taxonomy/<?= $tax ?>" class="nav-item <?= $activePage === 'taxonomy-' . $tax ? 'active' : '' ?>" data-tooltip="<?= htmlspecialchars($taxConfig['label'] ?? ucfirst($tax)) ?>" title="<?= htmlspecialchars($taxConfig['label'] ?? ucfirst($tax)) ?>">
-                <span class="material-symbols-rounded"><?= ($taxConfig['hierarchical'] ?? false) ? 'folder' : 'sell' ?></span>
-                <span class="nav-item-label"><?= htmlspecialchars($taxConfig['label'] ?? ucfirst($tax)) ?></span>
+            <a href="<?= $admin_url ?>/taxonomy/<?= $tax ?>" class="nav-item <?= $activePage === 'taxonomy-' . $tax ? 'active' : '' ?>" data-tooltip="<?= htmlspecialchars($taxLabel) ?>" title="<?= htmlspecialchars($taxLabel) ?>">
+                <span class="material-symbols-rounded"><?= htmlspecialchars($taxIcon) ?></span>
+                <span class="nav-item-label"><?= htmlspecialchars($taxLabel) ?></span>
             </a>
             <?php endforeach; ?>
         </div>

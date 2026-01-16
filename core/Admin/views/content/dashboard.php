@@ -90,39 +90,7 @@ $totalDrafts = array_sum(array_column($content, 'draft'));
 $totalTerms = array_sum($taxonomies);
 $renderTime = round((microtime(true) - $system['request_time']) * 1000, 2);
 
-// Greeting based on time of day
-$hour = (int) date('H');
-if ($hour >= 5 && $hour < 12) {
-    $greeting = 'Good morning';
-    $greetingIcon = 'wb_sunny';
-} elseif ($hour >= 12 && $hour < 17) {
-    $greeting = 'Good afternoon';
-    $greetingIcon = 'wb_sunny';
-} elseif ($hour >= 17 && $hour < 21) {
-    $greeting = 'Good evening';
-    $greetingIcon = 'wb_twilight';
-} else {
-    $greeting = 'Good evening';
-    $greetingIcon = 'dark_mode';
-}
-
-// Site summary
-$siteSummary = $totalContent . ' content item' . ($totalContent !== 1 ? 's' : '') . ' across ' . count($content) . ' type' . (count($content) !== 1 ? 's' : '');
-if ($totalDrafts > 0) {
-    $siteSummary .= ', ' . $totalDrafts . ' pending draft' . ($totalDrafts !== 1 ? 's' : '');
-}
 ?>
-
-<!-- Welcome Banner -->
-<div class="dashboard-banner">
-    <div class="dashboard-banner-content">
-        <h2 class="dashboard-banner-greeting">
-            <span class="material-symbols-rounded"><?= $greetingIcon ?></span>
-            <?= $greeting ?>!
-        </h2>
-        <p class="dashboard-banner-summary"><?= htmlspecialchars($siteSummary) ?></p>
-    </div>
-</div>
 
 <?php if (isset($_GET['action']) && $_GET['action'] === 'rebuild'): ?>
 <div class="alert alert-success">
@@ -232,7 +200,7 @@ if ($totalDrafts > 0) {
             </div>
             <form method="POST" action="<?= htmlspecialchars($admin_url) ?>/rebuild" class="mt-4">
                 <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf) ?>">
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
                     <button type="submit" class="btn btn-primary btn-sm">
                         <span class="material-symbols-rounded">autorenew</span>
                         Rebuild Now

@@ -127,6 +127,37 @@ final class MediaUploader
     }
 
     /**
+     * Check if a subfolder exists within the media directory.
+     * Returns false for invalid paths or paths outside media directory.
+     */
+    public function folderExists(?string $subfolder): bool
+    {
+        if ($subfolder === null || $subfolder === '') {
+            return is_dir($this->mediaPath);
+        }
+        
+        $cleanPath = $this->sanitizePath($subfolder);
+        if ($cleanPath === null) {
+            return false;
+        }
+        
+        $targetDir = $this->mediaPath . '/' . $cleanPath;
+        
+        if (!is_dir($targetDir)) {
+            return false;
+        }
+        
+        // Security: verify we're within media directory
+        $realMediaPath = realpath($this->mediaPath);
+        $realTargetPath = realpath($targetDir);
+        if ($realMediaPath === false || $realTargetPath === false) {
+            return false;
+        }
+        
+        return str_starts_with($realTargetPath, $realMediaPath);
+    }
+
+    /**
      * Get list of existing subdirectories in the media folder.
      * Only returns direct subdirectories (not nested), excluding hidden dirs.
      * Excludes date-based folders (YYYY or YYYY/MM patterns).
@@ -865,8 +896,8 @@ final class MediaUploader
                 }
             }
 
-            // Sanitize segment: only allow safe characters
-            $segment = preg_replace('/[^A-Za-z0-9_-]/', '', $segment);
+            // Sanitize segment: only allow safe characters (allow dot for file extensions)
+            $segment = preg_replace('/[^A-Za-z0-9._-]/', '', $segment);
 
             if ($segment !== '') {
                 $cleanSegments[] = $segment;
@@ -1025,6 +1056,16 @@ final class MediaUploader
         if (!is_dir($targetDir)) {
             return [];
         }
+        
+        // Security: verify we're still within media directory using realpath
+        $realMediaPath = realpath($this->mediaPath);
+        $realTargetPath = realpath($targetDir);
+        if ($realMediaPath === false || $realTargetPath === false) {
+            return [];
+        }
+        if (!str_starts_with($realTargetPath, $realMediaPath)) {
+            return []; // Directory traversal attempt
+        }
 
         $files = [];
         $items = @scandir($targetDir);
@@ -1064,5 +1105,212 @@ final class MediaUploader
         usort($files, fn($a, $b) => $b['modified'] - $a['modified']);
 
         return $files;
+    }
+
+    /**
+     * List subfolders in a directory (for navigation).
+     * 
+     * @param string|null $subfolder Optional subfolder within media directory
+     * @return array List of folder names with metadata
+     */
+    public function listSubfolders(?string $subfolder = null): array
+    {
+        $targetDir = $this->mediaPath;
+        
+        if ($subfolder !== null && $subfolder !== '') {
+            $cleanPath = $this->sanitizePath($subfolder);
+            if ($cleanPath === null) {
+                return [];
+            }
+            $targetDir .= '/' . $cleanPath;
+        }
+
+        if (!is_dir($targetDir)) {
+            return [];
+        }
+        
+        // Security: verify we're still within media directory using realpath
+        $realMediaPath = realpath($this->mediaPath);
+        $realTargetPath = realpath($targetDir);
+        if ($realMediaPath === false || $realTargetPath === false) {
+            return [];
+        }
+        if (!str_starts_with($realTargetPath, $realMediaPath)) {
+            return []; // Directory traversal attempt
+        }
+
+        $folders = [];
+        $items = @scandir($targetDir);
+        
+        if ($items === false) {
+            return [];
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..' || str_starts_with($item, '.')) {
+                continue;
+            }
+
+            $fullPath = $targetDir . '/' . $item;
+            
+            if (is_dir($fullPath)) {
+                $relativePath = $subfolder ? $subfolder . '/' . $item : $item;
+                
+                // Count items in folder
+                $itemCount = $this->countFolderItems($fullPath);
+                
+                $folders[] = [
+                    'name' => $item,
+                    'path' => $relativePath,
+                    'item_count' => $itemCount,
+                ];
+            }
+        }
+
+        // Sort alphabetically
+        usort($folders, fn($a, $b) => strcasecmp($a['name'], $b['name']));
+
+        return $folders;
+    }
+
+    /**
+     * Recursively count only files (not folders) in a directory.
+     */
+    private function countFolderItems(string $path): int
+    {
+        $count = 0;
+        $items = @scandir($path);
+        if ($items === false) {
+            return 0;
+        }
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..' || str_starts_with($item, '.')) {
+                continue;
+            }
+            $fullPath = $path . DIRECTORY_SEPARATOR . $item;
+            if (is_dir($fullPath)) {
+                // Recursively count files in subdirectories
+                $count += $this->countFolderItems($fullPath);
+            } else {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * Create a new folder in the media directory.
+     * 
+     * @param string $folderName The name of the new folder
+     * @param string|null $parentFolder Optional parent folder path
+     * @return array{success: bool, path?: string, error?: string}
+     */
+    public function createFolder(string $folderName, ?string $parentFolder = null): array
+    {
+        // Sanitize folder name - only allow alphanumeric, hyphens, underscores
+        $safeName = preg_replace('/[^A-Za-z0-9_-]/', '', $folderName);
+        $safeName = trim($safeName, '.-_');
+        
+        if ($safeName === '' || strlen($safeName) < 1) {
+            return $this->error('Invalid folder name. Use only letters, numbers, hyphens, and underscores.');
+        }
+        
+        if (strlen($safeName) > 50) {
+            return $this->error('Folder name too long (max 50 characters).');
+        }
+        
+        // Check for Windows reserved names
+        if (in_array(strtoupper($safeName), self::WINDOWS_RESERVED, true)) {
+            return $this->error('This folder name is reserved.');
+        }
+        
+        // Build target path
+        $targetDir = $this->mediaPath;
+        if ($parentFolder !== null && $parentFolder !== '') {
+            $cleanPath = $this->sanitizePath($parentFolder);
+            if ($cleanPath === null) {
+                return $this->error('Invalid parent folder.');
+            }
+            $targetDir .= '/' . $cleanPath;
+        }
+        
+        $newFolderPath = $targetDir . '/' . $safeName;
+        
+        // Verify we're still within media directory
+        $realMediaPath = realpath($this->mediaPath);
+        if ($realMediaPath === false) {
+            return $this->error('Media directory does not exist.');
+        }
+        
+        // Check if parent exists
+        if (!is_dir($targetDir)) {
+            return $this->error('Parent folder does not exist.');
+        }
+        
+        // Check if folder already exists
+        if (file_exists($newFolderPath)) {
+            return $this->error('A folder with this name already exists.');
+        }
+        
+        // Create the folder
+        if (!@mkdir($newFolderPath, 0755, true)) {
+            return $this->error('Failed to create folder. Check permissions.');
+        }
+        
+        // Return success with the relative path
+        $relativePath = $parentFolder ? $parentFolder . '/' . $safeName : $safeName;
+        
+        return [
+            'success' => true,
+            'path' => $relativePath,
+            'name' => $safeName,
+        ];
+    }
+
+    /**
+     * Delete a file from the media directory.
+     * 
+     * @param string $filePath Relative path to the file within media directory
+     * @return array{success: bool, error?: string}
+     */
+    public function deleteFile(string $filePath): array
+    {
+        if (trim($filePath) === '') {
+            return $this->error('No file specified.');
+        }
+        
+        // Sanitize and validate path
+        $cleanPath = $this->sanitizePath($filePath);
+        if ($cleanPath === null) {
+            return $this->error('Invalid file path.');
+        }
+        
+        $fullPath = $this->mediaPath . '/' . $cleanPath;
+        
+        // Verify we're still within media directory
+        $realMediaPath = realpath($this->mediaPath);
+        if ($realMediaPath === false) {
+            return $this->error('Media directory does not exist.');
+        }
+        
+        $realFilePath = realpath($fullPath);
+        if ($realFilePath === false) {
+            return $this->error('File not found.');
+        }
+        
+        if (!str_starts_with($realFilePath, $realMediaPath)) {
+            return $this->error('Access denied.');
+        }
+        
+        if (!is_file($realFilePath)) {
+            return $this->error('Not a file.');
+        }
+        
+        // Delete the file
+        if (!@unlink($realFilePath)) {
+            return $this->error('Failed to delete file. Check permissions.');
+        }
+        
+        return ['success' => true];
     }
 }

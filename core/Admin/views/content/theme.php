@@ -69,6 +69,21 @@ $assetBadge = function($type) {
     </div>
 </div>
 
+<!-- Sticky Tab Navigation -->
+<div class="sticky-tabs">
+    <button class="tab-btn active" data-tab="theme">
+        <span class="material-symbols-rounded">palette</span>
+        Theme Files
+    </button>
+    <button class="tab-btn" data-tab="shortcodes">
+        <span class="material-symbols-rounded">bolt</span>
+        Shortcodes
+    </button>
+</div>
+
+<!-- Theme Files Tab -->
+<div class="tab-panel active" id="tab-theme">
+
 <!-- How Theme Assets Work -->
 <div class="alert alert-info">
     <span class="material-symbols-rounded">info</span>
@@ -90,7 +105,8 @@ $assetBadge = function($type) {
             <?php if (empty($themeInfo['templates'])): ?>
             <p class="text-tertiary text-sm">No templates found.</p>
             <?php else: ?>
-            <table class="table">
+            <div class="table-wrap">
+                <table class="table">
                 <thead>
                     <tr>
                         <th>Template</th>
@@ -108,7 +124,8 @@ $assetBadge = function($type) {
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
-            </table>
+                </table>
+            </div>
             <?php endif; ?>
         </div>
     </div>
@@ -155,73 +172,77 @@ foreach ($assets as $asset):
     </div>
 </div>
 
-<!-- Assets Table -->
-<div class="card">
-    <div class="card-header">
-        <span class="card-title"><span class="material-symbols-rounded">folder</span> Theme Assets</span>
-        <span class="badge badge-muted"><?= count($themeInfo['assets'] ?? []) ?> files</span>
-    </div>
-    <div class="card-body">
-        <?php if (empty($themeInfo['assets'])): ?>
-        <p class="text-tertiary">No assets found in app/themes/<?= htmlspecialchars($currentTheme) ?>/assets/</p>
-        <?php else: ?>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>File</th>
-                    <th>Type</th>
-                    <th>URL</th>
-                    <th class="text-right">Size</th>
-                    <th class="text-right">Modified</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($themeInfo['assets'] as $asset): ?>
-                <tr>
-                    <td>
-                        <span class="material-symbols-rounded text-tertiary icon-sm"><?= $assetIcon($asset['type']) ?></span>
-                        <?= htmlspecialchars($asset['file']) ?>
-                    </td>
-                    <td><span class="badge <?= $assetBadge($asset['type']) ?>"><?= htmlspecialchars($asset['type']) ?></span></td>
-                    <td><code class="text-sm"><?= htmlspecialchars($asset['url']) ?></code></td>
-                    <td class="text-right text-tertiary"><?= $formatBytes($asset['size']) ?></td>
-                    <td class="text-right text-tertiary"><?= $formatDate($asset['modified']) ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-        <?php endif; ?>
-    </div>
-</div>
-
-<!-- Asset Helper Reference -->
-<div class="card">
-    <div class="card-header">
-        <span class="card-title"><span class="material-symbols-rounded">code</span> Using Theme Assets</span>
-    </div>
-    <div class="card-body">
-        <p class="mb-3">Use the <code>$ava->asset()</code> helper in your templates to reference theme assets with automatic cache-busting:</p>
-        
-        <div class="code-block mb-3">
-<pre>&lt;!-- Theme assets (no leading slash) --&gt;
-&lt;link rel="stylesheet" href="&lt;?= $ava->asset('style.css') ?&gt;"&gt;
-&lt;script src="&lt;?= $ava->asset('js/app.js') ?&gt;"&gt;&lt;/script&gt;
-&lt;img src="&lt;?= $ava->asset('images/logo.svg') ?&gt;"&gt;
-
-&lt;!-- Output example: --&gt;
-&lt;link rel="stylesheet" href="/theme/style.css?v=1703782400"&gt;</pre>
+<div class="grid grid-2">
+    <!-- Assets Table -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><span class="material-symbols-rounded">folder</span> Theme Assets</span>
+            <span class="badge badge-muted"><?= count($themeInfo['assets'] ?? []) ?> files</span>
         </div>
+        <div class="card-body">
+            <?php if (empty($themeInfo['assets'])): ?>
+            <p class="text-tertiary">No assets found in app/themes/<?= htmlspecialchars($currentTheme) ?>/assets/</p>
+            <?php else: ?>
+            <div class="table-wrap">
+                <table class="table">
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Type</th>
+                        <th>URL</th>
+                        <th class="text-right">Size</th>
+                        <th class="text-right">Modified</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($themeInfo['assets'] as $asset): ?>
+                    <tr>
+                        <td>
+                            <span class="material-symbols-rounded text-tertiary icon-sm"><?= $assetIcon($asset['type']) ?></span>
+                            <?= htmlspecialchars($asset['file']) ?>
+                        </td>
+                        <td><span class="badge <?= $assetBadge($asset['type']) ?>"><?= htmlspecialchars($asset['type']) ?></span></td>
+                        <td><code class="text-sm"><?= htmlspecialchars($asset['url']) ?></code></td>
+                        <td class="text-right text-tertiary"><?= $formatBytes($asset['size']) ?></td>
+                        <td class="text-right text-tertiary"><?= $formatDate($asset['modified']) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                </table>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
 
-        <p class="text-tertiary text-sm mb-3">
-            Assets without a leading slash are served from <code>themes/<?= htmlspecialchars($currentTheme) ?>/assets/</code>.
-            The <code>?v=</code> query parameter is the file's modification time for cache-busting.
-        </p>
+    <!-- Asset Helper Reference -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><span class="material-symbols-rounded">code</span> Using Theme Assets</span>
+        </div>
+        <div class="card-body">
+            <p class="mb-3">Use the <code>$ava->asset()</code> helper in your templates to reference theme assets with automatic cache-busting:</p>
+            
+            <div class="code-block mb-3">
+    <pre>&lt;!-- Theme assets (no leading slash) --&gt;
+    &lt;link rel="stylesheet" href="&lt;?= $ava->asset('style.css') ?&gt;"&gt;
+    &lt;script src="&lt;?= $ava->asset('js/app.js') ?&gt;"&gt;&lt;/script&gt;
+    &lt;img src="&lt;?= $ava->asset('images/logo.svg') ?&gt;"&gt;
 
-        <div class="code-block">
-<pre>&lt;!-- Public assets (with leading slash) --&gt;
-&lt;link rel="stylesheet" href="&lt;?= $ava->asset('/assets/style.css') ?&gt;"&gt;
+    &lt;!-- Output example: --&gt;
+    &lt;link rel="stylesheet" href="/theme/style.css?v=1703782400"&gt;</pre>
+            </div>
 
-&lt;!-- These are served directly from public/assets/ by your web server --&gt;</pre>
+            <p class="text-tertiary text-sm mb-3">
+                Assets without a leading slash are served from <code>themes/<?= htmlspecialchars($currentTheme) ?>/assets/</code>.
+                The <code>?v=</code> query parameter is the file's modification time for cache-busting.
+            </p>
+
+            <div class="code-block">
+    <pre>&lt;!-- Public assets (with leading slash) --&gt;
+    &lt;link rel="stylesheet" href="&lt;?= $ava->asset('/assets/style.css') ?&gt;"&gt;
+
+    &lt;!-- These are served directly from public/assets/ by your web server --&gt;</pre>
+            </div>
         </div>
     </div>
 </div>
@@ -234,10 +255,8 @@ foreach ($assets as $asset):
         <span class="badge badge-muted"><?= count($availableThemes) ?> themes</span>
     </div>
     <div class="card-body">
-        <p class="text-tertiary text-sm mb-3">
-            To switch themes, update <code>theme</code> in <code>app/config/ava.php</code>:
-        </p>
-        <table class="table">
+        <div class="table-wrap">
+            <table class="table">
             <thead>
                 <tr>
                     <th>Theme</th>
@@ -267,53 +286,17 @@ foreach ($assets as $asset):
                 </tr>
                 <?php endforeach; ?>
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
 </div>
 <?php endif; ?>
 
-<!-- Cache Headers Info -->
-<div class="card">
-    <div class="card-header">
-        <span class="card-title"><span class="material-symbols-rounded">speed</span> Caching Headers</span>
-    </div>
-    <div class="card-body">
-        <p class="mb-3">Theme assets are served with aggressive caching headers for optimal performance:</p>
-        
-        <table class="table table-flush">
-            <thead>
-                <tr>
-                    <th>Header</th>
-                    <th>Value</th>
-                    <th>Purpose</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><code>Cache-Control</code></td>
-                    <td><code>public, max-age=31536000, immutable</code></td>
-                    <td>Browser caches for 1 year</td>
-                </tr>
-                <tr>
-                    <td><code>ETag</code></td>
-                    <td><code>"[md5 hash]"</code></td>
-                    <td>Validates content hasn't changed</td>
-                </tr>
-                <tr>
-                    <td><code>Last-Modified</code></td>
-                    <td><code>[file mtime]</code></td>
-                    <td>Conditional request support</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <p class="text-tertiary text-sm mt-3">
-            The <code>?v=</code> query parameter changes when files are modified, forcing browsers to fetch the new version.
-        </p>
-    </div>
-</div>
+</div><!-- End Theme Files Tab -->
 
-<!-- Shortcodes Reference Section -->
+<!-- Shortcodes Tab -->
+<div class="tab-panel" id="tab-shortcodes">
+
 <?php
 $shortcodeInfo = [
     'year' => ['syntax' => '[year]', 'desc' => 'Current year'],
@@ -325,11 +308,6 @@ $shortcodeInfo = [
     'include' => ['syntax' => '[include file="..."]', 'desc' => 'Include file'],
 ];
 ?>
-
-<h2 class="section-title mt-6">
-    <span class="material-symbols-rounded">code</span>
-    Shortcodes Reference
-</h2>
 
 <div class="grid grid-2">
     <!-- Shortcodes -->
@@ -439,3 +417,31 @@ $shortcodeInfo = [
     </div>
 </div>
 
+</div><!-- End Shortcodes Tab -->
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        
+        // Update buttons
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Update panels
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        
+        // Save to localStorage
+        localStorage.setItem('ava-theme-tab', tabId);
+    });
+});
+
+// Restore saved tab
+const savedTab = localStorage.getItem('ava-theme-tab');
+if (savedTab) {
+    const btn = document.querySelector('.tab-btn[data-tab="' + savedTab + '"]');
+    if (btn) btn.click();
+}
+</script>
