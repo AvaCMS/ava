@@ -89,6 +89,19 @@ if (is_dir($themePath)) {
     }
 }
 
+// Determine default template based on hierarchy
+$defaultTemplate = null;
+if (!empty($typeConfig['templates']['single'])) {
+    $defaultTemplate = $typeConfig['templates']['single'];
+} else {
+    // Fall back to single.php or index.php based on what exists
+    if (in_array('single.php', $templates)) {
+        $defaultTemplate = 'single.php';
+    } elseif (in_array('index.php', $templates)) {
+        $defaultTemplate = 'index.php';
+    }
+}
+
 // Group label display names
 $groupLabels = [
     'content' => 'Content',
@@ -701,7 +714,7 @@ $groupLabels = [
             <div class="ce-sidebar-section">
                 <label class="ce-sidebar-label" for="field-template">Template</label>
                 <select id="field-template" name="fields[template]" class="ce-select">
-                    <option value="">— Default —</option>
+                    <option value="">— Default<?= $defaultTemplate ? ' (' . htmlspecialchars($defaultTemplate) . ')' : '' ?> —</option>
                     <?php foreach ($templates as $tpl): ?>
                     <option value="<?= htmlspecialchars($tpl) ?>" <?= $currentTemplate === $tpl ? 'selected' : '' ?>>
                         <?= htmlspecialchars($tpl) ?>
