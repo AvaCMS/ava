@@ -1,0 +1,19 @@
+{
+    "name": "Ava CMS Admin",
+    "short_name": "Ava Admin",
+    "description": "Ava CMS Administration Panel",
+    "start_url": "/admin",
+    "scope": "/admin",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/admin-assets/icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
