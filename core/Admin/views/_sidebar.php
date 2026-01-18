@@ -54,6 +54,7 @@ $activePage = $activePage ?? '';
             <?php endforeach; ?>
         </div>
 
+        <?php if (!empty($taxonomies)): ?>
         <div class="nav-group">
             <div class="nav-group-label">Taxonomies</div>
             <?php foreach ($taxonomies as $tax => $count): 
@@ -67,6 +68,7 @@ $activePage = $activePage ?? '';
             </a>
             <?php endforeach; ?>
         </div>
+        <?php endif; ?>
 
         <div class="nav-group">
             <div class="nav-group-label">Tools</div>

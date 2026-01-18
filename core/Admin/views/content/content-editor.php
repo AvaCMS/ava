@@ -48,11 +48,62 @@ $jsAssets = $item->js();
 // Generate preview URL
 $baseUrl = rtrim($site['url'] ?? '', '/');
 $urlType = $typeConfig['url']['type'] ?? 'pattern';
+$urlConfig = $typeConfig['url'] ?? [];
+
 if ($urlType === 'hierarchical') {
-    $previewUrl = $baseUrl . '/' . ltrim($currentSlug, '/');
+    // Derive URL from file path structure (like the Indexer does)
+    $contentDir = $typeConfig['content_dir'] ?? $type;
+    $contentBase = $app->configPath('content') . '/' . $contentDir;
+    $filePath = $item->filePath();
+    
+    // Get relative path within content type directory
+    $relativePath = '';
+    if (str_starts_with($filePath, $contentBase)) {
+        $relativePath = substr($filePath, strlen($contentBase) + 1); // +1 for trailing slash
+    }
+    
+    // Remove .md extension and handle index files
+    $pathParts = [];
+    $parts = explode('/', $relativePath);
+    foreach ($parts as $part) {
+        if (str_ends_with($part, '.md')) {
+            $part = substr($part, 0, -3);
+        }
+        // Skip index files - they map to parent directory
+        if ($part !== 'index' && $part !== '_index' && $part !== '') {
+            $pathParts[] = $part;
+        }
+    }
+    $pathKey = implode('/', $pathParts);
+    
+    // Build URL with base
+    $urlBase = $urlConfig['base'] ?? '/';
+    if ($urlBase === '/') {
+        $previewUrlPath = $pathKey === '' ? '/' : '/' . ltrim($pathKey, '/');
+    } elseif ($pathKey === '') {
+        $previewUrlPath = rtrim($urlBase, '/');
+    } else {
+        $previewUrlPath = rtrim($urlBase, '/') . '/' . $pathKey;
+    }
+    $previewUrl = $baseUrl . $previewUrlPath;
 } else {
-    $pattern = $typeConfig['url']['pattern'] ?? '/{slug}';
-    $previewUrl = $baseUrl . str_replace('{slug}', $currentSlug, $pattern);
+    // Pattern-based URL - replace all placeholders
+    $pattern = $urlConfig['pattern'] ?? '/{slug}';
+    
+    $replacements = [
+        '{slug}' => $currentSlug,
+        '{id}' => $currentId,
+    ];
+    
+    // Date-based replacements
+    $date = $item->date();
+    if ($date) {
+        $replacements['{yyyy}'] = $date->format('Y');
+        $replacements['{mm}'] = $date->format('m');
+        $replacements['{dd}'] = $date->format('d');
+    }
+    
+    $previewUrl = $baseUrl . str_replace(array_keys($replacements), array_values($replacements), $pattern);
 }
 $previewUrlDisplay = str_replace($baseUrl, '', $previewUrl);
 $previewUrl .= '?preview=1';

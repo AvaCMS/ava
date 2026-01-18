@@ -31,8 +31,69 @@ $getTaxonomyBase = function($taxName) use ($taxonomyConfig, $site) {
 // Get preview token for draft links
 $previewToken = $ava->config('security.preview_token');
 
+// Helper to generate URL path for a content item
+// Mirrors the Indexer::generateUrl logic for consistent URL generation
+$generateUrlPath = function($item, $typeConfig, $app) {
+    $urlConfig = $typeConfig['url'] ?? [];
+    $urlType = $urlConfig['type'] ?? 'pattern';
+    
+    if ($urlType === 'hierarchical') {
+        // Derive URL from file path structure
+        $contentDir = $typeConfig['content_dir'] ?? $item->type();
+        $contentBase = $app->configPath('content') . '/' . $contentDir;
+        $filePath = $item->filePath();
+        
+        // Get relative path within content type directory
+        $relativePath = '';
+        if (str_starts_with($filePath, $contentBase)) {
+            $relativePath = substr($filePath, strlen($contentBase) + 1);
+        }
+        
+        // Remove .md extension and handle index files
+        $pathParts = [];
+        $parts = explode('/', $relativePath);
+        foreach ($parts as $part) {
+            if (str_ends_with($part, '.md')) {
+                $part = substr($part, 0, -3);
+            }
+            if ($part !== 'index' && $part !== '_index' && $part !== '') {
+                $pathParts[] = $part;
+            }
+        }
+        $pathKey = implode('/', $pathParts);
+        
+        // Build URL with base
+        $urlBase = $urlConfig['base'] ?? '/';
+        if ($urlBase === '/') {
+            return $pathKey === '' ? '/' : '/' . ltrim($pathKey, '/');
+        } elseif ($pathKey === '') {
+            return rtrim($urlBase, '/');
+        } else {
+            return rtrim($urlBase, '/') . '/' . $pathKey;
+        }
+    }
+    
+    // Pattern-based URL
+    $pattern = $urlConfig['pattern'] ?? '/{slug}';
+    
+    $replacements = [
+        '{slug}' => $item->slug(),
+        '{id}' => $item->id() ?? '',
+    ];
+    
+    // Date-based replacements
+    $date = $item->date();
+    if ($date) {
+        $replacements['{yyyy}'] = $date->format('Y');
+        $replacements['{mm}'] = $date->format('m');
+        $replacements['{dd}'] = $date->format('d');
+    }
+    
+    return str_replace(array_keys($replacements), array_values($replacements), $pattern);
+};
+
 // Get URL path for an item from routes (or generate for drafts)
-$getContentPath = function($item) use ($routes, $contentTypes) {
+$getContentPath = function($item) use ($routes, $contentTypes, $generateUrlPath, $app) {
     $type = $item->type();
     $slug = $item->slug();
     
@@ -43,19 +104,9 @@ $getContentPath = function($item) use ($routes, $contentTypes) {
         }
     }
     
-    // For drafts, generate URL from pattern
-    if ($item->isDraft()) {
-        $typeConfig = $contentTypes[$type] ?? [];
-        $urlConfig = $typeConfig['url'] ?? [];
-        $urlType = $urlConfig['type'] ?? 'pattern';
-        $pattern = $urlConfig['pattern'] ?? ($urlType === 'hierarchical' ? '/{slug}' : '/' . $type . '/{slug}');
-        
-        // Simple replacement
-        $path = str_replace('{slug}', $slug, $pattern);
-        return $path;
-    }
-    
-    return null;
+    // For drafts/unlisted, generate URL using proper logic
+    $typeConfig = $contentTypes[$type] ?? [];
+    return $generateUrlPath($item, $typeConfig, $app);
 };
 
 // Helper to get content URL (with preview for drafts)

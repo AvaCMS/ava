@@ -56,9 +56,9 @@ return [
     */
 
     'admin' => [
-        'enabled' => false,
+        'enabled' => true,
         'path'    => '/admin',
-        'theme'   => 'cyan',
+        'theme'   => 'pink',
 
         /*
         |-----------------------------------------------------------------------
