@@ -21,7 +21,7 @@ $app = require AVA_ROOT . '/bootstrap.php';
 $request = Ava\Http\Request::capture();
 $cached = $app->tryCachedResponse($request);
 if ($cached !== null) {
-    $cached->send();
+    $cached->withHeader('X-Fast-Path', 'true')->send();
     exit;
 }
 

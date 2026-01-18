@@ -95,21 +95,14 @@ final class WebpageCache
     /**
      * Check if a request is cacheable for WRITING to cache.
      * 
-     * This is more restrictive than read - we don't cache when an admin
-     * is logged in because they might be viewing preview/draft content.
+     * This has the same rules as read - preview/draft content is already
+     * protected by the query parameter check (preview uses ?preview=1&token=xxx).
+     * Admin login status doesn't affect caching since published content
+     * should be identical for all users.
      */
     public function isCacheableForWrite(Request $request): bool
     {
-        if (!$this->isCacheableForRead($request)) {
-            return false;
-        }
-
-        // Don't cache if user is logged in (they might see preview/draft content)
-        if ($this->isUserLoggedIn()) {
-            return false;
-        }
-
-        return true;
+        return $this->isCacheableForRead($request);
     }
 
     /**
