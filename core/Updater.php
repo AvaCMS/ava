@@ -561,6 +561,8 @@ final class Updater
 
     /**
      * Extract a zip file.
+     * 
+     * Includes ZIP slip protection to prevent path traversal attacks.
      */
     private function extract(string $zipFile, string $destination): void
     {
@@ -575,12 +577,66 @@ final class Updater
             throw new \RuntimeException('Failed to open update zip file');
         }
 
+        // Security: Check for ZIP slip (path traversal) before extraction
+        $realDestination = realpath($destination) ?: $destination;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entryName = $zip->getNameIndex($i);
+            if ($entryName === false) {
+                continue;
+            }
+            
+            // Normalize and check for path traversal attempts
+            $normalizedEntry = str_replace('\\', '/', $entryName);
+            if (
+                str_contains($normalizedEntry, '../') ||
+                str_starts_with($normalizedEntry, '/') ||
+                str_starts_with($normalizedEntry, '..') ||
+                preg_match('/^[a-zA-Z]:/', $normalizedEntry) // Windows absolute path
+            ) {
+                $zip->close();
+                throw new \RuntimeException(
+                    'ZIP slip attack detected: suspicious path in archive: ' . $entryName
+                );
+            }
+        }
+
+        // Create destination if it doesn't exist
+        if (!is_dir($destination)) {
+            if (!@mkdir($destination, 0755, true)) {
+                $zip->close();
+                throw new \RuntimeException('Failed to create extraction directory');
+            }
+        }
+
         if (!$zip->extractTo($destination)) {
             $zip->close();
             throw new \RuntimeException('Failed to extract update files');
         }
 
         $zip->close();
+
+        // Post-extraction verification: ensure no files escaped
+        $realDestination = realpath($destination);
+        if ($realDestination === false) {
+            throw new \RuntimeException('Extraction directory not found after extraction');
+        }
+        
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($destination, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+        
+        foreach ($iterator as $file) {
+            $realPath = realpath($file->getPathname());
+            if ($realPath !== false && !str_starts_with($realPath, $realDestination)) {
+                // A file escaped the destination directory - this shouldn't happen
+                // but let's be paranoid
+                $this->removeDirectory($destination);
+                throw new \RuntimeException(
+                    'ZIP slip attack detected: file extracted outside destination'
+                );
+            }
+        }
     }
 
     /**

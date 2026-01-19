@@ -2481,6 +2481,8 @@ JS;
 
     /**
      * Log an admin action.
+     * 
+     * Security: Log entries are sanitized to prevent log injection/forging.
      */
     public function logAction(string $level, string $message, bool $includeClientInfo = true): void
     {
@@ -2498,7 +2500,10 @@ JS;
             $level = 'INFO';
         }
 
+        // Sanitize message: strip control characters and normalize whitespace
         $message = trim(preg_replace('/[\r\n\t]+/', ' ', $message));
+        // Escape pipe characters to prevent log parsing confusion
+        $message = str_replace('|', '\\|', $message);
         
         $logLine = "[{$timestamp}] {$level}: {$message}";
         
@@ -2508,6 +2513,8 @@ JS;
 
             $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
             $ua = trim(preg_replace('/[\r\n\t]+/', ' ', $ua));
+            // Escape pipes in UA to prevent log parsing confusion
+            $ua = str_replace('|', '\\|', $ua);
             if (strlen($ua) > 512) {
                 $ua = substr($ua, 0, 512) . '…';
             }

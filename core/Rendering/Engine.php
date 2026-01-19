@@ -140,9 +140,23 @@ final class Engine
 
     /**
      * Resolve a template to an absolute path.
+     * 
+     * Security: Template names from content frontmatter are validated
+     * to prevent path traversal attacks.
      */
     private function resolveTemplate(string $template): ?string
     {
+        // Security: Validate template name to prevent path traversal
+        // Even though filesystem content is trusted, this is defense-in-depth
+        if (
+            str_contains($template, '..') ||
+            str_contains($template, '/') ||
+            str_contains($template, '\\') ||
+            str_contains($template, "\0")
+        ) {
+            return null;
+        }
+
         $theme = $this->app->config('theme', 'default');
         $themePath = $this->app->configPath('themes') . '/' . $theme;
 
