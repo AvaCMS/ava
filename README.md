@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <strong>A fast, flexible, file-based CMS built with modern PHP.</strong><br>
+  <strong>A fast, flexible, file-based content management system built with modern PHP.</strong><br>
 </p>
 
 ---
@@ -51,7 +51,7 @@ your-site/
 
 Ava CMS is not a “one-click” CMS, and it doesn’t try to be. It trades heavy admin interfaces and complex deployment pipelines for speed, clarity, and control. If you’re comfortable editing files, writing a little HTML, and checking documentation — or want a CMS that grows with you as you learn — Ava fits naturally into your workflow.
 
-## ✨ Why Ava?
+## ✨ Why Ava CMS?
 
 - 📝 **Markdown & HTML** — Write fast in Markdown, drop into HTML when you need total control.
 - ⚡ **Instant feedback** — No complicated build steps or deploy queue. Edit a file, refresh, done with automatic indexing.
@@ -106,20 +106,20 @@ That’s it! Ava CMS is designed to run happily whether it's on modest shared ho
 
 - Download the latest release: https://github.com/avacms/ava/releases
 - Extract it into a folder on your machine or server
+### Download Latest Release (Command Line)
 
-**Option B: Clone from GitHub**
+If you have SSH access and prefer the terminal, downloading the latest release is the cleanest approach (no Git required).
 
-```bash
-git clone https://github.com/avacms/ava.git my-site
-cd my-site
-composer install
-```
-
-If you downloaded a release zip, run this from the extracted folder:
+**Option B: GitHub CLI (`gh`)**
 
 ```bash
+mkdir -p /tmp/ava-release && cd /tmp/ava-release
+gh release download -R avacms/ava --pattern '*.zip' --clobber
+unzip -q ./*.zip -d /path/to/your/site
+cd /path/to/your/site
 composer install
 ```
+Then [configure](https://ava.addy.zone/docs/configuration) your site by editing `app/config/ava.php` and visit your site.
 
 ### 2) Configure
 
@@ -161,23 +161,28 @@ Visit `http://localhost:8000/hello-world` to see it live.
 Documentation lives at **https://ava.addy.zone/**.
 
 - [Getting Started](https://ava.addy.zone/docs)
+- [Hosting](https://ava.addy.zone/docs/hosting)
 - [Configuration](https://ava.addy.zone/docs/configuration)
+- [Updating](https://ava.addy.zone/docs/updating)
 - [Admin Dashboard](https://ava.addy.zone/docs/admin)
+- [Content](https://ava.addy.zone/docs/content)
+- [Fields](https://ava.addy.zone/docs/fields)
 - [Theming](https://ava.addy.zone/docs/theming)
 - [CLI](https://ava.addy.zone/docs/cli)
+- [API](https://ava.addy.zone/docs/api)
 - [Plugin Development](https://ava.addy.zone/docs/creating-plugins)
 - [Showcase](https://ava.addy.zone/showcase)
 
 ## 🔌 Plugins & Themes
 
-Ava includes a simple hook-based plugin system, and theming is just PHP templates. A few plugins are bundled in this repo (like sitemap, redirects, and a feed plugin) so you can see the pattern and ship common features quickly.
+Ava CMS includes a simple hook-based plugin system, and theming is just PHP templates. A few plugins are bundled in this repo (like sitemap, redirects, and a feed plugin) so you can see the pattern and ship common features quickly.
 
 - Community plugins: https://ava.addy.zone/plugins
 - Community themes: https://ava.addy.zone/themes
 
 ## ⚡ Performance
 
-Ava is designed to be blazing fast, whether you have 100 pages or 100,000:
+Ava CMS is designed to be blazing fast, whether you have 100 pages or 100,000:
 
 - **Tiered caching**: avoid repeating expensive work on every request.
 - **Page caching** (optional): serve cached HTML to bypass PHP for most visitors.
