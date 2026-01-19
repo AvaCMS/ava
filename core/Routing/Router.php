@@ -29,8 +29,11 @@ final class Router
 {
     private Application $app;
 
-    /** @var array<string, callable> System routes registered at runtime */
-    private array $systemRoutes = [];
+    /** @var array<string, callable> System routes - exact match (no params) */
+    private array $exactSystemRoutes = [];
+
+    /** @var array<string, callable> System routes with {param} placeholders */
+    private array $paramSystemRoutes = [];
 
     /** @var array<string, callable> Prefix routes registered at runtime */
     private array $prefixRoutes = [];
@@ -42,10 +45,17 @@ final class Router
 
     /**
      * Register a system route.
+     * 
+     * Routes are stored separately based on whether they have parameters,
+     * allowing O(1) lookup for exact matches.
      */
     public function addRoute(string $path, callable $handler): void
     {
-        $this->systemRoutes[$path] = $handler;
+        if (str_contains($path, '{')) {
+            $this->paramSystemRoutes[$path] = $handler;
+        } else {
+            $this->exactSystemRoutes[$path] = $handler;
+        }
     }
 
     /**
@@ -95,7 +105,12 @@ final class Router
         }
 
         // 3. Check system routes (registered at runtime)
-        foreach ($this->systemRoutes as $routePath => $handler) {
+        // First, O(1) lookup for exact matches (no parameters)
+        if (isset($this->exactSystemRoutes[$path])) {
+            return $this->invokeHandler($this->exactSystemRoutes[$path], $request, []);
+        }
+        // Then check parameterized routes
+        foreach ($this->paramSystemRoutes as $routePath => $handler) {
             $match = $this->matchSystemRoute($routePath, $path);
             if ($match !== null) {
                 return $this->invokeHandler($handler, $request, $match);

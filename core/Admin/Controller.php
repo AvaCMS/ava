@@ -74,15 +74,22 @@ final class Controller
                 $email = $request->post('email', '');
                 $password = $request->post('password', '');
 
-                if ($this->auth->attempt($email, $password)) {
+                // Check username lockout before attempting login
+                $normalizedEmail = strtolower(trim($email));
+                if ($this->auth->isUsernameLocked($normalizedEmail)) {
+                    $remaining = $this->auth->getUsernameLockoutRemaining($normalizedEmail);
+                    $minutes = (int) ceil($remaining / 60);
+                    $error = "This account is temporarily locked due to too many failed attempts. Please try again in {$minutes} minute(s).";
+                    $this->logAction('WARNING', 'Login blocked (username lockout): ' . $email);
+                } elseif ($this->auth->attempt($email, $password)) {
                     $this->auth->regenerateCsrf();
                     $this->logAction('INFO', 'Login successful: ' . $email);
                     return Response::redirect($this->adminUrl());
+                } else {
+                    // Set error for failed attempt
+                    $error = 'Invalid email or password.';
+                    $this->logAction('WARNING', 'Login failed for: ' . $email);
                 }
-
-                // Set error for failed attempt
-                $error = 'Invalid email or password.';
-                $this->logAction('WARNING', 'Login failed for: ' . $email);
             }
         }
 

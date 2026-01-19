@@ -54,7 +54,8 @@ return [
 
             foreach ($types as $type) {
                 // Check if this type has any published, indexable content
-                $items = $repository->published($type);
+                // Use publishedMeta() - we only need metadata, not full content
+                $items = $repository->publishedMeta($type);
                 $hasIndexable = false;
                 foreach ($items as $item) {
                     if (!$item->noindex()) {
@@ -94,7 +95,8 @@ return [
             $router->addRoute("/sitemap-{$type}.xml", function (Request $request) use ($app, $baseUrl, $type, $config, $contentTypes) {
                 $repository = $app->repository();
                 $routes = $repository->routes();
-                $items = $repository->published($type);
+                // Use publishedMeta() - sitemaps only need URL and lastmod, not body content
+                $items = $repository->publishedMeta($type);
 
                 $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
                 $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
@@ -149,11 +151,11 @@ return [
                     $repository = $app->repository();
                     $types = $repository->types();
 
-                    // Gather stats
+                    // Gather stats (metadata only, no file I/O needed)
                     $stats = [];
                     $totalUrls = 0;
                     foreach ($types as $type) {
-                        $items = $repository->published($type);
+                        $items = $repository->publishedMeta($type);
                         $indexable = 0;
                         $noindex = 0;
                         foreach ($items as $item) {
@@ -263,7 +265,8 @@ return [
                 $tableData = [];
 
                 foreach ($types as $type) {
-                    $items = $repository->published($type);
+                    // Use publishedMeta() for CLI stats - no file I/O needed
+                    $items = $repository->publishedMeta($type);
                     $indexable = 0;
                     $noindexed = 0;
 

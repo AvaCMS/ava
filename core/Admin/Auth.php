@@ -12,10 +12,14 @@ final class Auth
     private const SESSION_KEY = 'ava_admin_user';
     private const CSRF_KEY = 'ava_csrf_token';
 
-    // Rate limiting constants
+    // Rate limiting constants (IP-based)
     private const MAX_ATTEMPTS = 5;           // Max attempts before lockout
     private const LOCKOUT_DURATION = 900;     // 15 minutes in seconds
     private const ATTEMPT_WINDOW = 3600;      // Clear attempts after 1 hour
+
+    // Username-based rate limiting (protects against distributed attacks)
+    private const USERNAME_MAX_ATTEMPTS = 10;      // Higher threshold (multiple IPs expected)
+    private const USERNAME_LOCKOUT_DURATION = 1800; // 30 minutes for username lockouts
 
     private string $usersFile;
     private string $storagePath;
@@ -95,12 +99,19 @@ final class Auth
     /**
      * Attempt to log in with email and password.
      * Includes rate limiting to prevent brute-force attacks.
+     * 
+     * Rate limiting is applied at two levels:
+     * - IP-based: Prevents a single source from brute-forcing any account
+     * - Username-based: Prevents distributed attacks targeting a single account
      */
     public function attempt(string $email, string $password): bool
     {
-        // Check rate limiting
+        // Normalize email for consistent rate limiting
+        $normalizedEmail = strtolower(trim($email));
+
+        // Check rate limiting (both IP and username)
         $ip = $this->getClientIp();
-        if ($this->isLockedOut($ip)) {
+        if ($this->isLockedOut($ip) || $this->isUsernameLocked($normalizedEmail)) {
             return false;
         }
 
@@ -110,6 +121,7 @@ final class Auth
             // Prevent timing attacks
             password_verify($password, '$2y$10$dummyhashtopreventtimingattacks');
             $this->recordFailedAttempt($ip);
+            $this->recordFailedUsernameAttempt($normalizedEmail);
             return false;
         }
 
@@ -117,11 +129,13 @@ final class Auth
 
         if (!password_verify($password, $user['password'])) {
             $this->recordFailedAttempt($ip);
+            $this->recordFailedUsernameAttempt($normalizedEmail);
             return false;
         }
 
         // Clear failed attempts on successful login
         $this->clearFailedAttempts($ip);
+        $this->clearFailedUsernameAttempts($normalizedEmail);
 
         // Regenerate session ID to prevent fixation
         $this->startSession();
@@ -160,6 +174,40 @@ final class Auth
 
         if ($attempts['count'] >= self::MAX_ATTEMPTS) {
             $lockoutEnd = $attempts['last_attempt'] + self::LOCKOUT_DURATION;
+            $remaining = $lockoutEnd - time();
+            return max(0, $remaining);
+        }
+
+        return 0;
+    }
+
+    /**
+     * Check if a username is locked out due to too many failed attempts.
+     * This protects against distributed brute-force attacks targeting a single account.
+     */
+    public function isUsernameLocked(string $email): bool
+    {
+        $normalizedEmail = strtolower(trim($email));
+        $attempts = $this->getFailedUsernameAttempts($normalizedEmail);
+
+        if ($attempts['count'] >= self::USERNAME_MAX_ATTEMPTS) {
+            $lockoutEnd = $attempts['last_attempt'] + self::USERNAME_LOCKOUT_DURATION;
+            return time() < $lockoutEnd;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get remaining username lockout time in seconds.
+     */
+    public function getUsernameLockoutRemaining(string $email): int
+    {
+        $normalizedEmail = strtolower(trim($email));
+        $attempts = $this->getFailedUsernameAttempts($normalizedEmail);
+
+        if ($attempts['count'] >= self::USERNAME_MAX_ATTEMPTS) {
+            $lockoutEnd = $attempts['last_attempt'] + self::USERNAME_LOCKOUT_DURATION;
             $remaining = $lockoutEnd - time();
             return max(0, $remaining);
         }
@@ -441,5 +489,92 @@ final class Auth
                 unset($data[$ip]);
             }
         }
+    }
+
+    /**
+     * Get the path to the username rate limiting data file.
+     */
+    private function getUsernameRateLimitPath(): string
+    {
+        return $this->storagePath . '/auth_username_attempts.json';
+    }
+
+    /**
+     * Get failed login attempts for a username.
+     *
+     * @return array{count: int, last_attempt: int}
+     */
+    private function getFailedUsernameAttempts(string $email): array
+    {
+        $path = $this->getUsernameRateLimitPath();
+        $data = [];
+
+        if (file_exists($path)) {
+            $content = file_get_contents($path);
+            $data = json_decode($content, true) ?? [];
+        }
+
+        // Hash the email to avoid storing plaintext usernames
+        $emailHash = hash('sha256', $email);
+
+        if (!isset($data[$emailHash])) {
+            return ['count' => 0, 'last_attempt' => 0];
+        }
+
+        $attempts = $data[$emailHash];
+
+        // Clear if attempt window expired
+        if (time() - $attempts['last_attempt'] > self::ATTEMPT_WINDOW) {
+            $this->clearFailedUsernameAttempts($email);
+            return ['count' => 0, 'last_attempt' => 0];
+        }
+
+        return $attempts;
+    }
+
+    /**
+     * Record a failed login attempt for a username.
+     */
+    private function recordFailedUsernameAttempt(string $email): void
+    {
+        $path = $this->getUsernameRateLimitPath();
+        $emailHash = hash('sha256', $email);
+
+        $this->withFileLock($path, function ($data) use ($emailHash) {
+            $current = $data[$emailHash] ?? ['count' => 0, 'last_attempt' => 0];
+
+            // Reset if window expired
+            if (time() - $current['last_attempt'] > self::ATTEMPT_WINDOW) {
+                $current = ['count' => 0, 'last_attempt' => 0];
+            }
+
+            $current['count']++;
+            $current['last_attempt'] = time();
+            $data[$emailHash] = $current;
+
+            // Clean up old entries
+            $this->cleanupOldAttempts($data);
+
+            return $data;
+        });
+    }
+
+    /**
+     * Clear failed attempts for a username.
+     */
+    private function clearFailedUsernameAttempts(string $email): void
+    {
+        $path = $this->getUsernameRateLimitPath();
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $emailHash = hash('sha256', $email);
+
+        $this->withFileLock($path, function ($data) use ($emailHash) {
+            unset($data[$emailHash]);
+            return $data;
+        });
     }
 }

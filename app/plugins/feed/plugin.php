@@ -212,11 +212,11 @@ return [
                     $repository = $app->repository();
                     $types = $repository->types();
 
-                    // Gather stats
+                    // Gather stats (metadata only, no file I/O needed for admin display)
                     $feeds = [];
                     $totalItems = 0;
                     foreach ($types as $type) {
-                        $items = $repository->published($type);
+                        $items = $repository->publishedMeta($type);
                         $indexable = count(array_filter($items, fn($i) => !$i->noindex()));
                         $feeds[$type] = [
                             'count' => min($indexable, $config['items_per_feed']),
@@ -278,7 +278,8 @@ return [
                         continue;
                     }
 
-                    $items = $repository->published($type);
+                    // Use publishedMeta() for CLI stats - no file I/O needed
+                    $items = $repository->publishedMeta($type);
                     $count = 0;
                     
                     foreach ($items as $item) {

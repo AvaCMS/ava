@@ -538,13 +538,14 @@ final class Query
      */
     private function applySearchRaw(array $items): array
     {
-        $query = strtolower($this->search);
-        $tokens = preg_split('/\s+/', $query, -1, PREG_SPLIT_NO_EMPTY);
+        // Compute search phrase and tokens once, outside the per-item loop
+        $phrase = strtolower($this->search);
+        $tokens = preg_split('/\s+/', $phrase, -1, PREG_SPLIT_NO_EMPTY);
 
         // Score each item
         $scored = [];
         foreach ($items as $data) {
-            $score = $this->scoreItemRaw($data, $query, $tokens);
+            $score = $this->scoreItemRaw($data, $phrase, $tokens);
             if ($score > 0) {
                 $scored[] = ['data' => $data, 'score' => $score];
             }
