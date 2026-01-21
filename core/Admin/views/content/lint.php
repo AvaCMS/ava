@@ -60,11 +60,13 @@
                 <p class="text-secondary text-sm mb-3">
                     The linter checks all content files for:
                 </p>
-                <div class="list-item"><span class="list-label">YAML Syntax</span><span class="text-secondary text-sm">Valid frontmatter structure</span></div>
-                <div class="list-item"><span class="list-label">Required Fields</span><span class="text-secondary text-sm">Title, slug, status presence</span></div>
-                <div class="list-item"><span class="list-label">Custom Fields</span><span class="text-secondary text-sm">Fields defined in content types config</span></div>
-                <div class="list-item"><span class="list-label">Slug Format</span><span class="text-secondary text-sm">URL-safe lowercase alphanumeric</span></div>
-                <div class="list-item"><span class="list-label">Unique IDs</span><span class="text-secondary text-sm">No duplicate content IDs</span></div>
+                <div class="linter-checks">
+                    <div class="list-item"><span class="list-label">YAML Syntax</span><span class="text-secondary text-sm">Valid frontmatter structure</span></div>
+                    <div class="list-item"><span class="list-label">Required Fields</span><span class="text-secondary text-sm">Title, slug, status presence</span></div>
+                    <div class="list-item"><span class="list-label">Custom Fields</span><span class="text-secondary text-sm">Fields defined in content types config</span></div>
+                    <div class="list-item"><span class="list-label">Slug Format</span><span class="text-secondary text-sm">URL-safe lowercase alphanumeric</span></div>
+                    <div class="list-item"><span class="list-label">Unique IDs</span><span class="text-secondary text-sm">No duplicate content IDs</span></div>
+                </div>
             </div>
         </div>
     </div>

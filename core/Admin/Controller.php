@@ -967,6 +967,17 @@ final class Controller
         $taxonomyConfig = $this->getTaxonomyConfig();
         $error = null;
         $securityWarnings = [];
+        
+        // Check existing content for security issues when opening in visual mode
+        $mode = $request->query('mode', 'visual');
+        if (!$request->isMethod('POST') && $mode === 'visual') {
+            $security = new ContentSecurity();
+            $securityResult = $security->validate($item->rawContent());
+            if (!$securityResult['valid']) {
+                // Show errors as warnings when just viewing (not trying to save)
+                $securityWarnings = $securityResult['errors'];
+            }
+        }
 
         if ($request->isMethod('POST')) {
             $csrfError = $this->verifyInlinePostCsrf($request);

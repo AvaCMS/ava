@@ -991,6 +991,23 @@ code {
     text-align: right;
 }
 
+/* Linter checks list - add spacing */
+.linter-checks {
+    & .list-item {
+        align-items: flex-start;
+    }
+    
+    & .list-label {
+        flex: 0 0 auto;
+        min-width: 120px;
+    }
+    
+    & .text-secondary {
+        flex: 1;
+        text-align: left;
+    }
+}
+
 /* ============================================
    13. Tables (Responsive)
    ============================================ */
@@ -3475,8 +3492,8 @@ select[multiple].fm-tax-select {
 
 @media (max-width: 768px) {
     .sticky-tabs {
-        padding: var(--sp-3) var(--sp-4);
-        margin: 0 calc(-1 * var(--sp-4)) var(--sp-5) calc(-1 * var(--sp-4));
+        padding: var(--sp-3) var(--sp-4) 0;
+        margin: 0 calc(-1 * var(--sp-4)) var(--sp-4) calc(-1 * var(--sp-4));
     }
 }
 

@@ -896,6 +896,16 @@ final class Indexer
 
             foreach ($iterator as $file) {
                 if ($file->isFile()) {
+                    // Skip files that shouldn't trigger reindex
+                    $filename = $file->getFilename();
+                    $ext = strtolower($file->getExtension());
+                    
+                    // Skip log files, cache files, and other non-content files
+                    if (str_starts_with($filename, '.') || 
+                        in_array($ext, ['log', 'cache', 'tmp', 'lock'], true)) {
+                        continue;
+                    }
+                    
                     $mtime = max($mtime, $file->getMTime());
                     $count++;
                 }

@@ -396,7 +396,7 @@ $loadColor = function($val) use ($cpuCount) {
     </div>
 </div>
 
-<!-- OPcache & Server -->
+<!-- OPcache, Server & Hooks -->
 <div class="grid grid-2 mt-4">
     <div class="card">
         <div class="card-header">
@@ -433,6 +433,38 @@ $loadColor = function($val) use ($cpuCount) {
             <div class="list-item"><span class="list-label">Hostname</span><code class="text-xs"><?= htmlspecialchars($system['hostname'] ?? 'Unknown') ?></code></div>
             <div class="list-item"><span class="list-label">Timezone</span><span class="list-value"><?= date_default_timezone_get() ?></span></div>
         </div>
+    </div>
+</div>
+
+<!-- Active Hooks -->
+<div class="card mt-4">
+    <div class="card-header">
+        <span class="card-title"><span class="material-symbols-rounded">webhook</span> Active Hooks</span>
+        <?php $activeHooks = count($hooks['active_filters']) + count($hooks['active_actions']); ?>
+        <span class="badge <?= $activeHooks > 0 ? 'badge-success' : 'badge-muted' ?>"><?= $activeHooks ?> registered</span>
+    </div>
+    <div class="card-body">
+        <?php if ($activeHooks > 0): ?>
+            <?php if (!empty($hooks['active_filters'])): ?>
+            <div class="mb-3">
+                <div class="text-xs text-tertiary mb-1">Filters</div>
+                <?php foreach ($hooks['active_filters'] as $hook): ?>
+                <code class="text-xs code-tag"><?= htmlspecialchars($hook) ?></code>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+            <?php if (!empty($hooks['active_actions'])): ?>
+            <div>
+                <div class="text-xs text-tertiary mb-1">Actions</div>
+                <?php foreach ($hooks['active_actions'] as $hook): ?>
+                <code class="text-xs code-tag"><?= htmlspecialchars($hook) ?></code>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <p class="text-dim text-sm">No hooks registered by plugins or theme.</p>
+        <?php endif; ?>
+        <p class="text-tertiary text-xs mt-3"><a href="https://ava.addy.zone/docs/creating-plugins" target="_blank" rel="noopener noreferrer">View hook documentation →</a></p>
     </div>
 </div>
 
@@ -591,56 +623,23 @@ endforeach; ?></pre>
     </div>
 </div>
 
-<!-- Path Aliases & Hooks -->
-<div class="grid grid-2 mt-4">
-    <div class="card">
-        <div class="card-header">
-            <span class="card-title"><span class="material-symbols-rounded">link</span> Path Aliases</span>
-            <span class="badge badge-muted"><?= count($pathAliases) ?></span>
-        </div>
-        <div class="card-body">
-            <?php if (!empty($pathAliases)): ?>
-                <?php foreach ($pathAliases as $alias => $expansion): ?>
-                <div class="list-item">
-                    <code><?= htmlspecialchars($alias) ?></code>
-                    <span class="list-value text-sm"><?= htmlspecialchars($expansion) ?></span>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p class="text-dim text-sm">No path aliases configured.</p>
-            <?php endif; ?>
-        </div>
+<!-- Path Aliases -->
+<div class="card mt-4">
+    <div class="card-header">
+        <span class="card-title"><span class="material-symbols-rounded">link</span> Path Aliases</span>
+        <span class="badge badge-muted"><?= count($pathAliases) ?></span>
     </div>
-
-    <div class="card">
-        <div class="card-header">
-            <span class="card-title"><span class="material-symbols-rounded">webhook</span> Active Hooks</span>
-            <?php $activeHooks = count($hooks['active_filters']) + count($hooks['active_actions']); ?>
-            <span class="badge <?= $activeHooks > 0 ? 'badge-success' : 'badge-muted' ?>"><?= $activeHooks ?> registered</span>
-        </div>
-        <div class="card-body">
-            <?php if ($activeHooks > 0): ?>
-                <?php if (!empty($hooks['active_filters'])): ?>
-                <div class="mb-3">
-                    <div class="text-xs text-tertiary mb-1">Filters</div>
-                    <?php foreach ($hooks['active_filters'] as $hook): ?>
-                    <code class="text-xs code-tag"><?= htmlspecialchars($hook) ?></code>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
-                <?php if (!empty($hooks['active_actions'])): ?>
-                <div>
-                    <div class="text-xs text-tertiary mb-1">Actions</div>
-                    <?php foreach ($hooks['active_actions'] as $hook): ?>
-                    <code class="text-xs code-tag"><?= htmlspecialchars($hook) ?></code>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
-            <?php else: ?>
-                <p class="text-dim text-sm">No hooks registered by plugins or theme.</p>
-            <?php endif; ?>
-            <p class="text-tertiary text-xs mt-3"><a href="https://ava.addy.zone/docs/creating-plugins" target="_blank" rel="noopener noreferrer">View hook documentation →</a></p>
-        </div>
+    <div class="card-body">
+        <?php if (!empty($pathAliases)): ?>
+            <?php foreach ($pathAliases as $alias => $expansion): ?>
+            <div class="list-item">
+                <code><?= htmlspecialchars($alias) ?></code>
+                <span class="list-value text-sm"><?= htmlspecialchars($expansion) ?></span>
+            </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p class="text-dim text-sm">No path aliases configured.</p>
+        <?php endif; ?>
     </div>
 </div>
 

@@ -209,9 +209,7 @@ $groupLabels = [
         <span class="material-symbols-rounded">error</span>
         <span><?= htmlspecialchars($error) ?></span>
     </div>
-    <?php endif; ?>
-
-    <?php if (!empty($securityWarnings)): ?>
+    <?php elseif (!empty($securityWarnings)): ?>
     <div class="ce-alert ce-alert-warning">
         <span class="material-symbols-rounded">warning</span>
         <span><strong>Security warning:</strong> <?= htmlspecialchars($securityWarnings[0]) ?></span>
