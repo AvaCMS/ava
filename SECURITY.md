@@ -4,7 +4,7 @@ This document outlines how security issues should be reported and how Ava CMS ha
 
 ## Supported Versions
 
-Ava CMS is currently under active development. Bug fixes and security improvements are released frequently. We strongly recommend that all users run the latest version of the software. To ensure the best security posture, please update your installation regularly and subscribe to release notifications.
+Ava CMS is currently under active development. Bug fixes and security improvements are released frequently. We strongly recommend that all users run the latest version of the software. To ensure the best security posture, please update your installation regularly and subscribe to release notifications. Previous versions are not maintained and won't receive security patches.
 
 ---
 
