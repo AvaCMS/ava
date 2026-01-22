@@ -24,6 +24,10 @@
     --accent-hover: #a5b4fc;
     --accent-subtle: rgba(129, 140, 248, 0.12);
     
+    /* Focus ring - high contrast for accessibility */
+    --focus-ring: #60a5fa;
+    --focus-ring-offset: var(--bg-card);
+    
     --success: #22c55e;
     --success-subtle: rgba(34, 197, 94, 0.12);
     --warning: #f59e0b;
@@ -83,6 +87,9 @@ html[data-theme="light"] {
     --warning-subtle: rgba(245, 158, 11, 0.08);
     --danger-subtle: rgba(239, 68, 68, 0.08);
     --purple-subtle: rgba(168, 85, 247, 0.08);
+    /* Focus ring - high contrast for accessibility */
+    --focus-ring: #2563eb;
+    --focus-ring-offset: var(--bg-card);
 }
 
 /* Light Theme - system preference */
@@ -104,6 +111,9 @@ html[data-theme="light"] {
         --warning-subtle: rgba(245, 158, 11, 0.08);
         --danger-subtle: rgba(239, 68, 68, 0.08);
         --purple-subtle: rgba(168, 85, 247, 0.08);
+        /* Focus ring - high contrast for accessibility */
+        --focus-ring: #2563eb;
+        --focus-ring-offset: var(--bg-card);
     }
 }
 
@@ -507,7 +517,7 @@ code {
     }
 
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: -2px;
     }
 
@@ -655,7 +665,7 @@ code {
     }
 
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
 
@@ -942,7 +952,7 @@ code {
     }
 
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
 
@@ -1818,8 +1828,8 @@ code {
     font-size: var(--text-md);
 
     &:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-subtle);
+        border-color: var(--focus-ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 25%, transparent);
     }
 }
 
@@ -1843,8 +1853,8 @@ code {
 
     &:focus {
         outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-subtle);
+        border-color: var(--focus-ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 25%, transparent);
     }
 
     &::placeholder {
@@ -2113,7 +2123,7 @@ code {
     }
 
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
 
@@ -2157,7 +2167,8 @@ code {
     transition: border-color var(--transition);
 
     &:focus-within {
-        border-color: var(--accent);
+        border-color: var(--focus-ring);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus-ring) 25%, transparent);
     }
 }
 
@@ -2887,7 +2898,7 @@ select[multiple].fm-tax-select {
     }
 
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
 
@@ -3059,7 +3070,7 @@ select[multiple].fm-tax-select {
     }
 
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
 
@@ -3279,7 +3290,7 @@ select[multiple].fm-tax-select {
     }
 
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
 }
@@ -3564,7 +3575,7 @@ select[multiple].fm-tax-select {
     }
 
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
 
@@ -3700,7 +3711,7 @@ select[multiple].fm-tax-select {
     }
     
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
     
@@ -3764,7 +3775,7 @@ select[multiple].fm-tax-select {
     }
     
     &:focus-visible {
-        outline: 2px solid currentColor;
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
         opacity: 1;
     }
@@ -3830,8 +3841,8 @@ select[multiple].fm-tax-select {
     }
     
     &:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-subtle);
+        border-color: var(--focus-ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 25%, transparent);
     }
 }
 
@@ -3881,8 +3892,8 @@ select[multiple].fm-tax-select {
         }
         
         &:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-subtle);
+            border-color: var(--focus-ring);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 25%, transparent);
             z-index: 1;
         }
     }
@@ -3907,7 +3918,7 @@ select[multiple].fm-tax-select {
     }
     
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
     
@@ -4285,8 +4296,8 @@ select[multiple].fm-tax-select {
     transition: border-color 0.15s, box-shadow 0.15s;
     
     &:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-subtle);
+        border-color: var(--focus-ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 25%, transparent);
     }
     
     &::placeholder {
@@ -4381,7 +4392,7 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     }
     
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
     
@@ -4411,7 +4422,7 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     }
     
     & input:focus-visible + .ce-checkbox-mark {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
     
@@ -4489,7 +4500,7 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     }
     
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
     
@@ -4515,7 +4526,7 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     }
     
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
     
@@ -4664,7 +4675,7 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     }
     
     & input:focus-visible + .ce-status-dot {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
     
@@ -4673,7 +4684,7 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     }
     
     &:has(input:focus-visible) {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
     
@@ -4767,7 +4778,7 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     }
     
     &:has(input:focus-visible) {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 1px;
     }
     
@@ -4894,7 +4905,7 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     }
     
     &:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
     }
 }
@@ -5350,7 +5361,8 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     
     &:focus {
         outline: none;
-        border-color: var(--accent);
+        border-color: var(--focus-ring);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus-ring) 25%, transparent);
     }
 }
 
