@@ -1039,10 +1039,6 @@ code {
 .table {
     min-width: 100%;
     width: 100%;
-}
-
-.table {
-    width: 100%;
     border-collapse: collapse;
     font-size: var(--text-base);
     white-space: nowrap;
@@ -2613,21 +2609,21 @@ select[multiple].fm-tax-select {
 
 .dropzone-progress {
     margin-top: var(--sp-4);
-}
 
-.progress-bar {
-    height: 8px;
-    background: var(--surface-2);
-    border-radius: 4px;
-    overflow: hidden;
-}
+    & .progress-bar {
+        height: 8px;
+        background: var(--bg-surface);
+        border-radius: 4px;
+        overflow: hidden;
+    }
 
-.progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 4px;
-    transition: width 0.2s ease;
-    width: 0%;
+    & .progress-fill {
+        height: 100%;
+        background: var(--accent);
+        border-radius: 4px;
+        transition: width 0.2s ease;
+        width: 0%;
+    }
 }
 
 .progress-text {
@@ -3161,12 +3157,6 @@ select[multiple].fm-tax-select {
     border-top: 1px solid var(--border);
     flex-wrap: wrap;
     gap: var(--sp-2);
-}
-
-.pagination-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-1);
 }
 
 .pagination-ellipsis {
@@ -4126,10 +4116,6 @@ select[multiple].fm-tax-select {
     font-family: inherit;
 }
 
-.ce-select {
-    cursor: pointer;
-}
-
 /* Date input dark mode fix */
 html[data-theme="dark"] .ce-input[type="date"],
 html[data-theme="dark"] .ce-input[type="datetime-local"] {
@@ -4181,6 +4167,16 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
     & .ce-input {
         flex: 1;
     }
+}
+
+.ce-color-field input[type="color"] {
+    width: 40px;
+    height: 36px;
+    padding: 2px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
 }
 
 .ce-input-btn {
@@ -4254,19 +4250,6 @@ html[data-theme="dark"] .ce-input[type="datetime-local"] {
 
 .ce-checkbox-label {
     color: var(--text);
-}
-
-/* Color field */
-.ce-color-field {
-    & input[type="color"] {
-        width: 40px;
-        height: 36px;
-        padding: 2px;
-        background: var(--bg-surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        cursor: pointer;
-    }
 }
 
 /* Array fields */
