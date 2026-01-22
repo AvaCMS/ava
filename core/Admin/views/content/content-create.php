@@ -262,6 +262,11 @@ $jsConfig = [
     
     // Initialize CodeMirror
     async function initEditor() {
+        // Prevent double initialization
+        if (cmEditor || editorContainer._cmView) {
+            return;
+        }
+        
         if (typeof window.AvaCodeMirror !== 'undefined') {
             cmEditor = await window.AvaCodeMirror.createEditor(editorContainer, {
                 content: hiddenInput.value,

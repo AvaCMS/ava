@@ -904,6 +904,11 @@ if (editorWrapper) {
 
 // Initialize CodeMirror
 async function initMarkdownEditor() {
+    // Prevent double initialization
+    if (cmEditor || editorDivContainer._cmView) {
+        return;
+    }
+    
     if (typeof window.AvaCodeMirror !== 'undefined') {
         cmEditor = await window.AvaCodeMirror.createEditor(editorDivContainer, {
             content: hiddenInput.value,
