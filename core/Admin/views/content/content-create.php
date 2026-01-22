@@ -77,7 +77,7 @@ $jsConfig = [
         
         <div class="editor-wrapper">
             <div id="editor" class="codemirror-container" data-codemirror="yaml-frontmatter"></div>
-            <textarea id="file_content" name="file_content" class="editor-hidden-input"><?= htmlspecialchars($currentFileContent) ?></textarea>
+            <textarea id="file_content" name="file_content" class="editor-hidden-input" tabindex="-1"><?= htmlspecialchars($currentFileContent) ?></textarea>
         </div>
     </div>
 

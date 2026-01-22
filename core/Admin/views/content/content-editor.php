@@ -353,7 +353,7 @@ $groupLabels = [
                 </div>
                 <div class="ce-editor-wrapper">
                     <div id="ce-editor" class="codemirror-container" data-codemirror="markdown"></div>
-                    <textarea id="field-body" name="fields[body]" class="editor-hidden-input"><?= htmlspecialchars($currentBody) ?></textarea>
+                    <textarea id="field-body" name="fields[body]" class="editor-hidden-input" tabindex="-1"><?= htmlspecialchars($currentBody) ?></textarea>
                 </div>
             </div>
 
