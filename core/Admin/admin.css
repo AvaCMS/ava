@@ -1438,7 +1438,7 @@ code {
     min-height: 140px;
     color: var(--text-tertiary);
 
-    & .material-symbols-rounded {
+    & > .material-symbols-rounded {
         font-size: 48px;
         margin-bottom: var(--sp-3);
         opacity: 0.5;
