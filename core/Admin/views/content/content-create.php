@@ -75,7 +75,7 @@ $jsConfig = [
         <?php $fileIcon = 'add_circle'; ?>
         <?php include __DIR__ . '/_editor-file-header.php'; ?>
         
-        <div class="editor-wrapper">
+        <div class="editor-wrapper" id="editor-content">
             <div id="editor" class="codemirror-container" data-codemirror="yaml-frontmatter"></div>
             <textarea id="file_content" name="file_content" class="editor-hidden-input" tabindex="-1"><?= htmlspecialchars($currentFileContent) ?></textarea>
         </div>

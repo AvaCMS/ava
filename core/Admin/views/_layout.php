@@ -67,6 +67,10 @@ if (file_exists($cmCssFile)) {
     <?php include __DIR__ . '/_theme.php'; ?>
 </head>
 <body>
+<!-- Skip links for keyboard accessibility -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#editor-content" class="skip-link">Skip to editor <span class="skip-link-hint">(press Escape to exit editor)</span></a>
+
 <div class="app-shell no-transition" id="app-shell">
     <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
     
@@ -119,7 +123,7 @@ if (file_exists($cmCssFile)) {
     </header>
     
     <div class="app-main">
-        <div class="app-content">
+        <div class="app-content" id="main-content">
             <?php if (!empty($alertSuccess)): ?>
             <div class="alert alert-success">
                 <span class="material-symbols-rounded">check_circle</span>

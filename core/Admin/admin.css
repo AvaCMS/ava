@@ -159,6 +159,38 @@ body {
     color: #fff;
 }
 
+/* Skip links for keyboard accessibility */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: var(--sp-4);
+    z-index: 10000;
+    padding: var(--sp-3) var(--sp-5);
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    font-size: var(--text-sm);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: top 0.2s ease;
+    
+    &:focus {
+        top: var(--sp-4);
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+    }
+    
+    &:hover {
+        color: #fff;
+    }
+}
+
+.skip-link-hint {
+    font-weight: 400;
+    opacity: 0.85;
+}
+
 a {
     color: var(--accent);
     text-decoration: none;
