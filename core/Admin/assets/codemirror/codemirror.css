@@ -110,3 +110,16 @@
 .cm-wrap-none .cm-line {
     white-space: pre;
 }
+
+/* ========================================
+   Line Numbers Toggle
+   ======================================== */
+
+/* Hide line numbers */
+.cm-hide-line-numbers .cm-gutters {
+    display: none !important;
+}
+
+.cm-hide-line-numbers .cm-content {
+    padding-left: var(--sp-3, 0.75rem);
+}

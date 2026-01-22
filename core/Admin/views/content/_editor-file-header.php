@@ -27,6 +27,9 @@ $showEditorActions = $showEditorActions ?? true;
     </div>
     <?php if ($showEditorActions): ?>
     <div class="editor-header-actions">
+        <button type="button" class="editor-action-btn" id="line-numbers-toggle" title="Line numbers: On">
+            <span class="material-symbols-rounded">123</span>
+        </button>
         <button type="button" class="editor-action-btn" id="wrap-toggle" title="Line wrap: Full width">
             <span class="material-symbols-rounded">wrap_text</span>
         </button>

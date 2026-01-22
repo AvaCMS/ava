@@ -360,6 +360,50 @@ function getSavedWrapMode() {
     }
 }
 
+/**
+ * Set the line numbers visibility for an editor container
+ * @param {HTMLElement} container - The editor container element
+ * @param {boolean} visible - Whether line numbers should be visible
+ */
+function setLineNumbers(container, visible) {
+    if (visible) {
+        container.classList.remove('cm-hide-line-numbers');
+    } else {
+        container.classList.add('cm-hide-line-numbers');
+    }
+    
+    // Store preference
+    container.dataset.lineNumbers = visible ? 'true' : 'false';
+    try {
+        localStorage.setItem('ava-editor-line-numbers', visible ? 'true' : 'false');
+    } catch (e) {}
+}
+
+/**
+ * Toggle line numbers visibility
+ * @param {HTMLElement} container - The editor container element
+ * @returns {boolean} The new visibility state
+ */
+function toggleLineNumbers(container) {
+    const current = container.dataset.lineNumbers !== 'false';
+    const newState = !current;
+    setLineNumbers(container, newState);
+    return newState;
+}
+
+/**
+ * Get the saved line numbers preference
+ * @returns {boolean} The saved preference or true (visible by default)
+ */
+function getSavedLineNumbers() {
+    try {
+        const saved = localStorage.getItem('ava-editor-line-numbers');
+        return saved !== 'false';
+    } catch (e) {
+        return true;
+    }
+}
+
 // Export for global use
 window.AvaCodeMirror = {
     createEditor,
@@ -372,6 +416,9 @@ window.AvaCodeMirror = {
     cycleLineWrap,
     getSavedWrapMode,
     WRAP_MODES,
+    setLineNumbers,
+    toggleLineNumbers,
+    getSavedLineNumbers,
 };
 
 // Auto-initialize editors with data-codemirror attribute

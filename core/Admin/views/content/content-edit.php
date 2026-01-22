@@ -129,6 +129,7 @@ $successMsg = $successMessage ?? 'Changes saved successfully.';
     const hiddenInput = document.getElementById('file_content');
     const form = document.getElementById('editor-form');
     const wrapBtn = document.getElementById('wrap-toggle');
+    const lineNumbersBtn = document.getElementById('line-numbers-toggle');
     const fullscreenBtn = document.getElementById('fullscreen-toggle');
     let cmEditor = null;
     
@@ -143,6 +144,12 @@ $successMsg = $successMessage ?? 'Changes saved successfully.';
         'narrow': 'view_column',
         'none': 'more_horiz'
     };
+    
+    function updateLineNumbersButton(visible) {
+        if (!lineNumbersBtn) return;
+        lineNumbersBtn.title = 'Line numbers: ' + (visible ? 'On' : 'Off');
+        lineNumbersBtn.classList.toggle('active', visible);
+    }
     
     function updateWrapButton(mode) {
         if (!wrapBtn) return;
@@ -167,10 +174,24 @@ $successMsg = $successMessage ?? 'Changes saved successfully.';
             const savedMode = window.AvaCodeMirror.getSavedWrapMode();
             window.AvaCodeMirror.setLineWrap(editorContainer, savedMode);
             updateWrapButton(savedMode);
+            
+            // Apply saved line numbers preference
+            const savedLineNumbers = window.AvaCodeMirror.getSavedLineNumbers();
+            window.AvaCodeMirror.setLineNumbers(editorContainer, savedLineNumbers);
+            updateLineNumbersButton(savedLineNumbers);
         } else {
             // Retry if AvaCodeMirror not yet loaded
             setTimeout(initEditor, 50);
         }
+    }
+    
+    // Line numbers toggle
+    if (lineNumbersBtn) {
+        lineNumbersBtn.addEventListener('click', function() {
+            if (!window.AvaCodeMirror) return;
+            const newState = window.AvaCodeMirror.toggleLineNumbers(editorContainer);
+            updateLineNumbersButton(newState);
+        });
     }
     
     // Wrap toggle
