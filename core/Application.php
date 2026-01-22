@@ -413,7 +413,9 @@ final class Application
                 return null;
             }
 
-            $fullPath = $assetsDir . '/' . $assetPath;
+            // Normalize path separators for Windows compatibility
+            $normalizedAssetPath = str_replace('/', DIRECTORY_SEPARATOR, $assetPath);
+            $fullPath = $assetsDir . DIRECTORY_SEPARATOR . $normalizedAssetPath;
             $realPath = realpath($fullPath);
 
             // Ensure the resolved path is within the assets directory
@@ -478,7 +480,9 @@ final class Application
             // Serve core assets from core/Admin/assets/ (e.g., codemirror)
             $coreAssetsDir = realpath($coreAssetsPath);
             if ($coreAssetsDir !== false) {
-                $fullPath = $coreAssetsDir . '/' . $assetPath;
+                // Normalize path separators for Windows compatibility
+                $normalizedAssetPath = str_replace('/', DIRECTORY_SEPARATOR, $assetPath);
+                $fullPath = $coreAssetsDir . DIRECTORY_SEPARATOR . $normalizedAssetPath;
                 $realPath = realpath($fullPath);
                 
                     if ($realPath !== false && str_starts_with($realPath, $coreAssetsDir . DIRECTORY_SEPARATOR) && is_file($realPath)) {
@@ -494,7 +498,9 @@ final class Application
                 $pluginAssetsDir = realpath($pluginsPath . '/' . $pluginName . '/assets');
                 
                 if ($pluginAssetsDir !== false) {
-                    $fullPath = $pluginAssetsDir . '/' . $pluginAssetPath;
+                    // Normalize path separators for Windows compatibility
+                    $normalizedPluginAssetPath = str_replace('/', DIRECTORY_SEPARATOR, $pluginAssetPath);
+                    $fullPath = $pluginAssetsDir . DIRECTORY_SEPARATOR . $normalizedPluginAssetPath;
                     $realPath = realpath($fullPath);
                     
                     if ($realPath !== false && str_starts_with($realPath, $pluginAssetsDir . DIRECTORY_SEPARATOR) && is_file($realPath)) {
@@ -509,7 +515,9 @@ final class Application
                 return null;
             }
 
-            $fullPath = $assetsDir . '/' . $assetPath;
+            // Normalize path separators for Windows compatibility
+            $normalizedAssetPath = str_replace('/', DIRECTORY_SEPARATOR, $assetPath);
+            $fullPath = $assetsDir . DIRECTORY_SEPARATOR . $normalizedAssetPath;
             $realPath = realpath($fullPath);
 
             if ($realPath === false || !str_starts_with($realPath, $assetsDir . DIRECTORY_SEPARATOR) || !is_file($realPath)) {
