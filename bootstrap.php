@@ -26,7 +26,41 @@ if (!defined('AVA_ROOT')) {
 // Composer autoload
 $autoloadPath = AVA_ROOT . '/vendor/autoload.php';
 if (!file_exists($autoloadPath)) {
-    die("Composer autoload not found. Run: composer install\n");
+    $isCli = php_sapi_name() === 'cli';
+    
+    if ($isCli) {
+        echo "\n👋 Welcome to Ava CMS!\n\n";
+        echo "Run 'composer install' from your Ava root directory.\n\n";
+        echo "No SSH? Run it locally and upload the vendor/ folder.\n\n";
+        echo "More info: https://ava.addy.zone/docs/hosting\n\n";
+        exit(1);
+    }
+    
+    http_response_code(503);
+    echo <<<'HTML'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ava CMS Setup</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 480px; margin: 4rem auto; padding: 1.5rem; line-height: 1.6; color: #334155; }
+        h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+        code { background: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.9em; }
+        a { color: #2563eb; }
+        .hint { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: 0.875rem; color: #64748b; }
+    </style>
+</head>
+<body>
+    <h1>👋 Welcome to Ava CMS!</h1>
+    <p>Run <code>composer install</code> from your Ava root directory.</p>
+    <p>No SSH? Run it locally and upload the <code>vendor/</code> folder.</p>
+    <p class="hint">Need help? See the <a href="https://ava.addy.zone/docs/hosting">Hosting Guide</a></p>
+</body>
+</html>
+HTML;
+    exit;
 }
 require $autoloadPath;
 
