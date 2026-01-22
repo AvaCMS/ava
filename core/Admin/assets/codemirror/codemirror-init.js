@@ -116,6 +116,19 @@ async function createEditorConfig(options = {}) {
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
     };
 
+    // Custom Escape handler: pressing Escape moves focus out of the editor
+    // This allows keyboard users to tab away after pressing Escape
+    // See: https://codemirror.net/examples/tab/
+    const escapeToBlur = keymap.of([{
+        key: 'Escape',
+        run: (view) => {
+            // Find the next focusable element after the editor and focus it
+            // Or just blur to let the browser handle tab navigation
+            view.contentDOM.blur();
+            return true;
+        }
+    }]);
+
     // Base extensions
     const baseExtensions = [
         lineNumbers(),
@@ -144,6 +157,7 @@ async function createEditorConfig(options = {}) {
             ...completionKeymap,
             indentWithTab,
         ]),
+        escapeToBlur,
         EditorView.lineWrapping,
     ];
 
