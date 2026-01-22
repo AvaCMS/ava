@@ -22,9 +22,45 @@ $totalTerms = count($terms);
 $totalItems = array_sum(array_column($terms, 'count'));
 $behaviour = $config['behaviour'] ?? [];
 $ui = $config['ui'] ?? [];
+
+// Flash messages from redirects
+$deleted = $_GET['deleted'] ?? null;
+$created = $_GET['created'] ?? null;
+$error = $_GET['error'] ?? null;
 ?>
 
 <div class="content-layout">
+    <?php if ($deleted): ?>
+    <div class="alert alert-success mb-4">
+        <span class="material-symbols-rounded">check_circle</span>
+        <div>Term "<?= htmlspecialchars($deleted) ?>" was removed from the registry.<?php if ($behaviour['allow_unknown_terms'] ?? false): ?> If content still references it, it may reappear.<?php endif; ?></div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($created): ?>
+    <div class="alert alert-success mb-4">
+        <span class="material-symbols-rounded">check_circle</span>
+        <div>Term "<?= htmlspecialchars($created) ?>" was created successfully.</div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($error === 'csrf'): ?>
+    <div class="alert alert-danger mb-4">
+        <span class="material-symbols-rounded">error</span>
+        <div>Security token expired. Please try again.</div>
+    </div>
+    <?php elseif ($error === 'delete_failed'): ?>
+    <div class="alert alert-danger mb-4">
+        <span class="material-symbols-rounded">error</span>
+        <div>Failed to delete the term. Please try again.</div>
+    </div>
+    <?php elseif ($error): ?>
+    <div class="alert alert-danger mb-4">
+        <span class="material-symbols-rounded">error</span>
+        <div>An error occurred. Please try again.</div>
+    </div>
+    <?php endif; ?>
+
     <!-- Terms List -->
     <div class="card content-main">
         <?php if (!empty($terms)): ?>

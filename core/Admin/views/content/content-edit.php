@@ -113,7 +113,7 @@ $successMsg = $successMessage ?? 'Changes saved successfully.';
                 <span class="material-symbols-rounded">view_compact</span>
                 Field Editor
             </a>
-            <a href="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>/<?= htmlspecialchars($item->slug()) ?>/delete" 
+            <a href="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>/delete?file=<?= htmlspecialchars($fileParam) ?>" 
                class="btn btn-danger-outline">
                 <span class="material-symbols-rounded">delete</span>
                 Delete

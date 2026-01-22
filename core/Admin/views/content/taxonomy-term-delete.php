@@ -30,7 +30,8 @@ $termName = $termData['name'] ?? $term;
                     <strong>You are about to delete the term "<?= htmlspecialchars($termName) ?>"</strong>
                     <?php if ($itemCount > 0): ?>
                     <p class="mt-2">This term is currently used by <strong><?= $itemCount ?></strong> content item<?= $itemCount !== 1 ? 's' : '' ?>. 
-                    The term will be removed from the taxonomy registry, but existing content files will still reference it.</p>
+                    The term will be removed from the taxonomy registry, but <strong>will reappear</strong> after the next index rebuild because content still references it.</p>
+                    <p class="mt-2">To permanently remove this term, first update the content items to remove the term reference.</p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -82,9 +83,15 @@ $termName = $termData['name'] ?? $term;
                     The term will be removed from:<br>
                     <code class="text-xs">content/_taxonomies/<?= htmlspecialchars($taxonomy) ?>.yml</code>
                 </p>
+                <?php if ($itemCount > 0): ?>
                 <p class="text-sm text-secondary mt-3">
-                    Content files referencing this term will <strong>not</strong> be modified. You may want to update them manually.
+                    <strong>Note:</strong> Since content references this term, it will reappear in the listing after the index rebuilds. To permanently remove the term, update your content files first.
                 </p>
+                <?php else: ?>
+                <p class="text-sm text-secondary mt-3">
+                    This term has no content using it, so it will be permanently removed.
+                </p>
+                <?php endif; ?>
             </div>
         </div>
     </div>

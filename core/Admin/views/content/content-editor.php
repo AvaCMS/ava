@@ -684,7 +684,7 @@ $groupLabels = [
                     
                     <?php if (!$isCreateMode): ?>
                     <div class="ce-danger-zone">
-                        <a href="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>/<?= htmlspecialchars($item->slug()) ?>/delete" 
+                        <a href="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>/delete?file=<?= htmlspecialchars($fileParam) ?>" 
                            class="btn btn-danger-outline btn-sm">
                             <span class="material-symbols-rounded">delete</span>
                             Delete this <?= htmlspecialchars(strtolower($typeLabel)) ?>
