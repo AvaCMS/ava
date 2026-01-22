@@ -90,10 +90,9 @@ final class Engine
             return $item->html();
         }
 
-        // If raw_html is enabled AND allowed by config, skip Markdown parsing
+        // If raw_html is enabled AND HTML is allowed globally, skip Markdown parsing
         // but still process shortcodes and expand path aliases.
-        // When allow_raw_html is false, we fall back to Markdown rendering.
-        if ($item->rawHtml() && $this->app->config('security.allow_raw_html', false)) {
+        if ($item->rawHtml() && $this->app->config('content.markdown.allow_html', false)) {
             $html = $this->app->shortcodes()->process($item->rawContent());
             return $this->expandAliases($html);
         }

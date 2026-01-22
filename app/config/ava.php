@@ -60,14 +60,7 @@ return [
         'path'    => '/ava-admin',
         'theme'   => 'cyan',
 
-        /*
-        |-----------------------------------------------------------------------
-        | MEDIA UPLOADS
-        |-----------------------------------------------------------------------
-        | Secure image uploader with automatic sanitization.
-        | Images are reprocessed via ImageMagick/GD to strip hidden payloads.
-        */
-
+        // Image uploader (sanitizes via ImageMagick/GD to strip hidden payloads)
         'media' => [
             'enabled'          => true,
             'path'             => 'public/media',
@@ -150,6 +143,9 @@ return [
             'format' => 'yaml',             // Only YAML supported currently
         ],
         'markdown' => [
+            // Security: disable raw HTML in Markdown by default for public release.
+            // This prevents XSS from untrusted content. Enable only if you trust authors.
+            // Also gates frontmatter raw_html: true for skipping Markdown entirely.
             'allow_html' => true,
             'heading_ids' => true,          // Add id attributes to headings for deep links
             'disallowed_tags' => [          // Tags stripped even when allow_html is true
@@ -172,21 +168,36 @@ return [
         'shortcodes' => [
             'allow_php_snippets' => true,
         ],
-        // When false, raw_html is ignored even if set in content files.
-        'allow_raw_html' => true,
-        // Default public security headers (applied to non-admin responses).
-        // You can override or relax these per site as needed.
+
+        // Security headers applied to public (non-admin) responses.
+        // Override or relax these per site as needed.
         'headers' => [
-            'content_security_policy' => "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self' data:; style-src 'self'; script-src 'self'",
-            'permissions_policy' => 'camera=(), microphone=(), geolocation=(), payment=(), usb=()'
-                . ', interest-cohort=()',
+            'content_security_policy' => [
+                "default-src 'self'",
+                "base-uri 'none'",
+                "object-src 'none'",
+                "frame-ancestors 'none'",
+                "form-action 'self'",
+                "connect-src 'self'",
+                "img-src 'self' data:",
+                "font-src 'self' data:",
+                "style-src 'self' 'unsafe-inline'",
+                "script-src 'self'",
+            ],
+            'permissions_policy' => [
+                'camera=()',
+                'microphone=()',
+                'geolocation=()',
+                'payment=()',
+                'usb=()',
+                'interest-cohort=()',
+            ],
             'strict_transport_security' => 'max-age=63072000; includeSubDomains; preload',
         ],
-        // Preview token for accessing draft content via ?preview=1&token=xxx
-        // ⚠️  IMPORTANT: Generate a secure random token for production!
-        //     Run: php -r "echo bin2hex(random_bytes(32));"
-        //     Tokens under 16 characters or common words are rejected.
-        'preview_token' => null,   // Set to a 32+ character random string, wrap in quotes ''
+
+        // Secret for previewing drafts via ?preview=1&token=xxx (null = disabled)
+        // Use a long random string — preview URLs are not rate-limited.
+        'preview_token' => null,
     ],
 
     /*
@@ -213,8 +224,6 @@ return [
         ],
     ],
 
-
-
     /*
     |───────────────────────────────────────────────────────────────────────────
     | LOGGING
@@ -233,9 +242,7 @@ return [
     | DEBUG MODE
     |───────────────────────────────────────────────────────────────────────────
     | Control error visibility for development and troubleshooting.
-    |
     | ⚠️  NEVER enable display_errors in production, it can expose sensitive info
-    |
     | level: all (everything), errors (fatal only), none (suppress all)
     */
 

@@ -574,15 +574,23 @@ final class Application
     {
         $headerConfig = $this->config('security.headers', []);
 
+        // Helper to normalize header values (arrays joined with appropriate separators)
+        $normalizeHeader = function (mixed $value, string $separator = '; '): ?string {
+            if (is_array($value)) {
+                return implode($separator, $value);
+            }
+            return is_string($value) && $value !== '' ? $value : null;
+        };
+
         $map = [
-            'Content-Security-Policy' => $headerConfig['content_security_policy'] ?? null,
-            'Permissions-Policy' => $headerConfig['permissions_policy'] ?? null,
-            'Cross-Origin-Opener-Policy' => $headerConfig['cross_origin_opener_policy'] ?? null,
-            'Cross-Origin-Resource-Policy' => $headerConfig['cross_origin_resource_policy'] ?? null,
+            'Content-Security-Policy' => $normalizeHeader($headerConfig['content_security_policy'] ?? null),
+            'Permissions-Policy' => $normalizeHeader($headerConfig['permissions_policy'] ?? null, ', '),
+            'Cross-Origin-Opener-Policy' => $normalizeHeader($headerConfig['cross_origin_opener_policy'] ?? null),
+            'Cross-Origin-Resource-Policy' => $normalizeHeader($headerConfig['cross_origin_resource_policy'] ?? null),
         ];
 
         foreach ($map as $name => $value) {
-            if (is_string($value) && $value !== '' && $response->header($name) === null) {
+            if ($value !== null && $response->header($name) === null) {
                 $response = $response->withHeader($name, $value);
             }
         }
