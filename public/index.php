@@ -25,6 +25,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
     $configPath = AVA_ROOT . '/app/config/ava.php';
     if (file_exists($configPath)) {
         $config = require $configPath;
+
+        // Helper to normalize header values (arrays → strings)
+        $normalizeHeader = function (mixed $value, string $separator = '; '): ?string {
+            if (is_array($value)) {
+                return implode($separator, $value);
+            }
+            return is_string($value) && $value !== '' ? $value : null;
+        };
         
         if (!empty($config['webpage_cache']['enabled'])) {
             $uri = $_SERVER['REQUEST_URI'] ?? '/';
@@ -75,17 +83,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
                                         header('Referrer-Policy: strict-origin-when-cross-origin');
 
                                         $securityHeaders = $config['security']['headers'] ?? [];
-                                        if (!empty($securityHeaders['content_security_policy'])) {
-                                            header('Content-Security-Policy: ' . $securityHeaders['content_security_policy']);
+                                        if ($csp = $normalizeHeader($securityHeaders['content_security_policy'] ?? null)) {
+                                            header('Content-Security-Policy: ' . $csp);
                                         }
-                                        if (!empty($securityHeaders['permissions_policy'])) {
-                                            header('Permissions-Policy: ' . $securityHeaders['permissions_policy']);
+                                        if ($pp = $normalizeHeader($securityHeaders['permissions_policy'] ?? null, ', ')) {
+                                            header('Permissions-Policy: ' . $pp);
                                         }
-                                        if (!empty($securityHeaders['cross_origin_opener_policy'])) {
-                                            header('Cross-Origin-Opener-Policy: ' . $securityHeaders['cross_origin_opener_policy']);
+                                        if ($coop = $normalizeHeader($securityHeaders['cross_origin_opener_policy'] ?? null)) {
+                                            header('Cross-Origin-Opener-Policy: ' . $coop);
                                         }
-                                        if (!empty($securityHeaders['cross_origin_resource_policy'])) {
-                                            header('Cross-Origin-Resource-Policy: ' . $securityHeaders['cross_origin_resource_policy']);
+                                        if ($corp = $normalizeHeader($securityHeaders['cross_origin_resource_policy'] ?? null)) {
+                                            header('Cross-Origin-Resource-Policy: ' . $corp);
                                         }
                                         if (!empty($securityHeaders['strict_transport_security'])) {
                                             $isSecure = (($_SERVER['HTTPS'] ?? 'off') !== 'off') || ((string) ($_SERVER['SERVER_PORT'] ?? '') === '443');
@@ -111,17 +119,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
 
                                 // Apply configured public security headers
                                 $securityHeaders = $config['security']['headers'] ?? [];
-                                if (!empty($securityHeaders['content_security_policy'])) {
-                                    header('Content-Security-Policy: ' . $securityHeaders['content_security_policy']);
+                                if ($csp = $normalizeHeader($securityHeaders['content_security_policy'] ?? null)) {
+                                    header('Content-Security-Policy: ' . $csp);
                                 }
-                                if (!empty($securityHeaders['permissions_policy'])) {
-                                    header('Permissions-Policy: ' . $securityHeaders['permissions_policy']);
+                                if ($pp = $normalizeHeader($securityHeaders['permissions_policy'] ?? null, ', ')) {
+                                    header('Permissions-Policy: ' . $pp);
                                 }
-                                if (!empty($securityHeaders['cross_origin_opener_policy'])) {
-                                    header('Cross-Origin-Opener-Policy: ' . $securityHeaders['cross_origin_opener_policy']);
+                                if ($coop = $normalizeHeader($securityHeaders['cross_origin_opener_policy'] ?? null)) {
+                                    header('Cross-Origin-Opener-Policy: ' . $coop);
                                 }
-                                if (!empty($securityHeaders['cross_origin_resource_policy'])) {
-                                    header('Cross-Origin-Resource-Policy: ' . $securityHeaders['cross_origin_resource_policy']);
+                                if ($corp = $normalizeHeader($securityHeaders['cross_origin_resource_policy'] ?? null)) {
+                                    header('Cross-Origin-Resource-Policy: ' . $corp);
                                 }
                                 if (!empty($securityHeaders['strict_transport_security'])) {
                                     $isSecure = (($_SERVER['HTTPS'] ?? 'off') !== 'off') || ((string) ($_SERVER['SERVER_PORT'] ?? '') === '443');
