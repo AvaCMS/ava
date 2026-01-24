@@ -11,8 +11,6 @@
  * - $admin_url: Admin base URL
  */
 
-// Error state passed from controller (avoids direct $_GET access)
-$errorType = $error ?? null;
 ?>
 
 <div class="content-layout">
@@ -24,13 +22,6 @@ $errorType = $error ?? null;
             </span>
         </div>
         <div class="card-body">
-            <?php if ($errorType === 'confirm'): ?>
-            <div class="alert alert-danger">
-                <span class="material-symbols-rounded">error</span>
-                Please type the slug exactly to confirm deletion.
-            </div>
-            <?php endif; ?>
-
             <div class="alert alert-danger">
                 <span class="material-symbols-rounded">delete_forever</span>
                 <div>
@@ -40,7 +31,7 @@ $errorType = $error ?? null;
                 </div>
             </div>
 
-            <form method="POST" action="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>/delete?file=<?= htmlspecialchars($fileParam) ?>">
+            <form method="POST" action="<?= htmlspecialchars($admin_url) ?>/content/<?= htmlspecialchars($type) ?>/delete?file=<?= htmlspecialchars($fileParam) ?>" onsubmit="return confirm('Are you sure you want to delete this content? This cannot be undone.');">
                 <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf) ?>">
 
                 <div class="delete-preview">
@@ -70,17 +61,8 @@ $errorType = $error ?? null;
                     <?php endif; ?>
                 </div>
 
-                <div class="form-group mt-5">
-                    <label for="confirm" class="form-label">
-                        Type <strong><?= htmlspecialchars($file) ?>.md</strong> to confirm:
-                    </label>
-                    <input type="text" id="confirm" name="confirm" class="form-control" 
-                           autocomplete="off"
-                           placeholder="<?= htmlspecialchars($file) ?>.md">
-                </div>
-
                 <div class="form-actions mt-5">
-                    <button type="submit" class="btn btn-danger" id="delete-btn" disabled>
+                    <button type="submit" class="btn btn-danger">
                         <span class="material-symbols-rounded">delete_forever</span>
                         Delete Permanently
                     </button>
@@ -111,13 +93,3 @@ $errorType = $error ?? null;
         </div>
     </div>
 </div>
-
-<script>
-const confirmInput = document.getElementById('confirm');
-const deleteBtn = document.getElementById('delete-btn');
-const expectedFile = <?= json_encode($file . '.md') ?>;
-
-confirmInput.addEventListener('input', function() {
-    deleteBtn.disabled = this.value !== expectedFile;
-});
-</script>

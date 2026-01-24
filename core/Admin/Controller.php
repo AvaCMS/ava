@@ -1634,13 +1634,6 @@ final class Controller
                 return Response::redirect($this->adminUrl() . '/content/' . $type . '?error=csrf');
             }
 
-            // Confirm deletion - user types filename with .md suffix
-            $confirm = $request->post('confirm', '');
-            if ($confirm !== $file . '.md') {
-                $fileParam = str_replace('/', '|', $file);
-                return Response::redirect($this->adminUrl() . '/content/' . $type . '/delete?file=' . urlencode($fileParam) . '&error=confirm');
-            }
-
             // Delete the file
             $filePath = $item->filePath();
             if (file_exists($filePath)) {
