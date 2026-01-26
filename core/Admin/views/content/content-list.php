@@ -399,7 +399,7 @@ $hasActiveFilters = $currentStatus !== '' || $currentSearch !== '' || $currentSo
                 </span>
             </div>
             <div class="card-body">
-                <div class="list-item"><span class="list-label">Total</span><span class="list-value"><?= count($items) ?></span></div>
+                <div class="list-item"><span class="list-label">Total</span><span class="list-value"><?= $allContent[$type]['total'] ?? 0 ?></span></div>
                 <div class="list-item"><span class="list-label">Published</span><span class="list-value text-success"><?= $allContent[$type]['published'] ?? 0 ?></span></div>
                 <div class="list-item"><span class="list-label">Drafts</span><span class="list-value text-warning"><?= $allContent[$type]['draft'] ?? 0 ?></span></div>
                 <div class="list-item"><span class="list-label">Total Size</span><span class="list-value"><?= $formatBytes($stats['totalSize'] ?? 0) ?></span></div>
