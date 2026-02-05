@@ -44,7 +44,7 @@ $itemCount = count($termData['items'] ?? []);
                 <div class="form-group">
                     <label for="slug" class="form-label">Slug</label>
                     <input type="text" id="slug" name="slug" class="form-control" 
-                           pattern="[a-z0-9\-]+"
+                           pattern="[a-z0-9\x2D]+"
                            placeholder="e.g., getting-started"
                            value="<?= htmlspecialchars($_POST['slug'] ?? $term) ?>">
                     <p class="form-hint">URL-safe identifier. Lowercase letters, numbers, and hyphens only.</p>

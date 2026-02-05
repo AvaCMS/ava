@@ -263,7 +263,7 @@ $groupLabels = [
                     <div class="ce-slug-filename-input">
                         <input type="text" id="field-slug" name="fields[slug]" 
                                value="<?= htmlspecialchars($currentSlug) ?>" required
-                               pattern="[a-z0-9\-/]+" title="Lowercase letters, numbers, hyphens, and slashes"
+                               pattern="[a-z0-9/\x2D]+" title="Lowercase letters, numbers, hyphens, and slashes"
                                placeholder="url-slug">
                         <button type="button" class="ce-auto-btn" onclick="generateSlugFromTitle()" title="Generate from title">
                             <span class="material-symbols-rounded">auto_fix</span>
@@ -275,7 +275,7 @@ $groupLabels = [
                     <div class="ce-slug-filename-input">
                         <input type="text" id="field-filename" name="filename" 
                                value="<?= htmlspecialchars($currentFilename) ?>"
-                               pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, and hyphens"
+                               pattern="[a-z0-9\x2D]+" title="Lowercase letters, numbers, and hyphens"
                                placeholder="filename">
                         <span class="ce-filename-ext">.md</span>
                     </div>

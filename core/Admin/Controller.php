@@ -2148,8 +2148,9 @@ final class Controller
         $fields = $request->post('fields', []);
         $newFilename = trim($request->post('filename', ''));
         
-        // Get current filename
+        // Get current filename (without .md) and directory
         $currentFilename = pathinfo(basename($item->filePath()), PATHINFO_FILENAME);
+        $fileDir = dirname($file); // Directory within content type (e.g., 'docs' for 'docs/releasing')
         
         // If no new filename provided, keep the current one
         if (empty($newFilename)) {
@@ -2319,8 +2320,12 @@ final class Controller
         // Build file content
         $fileContent = "---\n" . trim($yaml) . "\n---\n\n" . $body;
         
+        // Build full relative path (with directory)
+        $newRelativePath = ($fileDir === '.' ? '' : $fileDir . '/') . $newFilename;
+        $currentRelativePath = ($fileDir === '.' ? '' : $fileDir . '/') . $currentFilename;
+        
         // Update the file
-        $result = $this->updateContentFileRaw($item, $type, $typeConfig, $newFilename, $fileContent, $currentFilename);
+        $result = $this->updateContentFileRaw($item, $type, $typeConfig, $newRelativePath, $fileContent, $currentRelativePath);
         
         if ($result !== true) {
             return ['success' => false, 'error' => $result, 'warnings' => []];
