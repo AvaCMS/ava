@@ -24,7 +24,17 @@ final class Controller
     public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->auth = new Auth($app->path('app/config/users.php'), $app->path('storage'));
+        
+        // Get session security settings from config
+        $ipBinding = $app->config('admin.session.ip_binding', false);  // Opt-in (can break mobile users)
+        $sessionTimeout = $app->config('admin.session.timeout', 1800); // 30 min default
+        
+        $this->auth = new Auth(
+            $app->path('app/config/users.php'),
+            $app->path('storage'),
+            $ipBinding,
+            $sessionTimeout
+        );
     }
 
     /**

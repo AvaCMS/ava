@@ -596,4 +596,131 @@ class AuthTest extends TestCase
         
         $this->assertFalse($result);
     }
+
+    // =========================================================================
+    // IP Binding Tests
+    // =========================================================================
+
+    public function testIPBindingAllowsSameIP(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.50';
+        $auth = new Auth($this->tempUsersFile, $this->tempStoragePath, true, null);
+        
+        // Login from IP
+        $result = $auth->attempt('admin@example.com', 'testpassword123');
+        $this->assertTrue($result);
+        
+        // Check should pass from same IP
+        $this->assertTrue($auth->check());
+    }
+
+    public function testIPBindingBlocksDifferentIP(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.60';
+        $auth = new Auth($this->tempUsersFile, $this->tempStoragePath, true, null);
+        
+        // Login from first IP
+        $auth->attempt('admin@example.com', 'testpassword123');
+        $this->assertTrue($auth->check());
+        
+        // Simulate different IP (attacker with stolen cookie)
+        $_SERVER['REMOTE_ADDR'] = '192.168.1.100';
+        
+        // Check should fail and logout
+        $this->assertFalse($auth->check());
+        
+        // Session should be invalidated
+        $this->assertNull($auth->user());
+    }
+
+    public function testIPBindingDisabledAllowsDifferentIP(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.70';
+        $auth = new Auth($this->tempUsersFile, $this->tempStoragePath, false, null);
+        
+        // Login from first IP
+        $auth->attempt('admin@example.com', 'testpassword123');
+        $this->assertTrue($auth->check());
+        
+        // Change IP
+        $_SERVER['REMOTE_ADDR'] = '192.168.1.100';
+        
+        // Check should still pass when IP binding is disabled
+        $this->assertTrue($auth->check());
+    }
+
+    public function testIPBindingHandlesIPv6Normalization(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '::1';
+        $auth = new Auth($this->tempUsersFile, $this->tempStoragePath, true, null);
+        
+        // Login from localhost IPv6
+        $auth->attempt('admin@example.com', 'testpassword123');
+        $this->assertTrue($auth->check());
+        
+        // Same IP should still work
+        $_SERVER['REMOTE_ADDR'] = '::1';
+        $this->assertTrue($auth->check());
+    }
+
+    // =========================================================================
+    // Session Timeout Tests
+    // =========================================================================
+
+    public function testSessionTimeoutAllowsActiveSession(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $auth = new Auth($this->tempUsersFile, $this->tempStoragePath, false, 3600);
+        
+        $auth->attempt('admin@example.com', 'testpassword123');
+        
+        // Active session should pass
+        $this->assertTrue($auth->check());
+    }
+
+    public function testSessionTimeoutInvalidatesExpiredSession(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        // Very short timeout for testing (1 second)
+        $auth = new Auth($this->tempUsersFile, $this->tempStoragePath, false, 1);
+        
+        $auth->attempt('admin@example.com', 'testpassword123');
+        $this->assertTrue($auth->check());
+        
+        // Wait for timeout
+        sleep(2);
+        
+        // Session should now be expired
+        $this->assertFalse($auth->check());
+    }
+
+    public function testSessionTimeoutDisabledNeverExpires(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $auth = new Auth($this->tempUsersFile, $this->tempStoragePath, false, null);
+        
+        $auth->attempt('admin@example.com', 'testpassword123');
+        
+        // Manually set last activity to long ago
+        $_SESSION['ava_last_activity'] = time() - 86400; // 24 hours ago
+        
+        // Should still pass when timeout is disabled
+        $this->assertTrue($auth->check());
+    }
+
+    public function testSessionTimeoutUpdatesLastActivity(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $auth = new Auth($this->tempUsersFile, $this->tempStoragePath, false, 3600);
+        
+        $auth->attempt('admin@example.com', 'testpassword123');
+        
+        $firstActivity = $_SESSION['ava_last_activity'];
+        sleep(1);
+        
+        // Check updates the activity timestamp
+        $auth->check();
+        
+        $this->assertGreaterThanOrEqual($firstActivity, $_SESSION['ava_last_activity']);
+    }
 }

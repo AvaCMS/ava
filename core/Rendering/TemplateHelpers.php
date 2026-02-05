@@ -324,7 +324,7 @@ final class TemplateHelpers
         // Previous link
         if ($pagination['has_previous']) {
             $prevUrl = $this->pageUrl($baseUrl, $pagination['current_page'] - 1);
-            $html .= '<a href="' . $prevUrl . '" class="pagination-prev">Previous</a> ';
+            $html .= '<a href="' . htmlspecialchars($prevUrl, ENT_QUOTES, 'UTF-8') . '" class="pagination-prev">Previous</a> ';
         }
 
         // Page numbers
@@ -335,7 +335,7 @@ final class TemplateHelpers
         // Next link
         if ($pagination['has_more']) {
             $nextUrl = $this->pageUrl($baseUrl, $pagination['current_page'] + 1);
-            $html .= ' <a href="' . $nextUrl . '" class="pagination-next">Next</a>';
+            $html .= ' <a href="' . htmlspecialchars($nextUrl, ENT_QUOTES, 'UTF-8') . '" class="pagination-next">Next</a>';
         }
 
         $html .= '</nav>';

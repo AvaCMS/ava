@@ -11,6 +11,8 @@ final class Auth
 {
     private const SESSION_KEY = 'ava_admin_user';
     private const CSRF_KEY = 'ava_csrf_token';
+    private const SESSION_IP_KEY = 'ava_session_ip';
+    private const SESSION_LAST_ACTIVITY_KEY = 'ava_last_activity';
 
     // Rate limiting constants (IP-based)
     private const MAX_ATTEMPTS = 5;           // Max attempts before lockout
@@ -21,14 +23,32 @@ final class Auth
     private const USERNAME_MAX_ATTEMPTS = 10;      // Higher threshold (multiple IPs expected)
     private const USERNAME_LOCKOUT_DURATION = 1800; // 30 minutes for username lockouts
 
+    // Session security defaults
+    private const DEFAULT_SESSION_TIMEOUT = 1800;  // 30 minutes idle timeout
+    private const DEFAULT_IP_BINDING = false;      // Disabled by default (can break mobile/VPN users)
+
     private string $usersFile;
     private string $storagePath;
     private ?array $users = null;
+    private bool $ipBindingEnabled;
+    private ?int $sessionTimeout;
 
-    public function __construct(string $usersFile, ?string $storagePath = null)
-    {
+    /**
+     * @param string $usersFile Path to users.php config file
+     * @param string|null $storagePath Path to storage directory
+     * @param bool $ipBinding Bind sessions to IP address (prevents cookie theft from different IP)
+     * @param int|null $sessionTimeout Session idle timeout in seconds (null = no timeout)
+     */
+    public function __construct(
+        string $usersFile,
+        ?string $storagePath = null,
+        bool $ipBinding = self::DEFAULT_IP_BINDING,
+        ?int $sessionTimeout = self::DEFAULT_SESSION_TIMEOUT
+    ) {
         $this->usersFile = $usersFile;
         $this->storagePath = $storagePath ?? dirname($usersFile, 2) . '/storage';
+        $this->ipBindingEnabled = $ipBinding;
+        $this->sessionTimeout = $sessionTimeout;
     }
 
     /**
@@ -66,11 +86,46 @@ final class Auth
 
     /**
      * Check if a user is logged in.
+     * 
+     * Also validates:
+     * - IP binding (if enabled): Session must be from same IP as login
+     * - Session timeout (if configured): Session must not be idle too long
      */
     public function check(): bool
     {
         $this->startSession();
-        return isset($_SESSION[self::SESSION_KEY]);
+        
+        if (!isset($_SESSION[self::SESSION_KEY])) {
+            return false;
+        }
+        
+        // Check IP binding - invalidate if IP changed
+        if ($this->ipBindingEnabled) {
+            $sessionIp = $_SESSION[self::SESSION_IP_KEY] ?? null;
+            $currentIp = $this->getClientIp();
+            
+            if ($sessionIp !== null && !$this->ipMatches($sessionIp, $currentIp)) {
+                // IP mismatch - possible session hijacking, force logout
+                $this->logout();
+                return false;
+            }
+        }
+        
+        // Check session timeout - invalidate if idle too long
+        if ($this->sessionTimeout !== null) {
+            $lastActivity = $_SESSION[self::SESSION_LAST_ACTIVITY_KEY] ?? 0;
+            
+            if (time() - $lastActivity > $this->sessionTimeout) {
+                // Session expired due to inactivity
+                $this->logout();
+                return false;
+            }
+            
+            // Update last activity timestamp
+            $_SESSION[self::SESSION_LAST_ACTIVITY_KEY] = time();
+        }
+        
+        return true;
     }
 
     /**
@@ -141,6 +196,16 @@ final class Auth
         $this->startSession();
         session_regenerate_id(true);
         $_SESSION[self::SESSION_KEY] = $email;
+        
+        // Store IP for binding validation (prevents session hijacking from different IP)
+        if ($this->ipBindingEnabled) {
+            $_SESSION[self::SESSION_IP_KEY] = $this->getClientIp();
+        }
+        
+        // Initialize activity timestamp for timeout tracking
+        if ($this->sessionTimeout !== null) {
+            $_SESSION[self::SESSION_LAST_ACTIVITY_KEY] = time();
+        }
 
         // Update last login time
         $this->updateLastLogin($email);
@@ -334,6 +399,40 @@ final class Auth
         }
 
         return '0.0.0.0';
+    }
+
+    /**
+     * Check if two IP addresses match for session binding.
+     * 
+     * For IPv4: Exact match required.
+     * For IPv6: Compares normalized addresses (handles different representations).
+     * 
+     * Note: This is intentionally strict. For users behind load balancers that
+     * rotate IPs, IP binding should be disabled in config.
+     */
+    private function ipMatches(string $sessionIp, string $currentIp): bool
+    {
+        // Normalize both IPs for comparison
+        $normalizedSession = $this->normalizeIp($sessionIp);
+        $normalizedCurrent = $this->normalizeIp($currentIp);
+        
+        return $normalizedSession === $normalizedCurrent;
+    }
+
+    /**
+     * Normalize an IP address for consistent comparison.
+     * 
+     * Handles IPv6 variations (::1, 0:0:0:0:0:0:0:1, etc.)
+     */
+    private function normalizeIp(string $ip): string
+    {
+        // Use PHP's built-in IP validation and normalization
+        $packed = @inet_pton($ip);
+        if ($packed === false) {
+            return $ip; // Return as-is if invalid
+        }
+        
+        return inet_ntop($packed);
     }
 
     /**
