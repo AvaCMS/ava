@@ -144,6 +144,13 @@ final class WebpageCache
      * Optimized to minimize filesystem calls:
      * - Single stat() via filemtime() instead of file_exists() + filemtime()
      * - Store mtime to avoid double stat() call
+     * 
+     * Note: We intentionally do NOT send Last-Modified or handle If-Modified-Since
+     * for cached HTML pages. The cache file's mtime only reflects when the HTML was
+     * written to disk, not when the underlying content/theme/config last changed.
+     * A theme or plugin change would produce different HTML but not update the cache
+     * file's mtime, leading to stale 304 responses. The file-based cache is already
+     * fast enough (~0.02ms) that the marginal gain from 304 is not worth the risk.
      */
     private function getFromFile(Request $request): ?Response
     {
@@ -163,18 +170,6 @@ final class WebpageCache
             return null;
         }
 
-        // Check conditional GET (If-Modified-Since)
-        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-            $ifModifiedSince = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']);
-            if ($ifModifiedSince >= $mtime) {
-                // Return 304 via Response object (requires manual header setting or helper)
-                $response = new Response('', 304);
-                return $response
-                    ->withHeader('X-Page-Cache', 'HIT')
-                    ->withHeader('X-Fast-Path', 'standard');
-            }
-        }
-
         // Read file content
         $content = @file_get_contents($cacheFile);
         if ($content === false) {
@@ -183,7 +178,6 @@ final class WebpageCache
 
         // Build response with pre-computed age (avoid second stat)
         return Response::html($content)
-            ->withHeader('Last-Modified', gmdate('D, d M Y H:i:s T', $mtime))
             ->withHeader('X-Page-Cache', 'HIT')
             ->withHeader('X-Cache-Age', (string) $age);
     }

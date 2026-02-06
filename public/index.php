@@ -71,37 +71,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
                             $age = time() - $mtime;
                             
                             if ($ttl === null || $age <= $ttl) {
-                                // Check conditional GET (If-Modified-Since)
-                                if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-                                    $ifModifiedSince = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']);
-                                    if ($ifModifiedSince >= $mtime) {
-                                        header('HTTP/1.1 304 Not Modified');
-                                        header('X-Page-Cache: HIT');
-                                        header('X-Fast-Path: ultra');
-                                        header('X-Content-Type-Options: nosniff');
-                                        header('X-Frame-Options: SAMEORIGIN');
-                                        header('Referrer-Policy: strict-origin-when-cross-origin');
-
-                                        $securityHeaders = $config['security']['headers'] ?? [];
-                                        if ($csp = $normalizeHeader($securityHeaders['content_security_policy'] ?? null)) {
-                                            header('Content-Security-Policy: ' . $csp);
-                                        }
-                                        if ($pp = $normalizeHeader($securityHeaders['permissions_policy'] ?? null, ', ')) {
-                                            header('Permissions-Policy: ' . $pp);
-                                        }
-                                        if ($coop = $normalizeHeader($securityHeaders['cross_origin_opener_policy'] ?? null)) {
-                                            header('Cross-Origin-Opener-Policy: ' . $coop);
-                                        }
-                                        if ($corp = $normalizeHeader($securityHeaders['cross_origin_resource_policy'] ?? null)) {
-                                            header('Cross-Origin-Resource-Policy: ' . $corp);
-                                        }
-                                        exit;
-                                    }
-                                }
-
                                 // Serve cached file directly!
                                 header('Content-Type: text/html; charset=utf-8');
-                                header('Last-Modified: ' . gmdate('D, d M Y H:i:s T', $mtime));
                                 header('X-Page-Cache: HIT');
                                 header('X-Fast-Path: ultra');
                                 header('X-Cache-Age: ' . $age);
